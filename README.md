@@ -1,4 +1,4 @@
-# TeamFormation
+# SuperScript
 Agent based model of team formation (development and production).
 
 Folder [developing_model_spec](developing_model_spec) contains scripts that were used in the development of the model. 
