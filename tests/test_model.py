@@ -8,22 +8,19 @@ from mesa.time import BaseScheduler
 
 class TestSuperScriptModel(unittest.TestCase):
 
-    @patch('superscript_model.model.SuperScriptModel.step')
-    def test_init(self, mock_step):
+    def test_init(self):
 
         model = SuperScriptModel(worker_count=10)
         self.assertEqual(model.worker_count, 10)
         self.assertIsInstance(model, Model)
         self.assertIsInstance(model.schedule, BaseScheduler)
-        self.assertTrue(mock_step.called)
 
-    @patch('superscript_model.model.SuperScriptModel')
-    def test_step(self, mock_model):
+    @patch('superscript_model.model.RandomActivation.step')
+    def test_step(self, mock_schedule):
 
-        mock_model.step()
-        mock_model.schedule.step.assert_called_once()
-
-
+        model = SuperScriptModel(worker_count=10)
+        model.step()
+        mock_schedule.assert_called_once()
 
 
 if __name__ == '__main__':

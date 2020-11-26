@@ -8,7 +8,6 @@ class SuperScriptModel(Model):
 
         self.worker_count = worker_count
         self.schedule = RandomActivation(self)
-        self.step()
 
     def step(self):
         self.schedule.step()
