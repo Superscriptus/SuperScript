@@ -32,3 +32,6 @@ class Worker(Agent):
         self.worker_id = worker_id
         super().__init__(worker_id, model)
         self.strategy = AllInStrategy('All-In')
+
+    def step(self):
+        pass
