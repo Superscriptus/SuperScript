@@ -1,4 +1,6 @@
 import unittest
+from unittest.mock import patch
+
 import inspect
 from mesa import Agent
 
@@ -19,9 +21,10 @@ def implements_interface(cls, interface):
 
 class TestWorker(unittest.TestCase):
 
-    def test_init(self):
+    @patch('superscript_model.model.Model')
+    def test_init(self, mock_model):
 
-        worker = Worker(worker_id=42)
+        worker = Worker(42, mock_model)
         self.assertTrue(worker.worker_id == 42)
         self.assertIsInstance(worker, Agent)
         self.assertTrue(implements_interface(worker.strategy,

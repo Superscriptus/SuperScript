@@ -1,5 +1,6 @@
 from mesa import Agent
 from interface import Interface, implements
+
 from .project import Project
 
 
@@ -26,7 +27,8 @@ class AllInStrategy(implements(WorkerStrategyInterface)):
 
 class Worker(Agent):
 
-    def __init__(self, worker_id: int):
+    def __init__(self, worker_id: int, model):
 
         self.worker_id = worker_id
+        super().__init__(worker_id, model)
         self.strategy = AllInStrategy('All-In')
