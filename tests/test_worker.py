@@ -1,10 +1,20 @@
 import unittest
+import inspect
 from mesa import Agent
 
 from superscript_model.worker import (Worker,
                                       WorkerStrategyInterface,
                                       AllInStrategy)
 from superscript_model.project import Project
+
+
+def implements_interface(cls, interface):
+
+    if not inspect.isclass(cls):
+        cls = cls.__class__
+
+    return (len(list(cls.interfaces())) == 1
+            and list(cls.interfaces())[0] == interface)
 
 
 class TestWorker(unittest.TestCase):
@@ -14,6 +24,8 @@ class TestWorker(unittest.TestCase):
         worker = Worker(worker_id=42)
         self.assertTrue(worker.worker_id == 42)
         self.assertIsInstance(worker, Agent)
+        self.assertTrue(implements_interface(worker.strategy,
+                                             WorkerStrategyInterface))
 
 
 class TestWorkerStrategyInterface(unittest.TestCase):
@@ -26,9 +38,7 @@ class TestAllInStrategy(unittest.TestCase):
 
     def test_init(self):
 
-        self.assertEquals(len(list(AllInStrategy.interfaces())), 1)
-        self.assertEquals(list(AllInStrategy.interfaces())[0],
-                          WorkerStrategyInterface)
+        self.assertTrue(implements_interface(AllInStrategy, WorkerStrategyInterface))
 
         strategy = AllInStrategy('test')
         self.assertEquals(strategy.name, 'test')

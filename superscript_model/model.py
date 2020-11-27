@@ -1,6 +1,7 @@
 from mesa import Model
 from mesa.time import RandomActivation
 
+from .worker import Worker
 
 class SuperScriptModel(Model):
 
