@@ -23,6 +23,13 @@ class TestSuperScriptModel(unittest.TestCase):
         model.step()
         mock_schedule.assert_called_once()
 
+    @patch('superscript_model.model.RandomActivation.step')
+    def test_run_model(self, mock_step):
+        model = SuperScriptModel(worker_count=10)
+        model.run_model(100)
+        self.assertEquals(mock_step.call_count, 100)
+        self.assertEquals(model.schedule.get_agent_count(), 10)
+
 
 if __name__ == '__main__':
     unittest.main()

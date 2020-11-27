@@ -17,3 +17,7 @@ class SuperScriptModel(Model):
 
     def step(self):
         self.schedule.step()
+
+    def run_model(self, step_count: int):
+        for i in range(step_count):
+            self.step()
