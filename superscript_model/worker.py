@@ -1,13 +1,14 @@
 from mesa import Agent
 from interface import Interface, implements
+from .project import Project
 
 
 class WorkerStrategyInterface(Interface):
 
-    def bid(self):
+    def bid(self, project: Project) -> bool:
         pass
 
-    def accept(self):
+    def accept(self, project: Project) -> bool:
         pass
 
 
@@ -16,11 +17,11 @@ class AllInStrategy(implements(WorkerStrategyInterface)):
     def __init__(self, name: str):
         self.name = name
 
-    def bid(self):
-        pass
+    def bid(self, project: Project) -> bool:
+        return True
 
-    def accept(self):
-        pass
+    def accept(self, project: Project) -> bool:
+        return True
 
 
 class Worker(Agent):
