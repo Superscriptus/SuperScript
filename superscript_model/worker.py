@@ -1,4 +1,14 @@
 from mesa import Agent
+from interface import Interface
+
+
+class WorkerStrategyInterface(Interface):
+
+    def bid(self):
+        pass
+
+    def accept(self):
+        pass
 
 
 class Worker(Agent):
