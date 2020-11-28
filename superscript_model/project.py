@@ -10,3 +10,8 @@ class Project:
 
     def advance(self):
         self.progress += 1
+        if self.progress == self.length:
+            self.terminate()
+
+    def terminate(self):
+        pass
