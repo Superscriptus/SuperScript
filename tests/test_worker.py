@@ -44,7 +44,7 @@ class TestAllInStrategy(unittest.TestCase):
         self.assertTrue(implements_interface(AllInStrategy, WorkerStrategyInterface))
 
         strategy = AllInStrategy('test')
-        self.assertEquals(strategy.name, 'test')
+        self.assertEqual(strategy.name, 'test')
 
     def test_bid(self):
 
