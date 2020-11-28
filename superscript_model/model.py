@@ -2,7 +2,13 @@ from mesa import Model
 from mesa.time import RandomActivation
 
 from .worker import Worker
+from .project import Project
 
+
+# TODO:
+# - move parameters to config.py
+# - write project_creator class
+# - rename private data members _XX
 
 class SuperScriptModel(Model):
 
@@ -16,6 +22,7 @@ class SuperScriptModel(Model):
             self.schedule.add(w)
 
     def step(self):
+        new_project = Project(0, 5)
         self.schedule.step()
 
     def run_model(self, step_count: int):

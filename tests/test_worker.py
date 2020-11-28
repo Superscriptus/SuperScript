@@ -49,12 +49,12 @@ class TestAllInStrategy(unittest.TestCase):
     def test_bid(self):
 
         strategy = AllInStrategy('test')
-        self.assertTrue(strategy.bid(Project(42)))
+        self.assertTrue(strategy.bid(Project(42, 5)))
 
     def test_accept(self):
 
         strategy = AllInStrategy('test')
-        self.assertTrue(strategy.accept(Project(42)))
+        self.assertTrue(strategy.accept(Project(42, 5)))
 
 
 
