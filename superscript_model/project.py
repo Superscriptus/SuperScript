@@ -6,3 +6,7 @@ class Project:
 
         self.project_id = project_id
         self.length = project_length
+        self.progress = 0
+
+    def advance(self):
+        self.progress += 1
