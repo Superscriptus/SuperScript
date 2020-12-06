@@ -11,7 +11,9 @@ from .project import Project, ProjectInventory
 # - rename private data members _XX
 # - does project inventory need to be an order list?
 # - refactor so that project are advance by project lead
-# - refa
+# - refactor so that projects use inventory.add() and inventory.delete()
+# - change remote name
+# - add requirements.txt and try installing on different system
 
 class SuperScriptModel(Model):
 
@@ -33,3 +35,9 @@ class SuperScriptModel(Model):
     def run_model(self, step_count: int):
         for i in range(step_count):
             self.step()
+
+
+if __name__ == '__main__':
+
+    model = SuperScriptModel(10)
+    model.run_model(5)
