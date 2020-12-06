@@ -11,7 +11,7 @@ from .project import ProjectInventory
 # - rename private data members _XX
 # - does project inventory need to be an order list?
 # - refactor so that project are advance by project lead
-# - refactor so that projects use inventory.add() and inventory.delete()
+# - refactor so that projects use inventory.add()
 # - change remote name
 # - add requirements.txt and try installing on different system
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)

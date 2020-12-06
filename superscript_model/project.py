@@ -12,8 +12,16 @@ class ProjectInventory:
 
         for i in range(new_projects_count):
             p = Project(self, self.index_total + i)
-            self.projects[p.project_id] = p
+            self.add_project(p)
+
+    def add_project(self, project):
+
+        if project.project_id not in self.projects.keys():
+            self.projects[project.project_id] = project
             self.index_total += 1
+        else:
+            raise KeyError('Project ID %d already exists in inventory.'
+                           % project.project_id)
 
     def delete_project(self, project_id):
         try:
