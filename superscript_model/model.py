@@ -9,9 +9,8 @@ from .project import ProjectInventory
 # - move parameters to config.py
 # - write project_creator class
 # - rename private data members _XX
-# - does project inventory need to be an order list?
+# - does project inventory need to be an ordered dict?
 # - refactor so that project are advance by project lead
-# - refactor so that projects use inventory.add()
 # - change remote name
 # - add requirements.txt and try installing on different system
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
