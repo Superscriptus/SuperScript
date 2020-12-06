@@ -49,6 +49,6 @@ class Project:
             self.terminate()
 
     def terminate(self):
-        del self.inventory.projects[self.project_id]
+        self.inventory.delete_project(self.project_id)
 
 
