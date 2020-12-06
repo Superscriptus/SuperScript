@@ -2,7 +2,7 @@ from mesa import Model
 from mesa.time import RandomActivation
 
 from .worker import Worker
-from .project import Project, ProjectInventory
+from .project import ProjectInventory
 
 
 # TODO:
@@ -14,6 +14,7 @@ from .project import Project, ProjectInventory
 # - refactor so that projects use inventory.add() and inventory.delete()
 # - change remote name
 # - add requirements.txt and try installing on different system
+# - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
 
 class SuperScriptModel(Model):
 
@@ -35,9 +36,3 @@ class SuperScriptModel(Model):
     def run_model(self, step_count: int):
         for i in range(step_count):
             self.step()
-
-
-if __name__ == '__main__':
-
-    model = SuperScriptModel(10)
-    model.run_model(5)

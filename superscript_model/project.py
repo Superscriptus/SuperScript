@@ -15,6 +15,13 @@ class ProjectInventory:
             self.projects[p.project_id] = p
             self.index_total += 1
 
+    def delete_project(self, project_id):
+        try:
+            del self.projects[project_id]
+        except KeyError:
+            print('Project ID %d not in inventory.' % project_id)
+            raise
+
     def advance_projects(self):
         """ Allows projects to be deleted/terminated during loop"""
         project_ids = list(self.projects.keys())

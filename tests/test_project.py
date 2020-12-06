@@ -43,6 +43,16 @@ class TestProjectInventory(unittest.TestCase):
         inventory.create_projects(5)
         self.assertEqual(inventory.active_count, 5)
 
+    def test_delete_project(self):
+
+        inventory = ProjectInventory()
+        inventory.create_projects(5)
+        self.assertRaises(KeyError, inventory.delete_project, 42)
+        self.assertEqual(inventory.active_count, 5)
+        inventory.delete_project(0)
+        inventory.delete_project(2)
+        self.assertEqual(inventory.active_count, 3)
+
     def test_advance_projects(self):
 
         inventory = ProjectInventory()
