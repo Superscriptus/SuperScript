@@ -6,7 +6,7 @@ from .project import ProjectInventory
 
 
 # TODO:
-# - add project late start functionality..
+# - add project late start functionality.
 # - move parameters to config.py
 # - write project_creator class
 # - rename private data members _XX

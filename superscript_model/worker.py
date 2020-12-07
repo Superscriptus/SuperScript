@@ -41,4 +41,5 @@ class Worker(Agent):
         del self.leads_on[project.project_id]
 
     def step(self):
-        pass
+        for project in self.leads_on.values():
+            project.advance()

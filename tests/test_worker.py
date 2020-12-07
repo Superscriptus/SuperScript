@@ -7,7 +7,7 @@ from mesa import Agent
 from superscript_model.worker import (Worker,
                                       WorkerStrategyInterface,
                                       AllInStrategy)
-from superscript_model.project import Project
+from superscript_model.project import Project, ProjectInventory
 
 
 def implements_interface(cls, interface):
@@ -47,6 +47,22 @@ class TestWorker(unittest.TestCase):
         self.assertEqual(len(worker.leads_on.keys()), 1)
         worker.remove_as_lead(mock_project)
         self.assertEqual(len(worker.leads_on.keys()), 0)
+
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.Project.terminate')
+    def test_step(self, mock_terminate, mock_model):
+
+        worker = Worker(42, mock_model)
+        project = Project(ProjectInventory(),
+                          project_id=42,
+                          project_length=2)
+
+        worker.assign_as_lead(project)
+        self.assertEqual(project.progress, 0)
+        worker.step()
+        self.assertEqual(project.progress, 1)
+        worker.step()
+        self.assertEqual(mock_terminate.call_count, 1)
 
 
 class TestWorkerStrategyInterface(unittest.TestCase):
