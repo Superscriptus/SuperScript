@@ -22,12 +22,21 @@ class TestProject(unittest.TestCase):
         project.advance()
         self.assertEqual(project.progress, 3)
 
-    @patch('superscript_model.project.Project.terminate')
-    def test_terminate(self, mock_terminate):
-        project = Project(ProjectInventory(), 42, 2)
+    @patch('superscript_model.organisation.Team')
+    def test_terminate(self, mock_team):
+
+        inventory = ProjectInventory()
+        inventory.create_projects(1)
+        project = inventory.projects[0]
+        project.team = mock_team
+
         project.advance()
         project.advance()
-        self.assertEqual(mock_terminate.call_count, 1)
+        project.advance()
+        project.advance()
+        project.advance()
+        self.assertEqual(mock_team.remove_lead.call_count, 1)
+        self.assertIs(project.team, None)
 
 
 class TestProjectInventory(unittest.TestCase):

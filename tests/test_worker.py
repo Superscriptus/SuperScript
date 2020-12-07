@@ -30,6 +30,24 @@ class TestWorker(unittest.TestCase):
         self.assertTrue(implements_interface(worker.strategy,
                                              WorkerStrategyInterface))
 
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.Project')
+    def test_assign_as_lead(self, mock_project, mock_model):
+        worker = Worker(42, mock_model)
+        worker.assign_as_lead(mock_project)
+        self.assertEqual(len(worker.leads_on.keys()), 1)
+
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.Project')
+    def test_remove_as_lead(self, mock_project, mock_model):
+        worker = Worker(42, mock_model)
+        self.assertRaises(KeyError, worker.remove_as_lead, mock_project)
+
+        worker.assign_as_lead(mock_project)
+        self.assertEqual(len(worker.leads_on.keys()), 1)
+        worker.remove_as_lead(mock_project)
+        self.assertEqual(len(worker.leads_on.keys()), 0)
+
 
 class TestWorkerStrategyInterface(unittest.TestCase):
 

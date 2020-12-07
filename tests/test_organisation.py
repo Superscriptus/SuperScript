@@ -20,6 +20,16 @@ class TestTeam(unittest.TestCase):
         team = Team(mock_project, members=[mock_worker],lead=mock_worker)
         self.assertTrue(team.team_ovr is None)
         self.assertEqual(len(team.members), 1)
+        self.assertEqual(mock_worker.assign_as_lead.call_count, 1)
+
+    @patch('superscript_model.project.Project')
+    @patch('superscript_model.worker.Worker')
+    def test_remove_lead(self, mock_worker, mock_project):
+
+        team = Team(mock_project, members=[mock_worker], lead=mock_worker)
+        team.remove_lead(mock_project)
+        self.assertEqual(mock_worker.remove_as_lead.call_count, 1)
+        self.assertIs(team.lead, None)
 
 
 class TestOrganisationStrategyInterface(unittest.TestCase):

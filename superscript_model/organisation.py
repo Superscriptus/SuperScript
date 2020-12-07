@@ -17,6 +17,7 @@ class Team:
 
     def remove_lead(self, project):
         self.lead.remove_as_lead(project)
+        self.lead = None
 
 
 class OrganisationStrategyInterface(Interface):
