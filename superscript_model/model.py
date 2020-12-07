@@ -34,9 +34,8 @@ class SuperScriptModel(Model):
             self.schedule.add(w)
 
     def step(self):
-        self.inventory.create_projects(5)
+        self.inventory.create_projects(20)
         self.schedule.step()
-        self.inventory.advance_projects()
 
     def run_model(self, step_count: int):
         for i in range(step_count):
