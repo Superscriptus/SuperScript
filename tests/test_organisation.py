@@ -1,11 +1,14 @@
 import unittest
+from unittest.mock import patch
+from .test_worker import implements_interface
 
 from mesa import Model
 from superscript_model.model import SuperScriptModel
 from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import (Team,
                                             OrganisationStrategyInterface,
-                                            RandomStrategy)
+                                            RandomStrategy,
+                                            TeamAllocator)
 
 
 class TestTeam(unittest.TestCase):
@@ -29,14 +32,31 @@ class TestRandomStrategy(unittest.TestCase):
         strategy = RandomStrategy(SuperScriptModel(42))
         self.assertIsInstance(strategy.model, Model)
 
-    def test_allocate_team(self):
+    def test_select_team(self):
 
         strategy = RandomStrategy(SuperScriptModel(42))
         inventory = ProjectInventory()
         inventory.create_projects(1)
-        team = strategy.allocate_team(inventory.projects[0],
-                                      bid_pool=None)
+        team = strategy.select_team(inventory.projects[0],
+                                    bid_pool=None)
 
         self.assertIsInstance(team, Team)
         self.assertTrue(set(team.members).issubset(strategy.model.schedule.agents))
         self.assertTrue(team.lead in team.members)
+
+
+class TestTeamAllocator(unittest.TestCase):
+
+    def test_init(self):
+        allocator = TeamAllocator(SuperScriptModel(42))
+        self.assertTrue(implements_interface(allocator.strategy,
+                                             OrganisationStrategyInterface))
+
+    @patch('superscript_model.project.Project')
+    def test_allocate_team(self, mock_project):
+
+        allocator = TeamAllocator(SuperScriptModel(42))
+        allocator.allocate_team(mock_project)
+        self.assertIsInstance(mock_project.team, Team)
+
+

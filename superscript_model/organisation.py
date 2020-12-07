@@ -14,7 +14,7 @@ class Team:
 
 class OrganisationStrategyInterface(Interface):
 
-    def allocate_team(self, project: Project,
+    def select_team(self, project: Project,
                       bid_pool=None) -> Team:
         pass
 
@@ -24,8 +24,8 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
     def __init__(self, model):
         self.model = model
 
-    def allocate_team(self, project: Project,
-                      bid_pool=None) -> Team:
+    def select_team(self, project: Project,
+                    bid_pool=None) -> Team:
 
         size = Random.randint(3, 7)
         bid_pool = (self.model.schedule.agents
@@ -36,3 +36,16 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
 
         return Team(workers, lead)
 
+
+class TeamAllocator:
+
+    def __init__(self, model):
+        self.strategy = RandomStrategy(model)
+
+    def invite_bids(self):
+        # NOT IMPLEMENTED
+        pass
+
+    def allocate_team(self, project: Project):
+        project.team = self.strategy.select_team(project,
+                                                 bid_pool=None)

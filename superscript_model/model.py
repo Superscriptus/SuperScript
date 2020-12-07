@@ -6,6 +6,7 @@ from .project import ProjectInventory
 
 
 # TODO:
+# - add project late start functionality..
 # - move parameters to config.py
 # - write project_creator class
 # - rename private data members _XX
@@ -15,6 +16,7 @@ from .project import ProjectInventory
 # - add requirements.txt and try installing on different system
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
 # - remove accept method from worker strategy?
+# - refactor so that strategies are injected to clients (not constructed internally)
 
 class SuperScriptModel(Model):
 
