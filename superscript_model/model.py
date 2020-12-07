@@ -14,6 +14,7 @@ from .project import ProjectInventory
 # - change remote name
 # - add requirements.txt and try installing on different system
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
+# - remove accept method from worker strategy?
 
 class SuperScriptModel(Model):
 
