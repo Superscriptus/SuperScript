@@ -58,6 +58,9 @@ class Project:
             self.terminate()
 
     def terminate(self):
+        if self.team is not None:
+            self.team.remove_lead(self)
+
         self.inventory.delete_project(self.project_id)
 
 

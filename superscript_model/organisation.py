@@ -6,10 +6,17 @@ from .utilities import Random
 
 class Team:
 
-    def __init__(self, members, lead):
+    def __init__(self, project, members, lead):
         self.team_ovr = None
         self.members = members
         self.lead = lead
+        self.assign_lead(project)
+
+    def assign_lead(self, project):
+        self.lead.assign_as_lead(project)
+
+    def remove_lead(self, project):
+        self.lead.remove_as_lead(project)
 
 
 class OrganisationStrategyInterface(Interface):
@@ -34,12 +41,13 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
         workers = Random.choices(bid_pool, size)
         lead = Random.choice(workers)
 
-        return Team(workers, lead)
+        return Team(project, workers, lead)
 
 
 class TeamAllocator:
 
     def __init__(self, model):
+        self.model = model
         self.strategy = RandomStrategy(model)
 
     def invite_bids(self):
@@ -47,5 +55,6 @@ class TeamAllocator:
         pass
 
     def allocate_team(self, project: Project):
+
         project.team = self.strategy.select_team(project,
                                                  bid_pool=None)

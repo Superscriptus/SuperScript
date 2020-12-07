@@ -17,6 +17,8 @@ from .project import ProjectInventory
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
 # - remove accept method from worker strategy?
 # - refactor so that strategies are injected to clients (not constructed internally)
+# - are we safe passing around references to project and worker (eg. for project_lead?)
+# #    i.e. is memory correctly cleaned up on project/worker deletion?
 
 class SuperScriptModel(Model):
 

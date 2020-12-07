@@ -13,11 +13,13 @@ from superscript_model.organisation import (Team,
 
 class TestTeam(unittest.TestCase):
 
-    def test_init(self):
+    @patch('superscript_model.project.Project')
+    @patch('superscript_model.worker.Worker')
+    def test_init(self, mock_worker, mock_project):
 
-        team = Team(members=[],lead=None)
+        team = Team(mock_project, members=[mock_worker],lead=mock_worker)
         self.assertTrue(team.team_ovr is None)
-        self.assertEqual(len(team.members), 0)
+        self.assertEqual(len(team.members), 1)
 
 
 class TestOrganisationStrategyInterface(unittest.TestCase):
