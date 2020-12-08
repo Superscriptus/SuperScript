@@ -12,7 +12,7 @@ class ProjectInventory:
 
     @property
     def active_count(self):
-        return len(self.projects.keys())
+        return sum([1 for p in self.projects.values() if p.progress >= 0])
 
     def create_projects(self, new_projects_count):
 
@@ -51,12 +51,13 @@ class Project:
     def __init__(self,
                  inventory: ProjectInventory,
                  project_id=42,
-                 project_length=5):
+                 project_length=5,
+                 start_time_offset=0):
 
         self.inventory = inventory
         self.project_id = project_id
         self.length = project_length
-        self.progress = 0
+        self.progress = 0 - start_time_offset
         self.team = None
 
     def advance(self):
