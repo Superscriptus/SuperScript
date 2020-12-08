@@ -4,9 +4,17 @@ import matplotlib.pyplot as plt
 from interface import Interface, implements
 
 
+class FunctionFactory:
+
+    @staticmethod
+    def get(function_name):
+        if function_name == 'TimelineFlexibility':
+            return TimelineFlexibility()
+
+
 class FunctionInterface(Interface):
 
-    def get_value(self, x: float) -> float:
+    def get_values(self, x: np.ndarray) -> float:
         pass
 
     def plot_function(self, xrange, title=None):
@@ -18,16 +26,23 @@ class FunctionInterface(Interface):
 
 class TimelineFlexibility(implements(FunctionInterface)):
 
-    def __init__(self, parameters):
+    def __init__(self, parameters=(50, -0.8)):
         self.a = parameters[0]
         self.b = parameters[1]
 
-    def get_value(self, x: float) -> float:
-        return self.a * (np.exp(self.b * np.array(x)))
+    @staticmethod
+    def normalise(y):
+        denominator = sum(y)
+        return y / denominator
+
+    def get_values(self, x: np.ndarray) -> float:
+        return self.normalise(
+            self.a * (np.exp(self.b * np.array(x)))
+        )
 
     def plot_function(self, xrange, title=None):
 
-        plt.plot(xrange, self.get_value(xrange))
+        plt.plot(xrange, self.get_values(xrange))
         plt.title(title)
         plt.show()
 

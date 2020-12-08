@@ -25,9 +25,9 @@ class TestTimelineFlexibility(unittest.TestCase):
     def test_get_value(self):
 
         func = TimelineFlexibility(parameters=(50, -0.8))
-        self.assertEqual(np.round(func.get_value(1.0), 2), 22.47)
-        self.assertTrue((np.round(func.get_value([2.1, -0.5]), 2)
-                         == np.array([9.32, 74.59])).all())
+        self.assertEqual(np.round(func.get_values([1.0]), 2), np.array(1.0))
+        self.assertTrue((np.round(func.get_values([2.1, -0.5]), 2)
+                         == np.array([0.11, 0.89])).all())
 
     @patch('matplotlib.pyplot.show')
     def test_plot_function(self, mock_show):

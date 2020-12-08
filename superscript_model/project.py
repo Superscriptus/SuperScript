@@ -1,9 +1,14 @@
+from .function import FunctionFactory
+
+
 class ProjectInventory:
 
     def __init__(self, team_allocator):
         self.projects = dict()
         self.index_total = 0
         self.team_allocator = team_allocator
+        self.timeline_flexibility_func = (FunctionFactory
+                                          .get('TimelineFlexibility'))
 
     @property
     def active_count(self):
