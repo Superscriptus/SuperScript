@@ -4,7 +4,8 @@ import numpy as np
 
 from .test_worker import implements_interface
 from superscript_model.function import (FunctionInterface,
-                                        TimelineFlexibility)
+                                        TimelineFlexibility,
+                                        NoFlexibility)
 
 
 class TestFunctionInterface(unittest.TestCase):
@@ -44,6 +45,33 @@ class TestTimelineFlexibility(unittest.TestCase):
         func = TimelineFlexibility(parameters=(50, -0.8))
         self.assertEqual(func.print_function(),
                          "TimelineFlexibility = 50.00 * (e^(-0.80 * X))")
+
+
+class TestNoFlexibility(unittest.TestCase):
+
+    def test_init(self):
+
+        func = NoFlexibility(parameters=(0,))
+        self.assertEqual(func.a, 0)
+        self.assertTrue(implements_interface(func, FunctionInterface))
+
+    def test_get_value(self):
+
+        func = NoFlexibility(parameters=(0,))
+        self.assertEqual(np.round(func.get_values([1.0]), 2), np.array(1.0))
+        self.assertTrue((np.round(func.get_values([2.1, -0.5]), 2)
+                         == np.array([1.0, 0.0])).all())
+
+    @patch('matplotlib.pyplot.show')
+    def test_plot_function(self, mock_show):
+        func = NoFlexibility()
+        func.plot_function([1,2,3])
+        self.assertEqual(mock_show.call_count, 1)
+
+    def test_print_function(self):
+        func = NoFlexibility(parameters=(0,))
+        self.assertEqual(func.print_function(),
+                         "NoFlexibility : all probability assigned to 0 element")
 
 
 

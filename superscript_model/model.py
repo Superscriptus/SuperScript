@@ -32,7 +32,10 @@ class SuperScriptModel(Model):
 
         self.worker_count = worker_count
         self.schedule = RandomActivation(self)
-        self.inventory = ProjectInventory(TeamAllocator(self))
+        self.inventory = ProjectInventory(
+            TeamAllocator(self),
+            timeline_flexibility='TimelineFlexibility'
+        )
 
         for i in range(self.worker_count):
             w = Worker(i, self)

@@ -6,24 +6,47 @@ from .utilities import Random
 
 class ProjectInventory:
 
-    def __init__(self, team_allocator):
+    def __init__(self,
+                 team_allocator,
+                 timeline_flexibility='NoFlexibility'):
+
         self.projects = dict()
         self.index_total = 0
         self.team_allocator = team_allocator
-        self.timeline_flexibility_func = (FunctionFactory
-                                          .get('TimelineFlexibility'))
+        self.timeline_flexibility_func = (
+            FunctionFactory.get(timeline_flexibility)
+        )
 
     @property
     def active_count(self):
-        return sum([1 for p in self.projects.values() if p.progress >= 0])
+        return sum([1 for p
+                    in self.projects.values()
+                    if p.progress >= 0])
 
     def get_start_time_offset(self):
-        return self.timeline_flexibility_func(np.arange(5))
+
+        p_vector = (self.timeline_flexibility_func
+                    .get_values(np.arange(5)))
+
+        r = Random.uniform()
+        if r <= p_vector[4]:
+            return 4
+        elif r <= p_vector[3]:
+            return 3
+        elif r <= p_vector[2]:
+            return 3
+        elif r <= p_vector[1]:
+            return 3
+        else:
+            return 0
 
     def create_projects(self, new_projects_count):
 
         for i in range(new_projects_count):
-            p = Project(self, self.index_total)
+            p = Project(
+                self, self.index_total,
+                start_time_offset=self.get_start_time_offset()
+            )
             self.team_allocator.allocate_team(p)
             self.add_project(p)
 
