@@ -10,10 +10,10 @@ from .organisation import TeamAllocator
 # - coverage run -m unittest discover && coverage report
 # - add project late start functionality.
 # - move parameters to config.py
-# - write project_creator class
+# - refactor to pass project length in to create_projects (from config)
 # - rename private data members _XX
+# - change FunctionInterface to abstract base class (plot and print never change)
 # - does project inventory need to be an ordered dict?
-# - refactor so that project are advance by project lead
 # - change remote name
 # - add requirements.txt and try installing on different system
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
@@ -21,7 +21,8 @@ from .organisation import TeamAllocator
 # - refactor so that strategies are injected to clients (not constructed internally)
 # - are we safe passing around references to project and worker (eg. for project_lead?)
 # #    i.e. is memory correctly cleaned up on project/worker deletion?
-# - refactor to pass project length in to create_projects (from config)
+# - patch TeamAllocator throughout whole class/file in test_project?
+# - refactor so that plot_function takes a function plotter object
 
 class SuperScriptModel(Model):
 

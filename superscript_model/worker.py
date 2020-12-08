@@ -41,6 +41,7 @@ class Worker(Agent):
         del self.leads_on[project.project_id]
 
     def step(self):
+        """Dict can be updated during loop (one other?)"""
         projects = list(self.leads_on.values())
 
         for project in projects:
