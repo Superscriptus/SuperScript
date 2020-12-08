@@ -1,4 +1,7 @@
+import numpy as np
+
 from .function import FunctionFactory
+from .utilities import Random
 
 
 class ProjectInventory:
@@ -13,6 +16,9 @@ class ProjectInventory:
     @property
     def active_count(self):
         return sum([1 for p in self.projects.values() if p.progress >= 0])
+
+    def get_start_time_offset(self):
+        return self.timeline_flexibility_func(np.arange(5))
 
     def create_projects(self, new_projects_count):
 

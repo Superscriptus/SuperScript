@@ -14,3 +14,7 @@ class Random:
     @staticmethod
     def randint(a, b):
         return random.randint(a, b)
+
+    @staticmethod
+    def uniform():
+        return random.uniform(0.0, 1.0)

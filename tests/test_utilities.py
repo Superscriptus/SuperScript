@@ -23,4 +23,14 @@ class TestRandom(unittest.TestCase):
         for i in range(10):
             value = r.randint(1,5)
             self.assertIsInstance(value, int)
-            self.assertTrue(value >= 1 & value <= 5)
+            self.assertTrue((value >= 1)
+                            & (value <= 5))
+
+    def test_uniform(self):
+
+        r = Random()
+        for i in range(100):
+            value = r.uniform()
+            self.assertIsInstance(value, float)
+            self.assertTrue((value >= 0.0)
+                            & (value <= 1.0))

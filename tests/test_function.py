@@ -22,6 +22,11 @@ class TestTimelineFlexibility(unittest.TestCase):
         self.assertEqual(func.b, -0.8)
         self.assertTrue(implements_interface(func, FunctionInterface))
 
+    def test_normalise(self):
+        func = TimelineFlexibility(parameters=(50, -0.8))
+        self.assertTrue((func.normalise(np.array([1,2,3]))
+                         == np.array([1,2,3])/6).all())
+
     def test_get_value(self):
 
         func = TimelineFlexibility(parameters=(50, -0.8))
