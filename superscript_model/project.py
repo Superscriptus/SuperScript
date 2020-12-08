@@ -1,8 +1,9 @@
 class ProjectInventory:
 
-    def __init__(self):
+    def __init__(self, team_allocator):
         self.projects = dict()
         self.index_total = 0
+        self.team_allocator = team_allocator
 
     @property
     def active_count(self):
@@ -11,7 +12,8 @@ class ProjectInventory:
     def create_projects(self, new_projects_count):
 
         for i in range(new_projects_count):
-            p = Project(self, self.index_total + i)
+            p = Project(self, self.index_total)
+            self.team_allocator.allocate_team(p)
             self.add_project(p)
 
     def add_project(self, project):

@@ -3,9 +3,11 @@ from mesa.time import RandomActivation
 
 from .worker import Worker
 from .project import ProjectInventory
+from .organisation import TeamAllocator
 
 
 # TODO:
+# - coverage run -m unittest discover && coverage report
 # - add project late start functionality.
 # - move parameters to config.py
 # - write project_creator class
@@ -27,7 +29,7 @@ class SuperScriptModel(Model):
 
         self.worker_count = worker_count
         self.schedule = RandomActivation(self)
-        self.inventory = ProjectInventory()
+        self.inventory = ProjectInventory(TeamAllocator(self))
 
         for i in range(self.worker_count):
             w = Worker(i, self)

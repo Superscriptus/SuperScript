@@ -41,5 +41,8 @@ class Worker(Agent):
         del self.leads_on[project.project_id]
 
     def step(self):
-        for project in self.leads_on.values():
-            project.advance()
+        projects = list(self.leads_on.values())
+
+        for project in projects:
+            if project in self.leads_on.values():
+                project.advance()

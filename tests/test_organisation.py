@@ -44,10 +44,11 @@ class TestRandomStrategy(unittest.TestCase):
         strategy = RandomStrategy(SuperScriptModel(42))
         self.assertIsInstance(strategy.model, Model)
 
-    def test_select_team(self):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_select_team(self, mock_allocator):
 
         strategy = RandomStrategy(SuperScriptModel(42))
-        inventory = ProjectInventory()
+        inventory = ProjectInventory(mock_allocator)
         inventory.create_projects(1)
         team = strategy.select_team(inventory.projects[0],
                                     bid_pool=None)

@@ -49,11 +49,12 @@ class TestWorker(unittest.TestCase):
         self.assertEqual(len(worker.leads_on.keys()), 0)
 
     @patch('superscript_model.model.Model')
+    @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.project.Project.terminate')
-    def test_step(self, mock_terminate, mock_model):
+    def test_step(self, mock_terminate, mock_allocator, mock_model):
 
         worker = Worker(42, mock_model)
-        project = Project(ProjectInventory(),
+        project = Project(ProjectInventory(mock_allocator),
                           project_id=42,
                           project_length=2)
 
