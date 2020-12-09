@@ -95,5 +95,14 @@ class SkillMatrix:
 
         return json.dumps(output)
 
+    def get_ovr(self):
+
+        return (20 * sum([s for s in
+                          self.hard_skills.values()
+                          if s > 0.0])
+                / sum([1 for s in
+                       self.hard_skills.values()
+                       if s > 0.0])
+                )
 
 

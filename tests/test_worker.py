@@ -121,3 +121,11 @@ class TestSkillMatrix(unittest.TestCase):
         skills = SkillMatrix()
         self.assertIsInstance(skills.to_string(), str)
 
+    def test_get_ovr(self):
+        skills = SkillMatrix()
+        skills.hard_skills = {'A': 0.0,
+                              'B': 3.9,
+                              'C': 3.2,
+                              'D': 4.1,
+                              'E': 1.5}
+        self.assertEqual(skills.get_ovr(), 63.5)

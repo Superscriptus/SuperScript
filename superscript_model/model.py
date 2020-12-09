@@ -7,6 +7,7 @@ from .organisation import TeamAllocator
 
 
 # TODO:
+# - add worker OVR method and demo print in jupyter
 # - coverage run -m unittest discover && coverage report
 # - move parameters to config.py
 # - refactor to pass project length in to create_projects (from config)
