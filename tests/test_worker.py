@@ -128,4 +128,4 @@ class TestSkillMatrix(unittest.TestCase):
                               'C': 3.2,
                               'D': 4.1,
                               'E': 1.5}
-        self.assertEqual(skills.get_ovr(), 63.5)
+        self.assertEqual(skills.ovr, 63.5)

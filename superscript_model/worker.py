@@ -87,15 +87,17 @@ class SkillMatrix:
 
     def to_string(self):
 
-        output = {"Hard skills": self.hard_skills,
+        output = {"Worker OVR": self.ovr,
+                  "Hard skills": self.hard_skills,
                   "Soft skills": self.soft_skills,
                   "Hard skill probability":
                       self.hard_skill_probability,
                   "OVR multiplier": self.ovr_multiplier}
 
-        return json.dumps(output)
+        return json.dumps(output, indent=4)
 
-    def get_ovr(self):
+    @property
+    def ovr(self):
 
         return (20 * sum([s for s in
                           self.hard_skills.values()
