@@ -14,7 +14,7 @@ from .organisation import TeamAllocator
 # - change FunctionInterface to abstract base class (plot and print never change)
 
 # - set worker contribution to project from within team/project on project start..(when progress reaches 0)
-# - change active_project_equilibrium.py to compute active projects at same point in timestep (currently mid-timestep)
+# - manually calculate active_projects (80 versus 85)
 # - does project inventory need to be an ordered dict?
 # - change remote name
 # - add requirements.txt and try installing on different system

@@ -6,7 +6,8 @@ from mesa import Agent
 
 from superscript_model.worker import (Worker,
                                       WorkerStrategyInterface,
-                                      AllInStrategy)
+                                      AllInStrategy,
+                                      SkillMatrix)
 from superscript_model.project import Project, ProjectInventory
 
 
@@ -27,6 +28,7 @@ class TestWorker(unittest.TestCase):
         worker = Worker(42, mock_model)
         self.assertTrue(worker.worker_id == 42)
         self.assertIsInstance(worker, Agent)
+        self.assertIsInstance(worker.skills, SkillMatrix)
         self.assertTrue(implements_interface(worker.strategy,
                                              WorkerStrategyInterface))
 
@@ -92,4 +94,30 @@ class TestAllInStrategy(unittest.TestCase):
         self.assertTrue(strategy.accept(Project(42, 5)))
 
 
+class TestSkillMatrix(unittest.TestCase):
+
+    def test_init(self):
+        skills = SkillMatrix()
+        self.assertEqual(skills.max_skill, 5)
+        self.assertEqual(skills.hard_skill_probability, 0.8)
+        self.assertEqual(skills.ovr_multiplier, 20)
+        self.assertEqual(skills.round_to, 1)
+
+        self.assertIsInstance(skills.hard_skills, dict)
+        self.assertIsInstance(skills.soft_skills, dict)
+        self.assertEqual(len(skills.hard_skills.keys()), 5)
+        self.assertEqual(len(skills.soft_skills.keys()), 5)
+
+    def test_assign_hard_skills(self):
+
+        skills = SkillMatrix()
+        skills.assign_hard_skills()
+        self.assertTrue(sum(skills.hard_skills.values()) > 0.0)
+        for skill in skills.hard_skills.values():
+            self.assertTrue((skill >= 0.0) & (skill <= 5.0))
+
+    def test_to_string(self):
+
+        skills = SkillMatrix()
+        self.assertIsInstance(skills.to_string(), str)
 
