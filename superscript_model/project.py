@@ -1,4 +1,5 @@
 import numpy as np
+import json
 
 from .function import FunctionFactory
 from .utilities import Random
@@ -105,10 +106,9 @@ class Project:
 class ProjectRequirements:
 
     def __init__(self,
-                 min_project_skill=5,
-                 max_project_skill=50,
                  p_hard_skill_required=0.8,
-                 per_skill_cap=10,
+                 per_skill_max=10,
+                 per_skill_min=1,
                  min_skill_required=2,
                  hard_skills=['A','B','C','D','E'],
                  min_project_creativity=1,
@@ -127,44 +127,63 @@ class ProjectRequirements:
 
         self.p_hard_skill_required = p_hard_skill_required
         self.min_skill_required = min_skill_required
-        self.per_skill_cap = per_skill_cap
+        self.per_skill_max = per_skill_max
+        self.per_skill_min = per_skill_min
+
         self.hard_skills = dict(zip(hard_skills,
                                     [{
                                         'level': None,
                                         'units': 0}
                                         for s in hard_skills])
                                 )
-        self.total_skill_units = Random.randint(min_project_skill,
-                                                max_project_skill)
+        self.total_skill_units = None
 
-        min_assigned_units = 0
-        while min_assigned_units < 2:
+        max_assigned_units = 0
+        while max_assigned_units < 2:
 
             self.assign_skill_requirements()
-            min_assigned_units = min(
+            max_assigned_units = max(
                 [s['units'] for s in self.hard_skills.values()
                  if s['level'] is not None]
             )
 
     def assign_skill_requirements(self):
 
-        non_zero_skills = []
-        for key in self.hard_skills.keys():
-            if Random.uniform() <= self.p_hard_skill_required:
-                non_zero_skills.append(key)
+        non_zero_skills = [s for s in self.hard_skills.keys()
+                           if Random.uniform() <= self.p_hard_skill_required]
 
-        Random.shuffle(non_zero_skills)
+        Random.shuffle([non_zero_skills])
+        n_skills = len(non_zero_skills)
+        self.total_skill_units = Random.randint(n_skills * self.per_skill_min + 1,
+                                                n_skills * self.per_skill_max)
+
         remaining_skill_units = self.total_skill_units
+        for i, skill in enumerate(non_zero_skills):
 
-        for skill in non_zero_skills:
+            a = (remaining_skill_units
+                 - (n_skills - (i + 1)) * self.per_skill_max)
+            a = max(a, self.per_skill_min)
+
+            b = (remaining_skill_units
+                 - (n_skills - (i + 1)) * self.per_skill_min)
+            b = min(b, self.per_skill_max)
+
+            units = Random.randint(a, b)
             self.hard_skills[skill]['level'] = Random.randint(1, 5)
-            allocate = Random.randint(1, 10)
+            self.hard_skills[skill]['units'] = units
+            remaining_skill_units -= units
 
-            if allocate <= remaining_skill_units:
-                self.hard_skills[skill]['units'] = allocate
-                remaining_skill_units -= allocate
-            else:
-                self.hard_skills[skill]['units'] = remaining_skill_units
-                remaining_skill_units = 0
+    def to_string(self):
 
-
+        output = {
+            'risk': self.risk,
+            'creativity': self.creativity,
+            'flexible_budget': self.flexible_budget,
+            'max_budget_increase': self.max_budget_increase,
+            'p_hard_skill_required': self.p_hard_skill_required,
+            'min_skill_required': self.min_skill_required,
+            'per_skill_cap': self.per_skill_max,
+            'total_skill_units': self.total_skill_units,
+            'hard_skills': self.hard_skills
+        }
+        return json.dumps(output, indent=4)
