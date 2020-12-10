@@ -1,7 +1,9 @@
 import unittest
 from unittest.mock import patch
 
-from superscript_model.project import Project, ProjectInventory
+from superscript_model.project import (Project,
+                                       ProjectInventory,
+                                       ProjectRequirements)
 
 
 class TestProject(unittest.TestCase):
@@ -87,6 +89,23 @@ class TestProjectInventory(unittest.TestCase):
             inventory.advance_projects()
         self.assertEqual(inventory.active_count, 0)
 
+
+class TestProjectRequirements(unittest.TestCase):
+
+    def test_init(self):
+        r = ProjectRequirements()
+
+        self.assertEqual(r.max_budget_increase, 0.25)
+        self.assertTrue(r.risk in [5,10,25])
+        self.assertTrue(r.flexible_budget in [True, False])
+        self.assertTrue(r.creativity in [1,2,3,4,5])
+
+    def test_assign_skill_requirements(self):
+        r = ProjectRequirements()
+        r.assign_skill_requirements()
+
+        self.assertEqual(sum([s['units'] for s in r.hard_skills.values()]),
+                         r.total_skill_units)
 
 if __name__ == '__main__':
     unittest.main()

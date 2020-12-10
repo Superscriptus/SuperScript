@@ -18,3 +18,7 @@ class Random:
     @staticmethod
     def uniform(a=0.0, b=1.0):
         return random.uniform(a, b)
+
+    @staticmethod
+    def shuffle(x):
+        random.shuffle(x)

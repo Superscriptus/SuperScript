@@ -87,12 +87,18 @@ class SkillMatrix:
 
     def to_string(self):
 
-        output = {"Worker OVR": self.ovr,
-                  "Hard skills": self.hard_skills,
-                  "Soft skills": self.soft_skills,
-                  "Hard skill probability":
-                      self.hard_skill_probability,
-                  "OVR multiplier": self.ovr_multiplier}
+        output = {
+            "Worker OVR":
+                round(self.ovr, self.round_to),
+            "Hard skills":
+                [round(s, self.round_to)
+                 for s in self.hard_skills.values()],
+            "Soft skills":
+                [round(s, self.round_to)
+                 for s in self.soft_skills.values()],
+            "Hard skill probability":
+                self.hard_skill_probability,
+            "OVR multiplier": self.ovr_multiplier}
 
         return json.dumps(output, indent=4)
 

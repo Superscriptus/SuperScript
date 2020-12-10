@@ -102,3 +102,69 @@ class Project:
         self.inventory.delete_project(self.project_id)
 
 
+class ProjectRequirements:
+
+    def __init__(self,
+                 min_project_skill=5,
+                 max_project_skill=50,
+                 p_hard_skill_required=0.8,
+                 per_skill_cap=10,
+                 min_skill_required=2,
+                 hard_skills=['A','B','C','D','E'],
+                 min_project_creativity=1,
+                 max_project_creativity=5,
+                 risk_levels=[5,10,25],
+                 p_budget_flexibility=0.25,
+                 max_budget_increase=0.25):
+
+        self.risk = Random.choice(risk_levels)
+        self.creativity = Random.randint(min_project_creativity,
+                                         max_project_creativity)
+        self.flexible_budget = (
+            True if Random.uniform() <= p_budget_flexibility else False
+        )
+        self.max_budget_increase = max_budget_increase
+
+        self.p_hard_skill_required = p_hard_skill_required
+        self.min_skill_required = min_skill_required
+        self.per_skill_cap = per_skill_cap
+        self.hard_skills = dict(zip(hard_skills,
+                                    [{
+                                        'level': None,
+                                        'units': 0}
+                                        for s in hard_skills])
+                                )
+        self.total_skill_units = Random.randint(min_project_skill,
+                                                max_project_skill)
+
+        min_assigned_units = 0
+        while min_assigned_units < 2:
+
+            self.assign_skill_requirements()
+            min_assigned_units = min(
+                [s['units'] for s in self.hard_skills.values()
+                 if s['level'] is not None]
+            )
+
+    def assign_skill_requirements(self):
+
+        non_zero_skills = []
+        for key in self.hard_skills.keys():
+            if Random.uniform() <= self.p_hard_skill_required:
+                non_zero_skills.append(key)
+
+        Random.shuffle(non_zero_skills)
+        remaining_skill_units = self.total_skill_units
+
+        for skill in non_zero_skills:
+            self.hard_skills[skill]['level'] = Random.randint(1, 5)
+            allocate = Random.randint(1, 10)
+
+            if allocate <= remaining_skill_units:
+                self.hard_skills[skill]['units'] = allocate
+                remaining_skill_units -= allocate
+            else:
+                self.hard_skills[skill]['units'] = remaining_skill_units
+                remaining_skill_units = 0
+
+

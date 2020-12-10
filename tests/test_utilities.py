@@ -34,3 +34,12 @@ class TestRandom(unittest.TestCase):
             self.assertIsInstance(value, float)
             self.assertTrue((value >= 0.0)
                             & (value <= 1.0))
+
+    def test_shuffle(self):
+        r = Random()
+        test_list = [1, 2, 3, 4]
+        r.shuffle(test_list)
+        self.assertNotEqual(test_list, [1, 2, 3, 4])
+        self.assertEqual(set(test_list),
+                         set([1, 2, 3, 4]))
+
