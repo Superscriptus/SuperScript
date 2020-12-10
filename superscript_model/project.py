@@ -89,6 +89,7 @@ class Project:
         self.length = project_length
         self.progress = 0 - start_time_offset
         self.team = None
+        self.requirements = ProjectRequirements()
 
     def advance(self):
         self.progress += 1
@@ -147,16 +148,23 @@ class ProjectRequirements:
                  if s['level'] is not None]
             )
 
-    def assign_skill_requirements(self):
+    def select_non_zero_skills(self):
 
-        non_zero_skills = [s for s in self.hard_skills.keys()
-                           if Random.uniform() <= self.p_hard_skill_required]
+        n_skills = 0
+        while n_skills == 0:
 
-        Random.shuffle([non_zero_skills])
-        n_skills = len(non_zero_skills)
+            non_zero_skills = [s for s in self.hard_skills.keys()
+                               if Random.uniform() <= self.p_hard_skill_required]
+            Random.shuffle([non_zero_skills])
+            n_skills = len(non_zero_skills)
+
         self.total_skill_units = Random.randint(n_skills * self.per_skill_min + 1,
                                                 n_skills * self.per_skill_max)
+        return n_skills, non_zero_skills
 
+    def assign_skill_requirements(self):
+
+        n_skills, non_zero_skills = self.select_non_zero_skills()
         remaining_skill_units = self.total_skill_units
         for i, skill in enumerate(non_zero_skills):
 

@@ -39,7 +39,6 @@ class TestRandom(unittest.TestCase):
         r = Random()
         test_list = [1, 2, 3, 4]
         r.shuffle(test_list)
-        self.assertNotEqual(test_list, [1, 2, 3, 4])
         self.assertEqual(set(test_list),
                          set([1, 2, 3, 4]))
 
