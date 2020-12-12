@@ -47,12 +47,12 @@ class ProjectInventory:
         for i in range(new_projects_count):
             p = Project(
                 self, self.index_total + i,
-                start_time_offset=self.get_start_time_offset()
+                start_time_offset=self.get_start_time_offset(),
+                start_time=time
             )
             new_projects.append(p)
 
         new_projects = self.rank_projects(new_projects)
-
         for p in new_projects:
             self.team_allocator.allocate_team(p)
             self.add_project(p)
@@ -93,12 +93,14 @@ class Project:
                  inventory: ProjectInventory,
                  project_id=42,
                  project_length=5,
-                 start_time_offset=0):
+                 start_time_offset=0,
+                 start_time=0):
 
         self.inventory = inventory
         self.project_id = project_id
         self.length = project_length
         self.progress = 0 - start_time_offset
+        self.start_time = start_time + start_time_offset
         self.team = None
         self.requirements = ProjectRequirements()
 

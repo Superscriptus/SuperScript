@@ -5,9 +5,9 @@ from .worker import Worker
 from .project import ProjectInventory
 from .organisation import TeamAllocator
 
-
+# 35 - 40 minutes
 # TODO:
-# - do fix_contributions (changed team members to dict). 30-35 minutes.
+# - do fix_contributions (changed team members to dict).
 # - method project/team OVR
 # - coverage run -m unittest discover && coverage report
 # - move parameters to config.py
@@ -29,6 +29,8 @@ from .organisation import TeamAllocator
 # #    i.e. is memory correctly cleaned up on project/worker deletion?
 # - patch TeamAllocator throughout whole class/file in test_project?
 # - refactor so that plot_function takes a function plotter object
+# - assert that time=start_time when project progress=0
+
 
 class SuperScriptModel(Model):
 
