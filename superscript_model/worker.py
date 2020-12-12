@@ -4,6 +4,12 @@ import json
 
 from .project import Project
 from .utilities import Random
+from .config import (HARD_SKILLS,
+                     SOFT_SKILLS,
+                     MAX_SKILL_LEVEL,
+                     P_HARD_SKILL,
+                     WORKER_OVR_MULTIPLIER,
+                     PRINT_DECIMALS_TO)
 
 
 class WorkerStrategyInterface(Interface):
@@ -75,12 +81,12 @@ class Worker(Agent):
 class SkillMatrix:
 
     def __init__(self,
-                 hard_skills=['A','B','C','D','E'],
-                 soft_skills=['F','G','H','I','J'],
-                 max_skill=5,
-                 hard_skill_probability=0.8,
-                 round_to=1,
-                 ovr_multiplier=20):
+                 hard_skills=HARD_SKILLS,
+                 soft_skills=SOFT_SKILLS,
+                 max_skill=MAX_SKILL_LEVEL,
+                 hard_skill_probability=P_HARD_SKILL,
+                 round_to=PRINT_DECIMALS_TO,
+                 ovr_multiplier=WORKER_OVR_MULTIPLIER):
 
         self.hard_skills = dict(zip(hard_skills,
                                     [0.0 for s in hard_skills]))
@@ -125,12 +131,12 @@ class SkillMatrix:
     @property
     def ovr(self):
 
-        return (20 * sum([s for s in
-                          self.hard_skills.values()
-                          if s > 0.0])
+        return (sum([s for s in
+                     self.hard_skills.values()
+                     if s > 0.0])
                 / sum([1 for s in
                        self.hard_skills.values()
                        if s > 0.0])
-                )
+                ) * self.ovr_multiplier
 
 

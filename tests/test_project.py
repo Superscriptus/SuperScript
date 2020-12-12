@@ -31,7 +31,7 @@ class TestProject(unittest.TestCase):
     def test_terminate(self, mock_allocator, mock_team):
 
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(1, time=0)
+        inventory.create_projects(1, time=0, length=5)
         project = inventory.projects[0]
         project.team = mock_team
 
@@ -56,7 +56,7 @@ class TestProjectInventory(unittest.TestCase):
     def test_create_projects(self, mock_allocator):
 
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(5, time=0)
+        inventory.create_projects(5, time=0, length=5)
         self.assertEqual(inventory.active_count, 5)
 
     @patch('superscript_model.organisation.TeamAllocator')
@@ -73,7 +73,7 @@ class TestProjectInventory(unittest.TestCase):
     def test_delete_project(self, mock_allocator):
 
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(5, time=0)
+        inventory.create_projects(5, time=0, length=5)
         self.assertRaises(KeyError, inventory.delete_project, 42)
         self.assertEqual(inventory.active_count, 5)
         inventory.delete_project(0)
@@ -84,7 +84,7 @@ class TestProjectInventory(unittest.TestCase):
     def test_advance_projects(self, mock_allocator):
 
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(10, time=0)
+        inventory.create_projects(10, time=0, length=5)
         for i in range(5):
             inventory.advance_projects()
         self.assertEqual(inventory.active_count, 0)

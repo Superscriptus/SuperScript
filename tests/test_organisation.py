@@ -125,7 +125,7 @@ class TestRandomStrategy(unittest.TestCase):
 
         strategy = RandomStrategy(SuperScriptModel(42))
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(1, time=0)
+        inventory.create_projects(1, time=0, length=5)
         team = strategy.select_team(inventory.projects[0],
                                     bid_pool=None)
 

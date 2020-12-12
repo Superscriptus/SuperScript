@@ -3,13 +3,30 @@ import json
 
 from .function import FunctionFactory
 from .utilities import Random
+from .config import (MAXIMUM_TIMELINE_FLEXIBILITY,
+                     PROJECT_LENGTH,
+                     DEFAULT_START_OFFSET,
+                     DEFAULT_START_TIME,
+                     P_HARD_SKILL_PROJECT,
+                     PER_SKILL_MAX_UNITS,
+                     PER_SKILL_MIN_UNITS,
+                     MIN_REQUIRED_UNITS,
+                     MIN_SKILL_LEVEL,
+                     MAX_SKILL_LEVEL,
+                     MIN_PROJECT_CREATIVITY,
+                     MAX_PROJECT_CREATIVITY,
+                     RISK_LEVELS,
+                     P_BUDGET_FLEXIBILITY,
+                     MAX_BUDGET_INCREASE,
+                     HARD_SKILLS)
 
 
 class ProjectInventory:
 
     def __init__(self,
                  team_allocator,
-                 timeline_flexibility='NoFlexibility'):
+                 timeline_flexibility='NoFlexibility',
+                 max_timeline_flex = MAXIMUM_TIMELINE_FLEXIBILITY):
 
         self.projects = dict()
         self.index_total = 0
@@ -17,6 +34,7 @@ class ProjectInventory:
         self.timeline_flexibility_func = (
             FunctionFactory.get(timeline_flexibility)
         )
+        self.max_timeline_flex = max_timeline_flex
 
     @property
     def active_count(self):
@@ -26,27 +44,36 @@ class ProjectInventory:
 
     def get_start_time_offset(self):
 
-        p_vector = (self.timeline_flexibility_func
-                    .get_values(np.arange(5)))
+        p_vector = (
+            self.timeline_flexibility_func
+            .get_values(np.arange(self.max_timeline_flex + 1))
+        )
 
         r = Random.uniform()
-        if r <= p_vector[4]:
-            return 4
-        elif r <= p_vector[3]:
-            return 3
-        elif r <= p_vector[2]:
-            return 3
-        elif r <= p_vector[1]:
-            return 3
-        else:
-            return 0
+        for i in np.flip(np.arange(1, self.max_timeline_flex)):
+            if r <= p_vector[i]:
+                return i
 
-    def create_projects(self, new_projects_count, time):
+        return 0
+        # if r <= p_vector[4]:
+        #     return 4
+        # elif r <= p_vector[3]:
+        #     return 3
+        # elif r <= p_vector[2]:
+        #     return 3
+        # elif r <= p_vector[1]:
+        #     return 3
+        # else:
+        #     return 0
+
+    def create_projects(self, new_projects_count,
+                        time, length):
 
         new_projects = []
         for i in range(new_projects_count):
             p = Project(
                 self, self.index_total + i,
+                project_length=length,
                 start_time_offset=self.get_start_time_offset(),
                 start_time=time
             )
@@ -92,9 +119,9 @@ class Project:
     def __init__(self,
                  inventory: ProjectInventory,
                  project_id=42,
-                 project_length=5,
-                 start_time_offset=0,
-                 start_time=0):
+                 project_length=PROJECT_LENGTH,
+                 start_time_offset=DEFAULT_START_OFFSET,
+                 start_time=DEFAULT_START_TIME):
 
         self.inventory = inventory
         self.project_id = project_id
@@ -135,16 +162,18 @@ class Project:
 class ProjectRequirements:
 
     def __init__(self,
-                 p_hard_skill_required=0.8,
-                 per_skill_max=10,
-                 per_skill_min=1,
-                 min_skill_required=2,
-                 hard_skills=['A','B','C','D','E'],
-                 min_project_creativity=1,
-                 max_project_creativity=5,
-                 risk_levels=[5,10,25],
-                 p_budget_flexibility=0.25,
-                 max_budget_increase=0.25):
+                 p_hard_skill_required=P_HARD_SKILL_PROJECT,
+                 per_skill_max=PER_SKILL_MAX_UNITS,
+                 per_skill_min=PER_SKILL_MIN_UNITS,
+                 min_skill_required=MIN_REQUIRED_UNITS,
+                 hard_skills=HARD_SKILLS,
+                 min_skill_level = MIN_SKILL_LEVEL,
+                 max_skill_level = MAX_SKILL_LEVEL,
+                 min_project_creativity=MIN_PROJECT_CREATIVITY,
+                 max_project_creativity=MAX_PROJECT_CREATIVITY,
+                 risk_levels=RISK_LEVELS,
+                 p_budget_flexibility=P_BUDGET_FLEXIBILITY,
+                 max_budget_increase=MAX_BUDGET_INCREASE):
 
         self.risk = Random.choice(risk_levels)
         self.creativity = Random.randint(min_project_creativity,
@@ -158,6 +187,8 @@ class ProjectRequirements:
         self.min_skill_required = min_skill_required
         self.per_skill_max = per_skill_max
         self.per_skill_min = per_skill_min
+        self.min_skill_level = min_skill_level
+        self.max_skill_level = max_skill_level
 
         self.hard_skills = dict(zip(hard_skills,
                                     [{
@@ -168,7 +199,7 @@ class ProjectRequirements:
         self.total_skill_units = None
 
         max_assigned_units = 0
-        while max_assigned_units < 2:
+        while max_assigned_units < self.min_skill_required:
 
             self.assign_skill_requirements()
             max_assigned_units = max(
@@ -205,7 +236,9 @@ class ProjectRequirements:
             b = min(b, self.per_skill_max)
 
             units = Random.randint(a, b)
-            self.hard_skills[skill]['level'] = Random.randint(1, 5)
+            self.hard_skills[skill]['level'] = Random.randint(
+                self.min_skill_level, self.max_skill_level
+            )
             self.hard_skills[skill]['units'] = units
             remaining_skill_units -= units
 

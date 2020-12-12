@@ -4,22 +4,23 @@ from mesa.time import RandomActivation
 from .worker import Worker
 from .project import ProjectInventory
 from .organisation import TeamAllocator
+from .config import (PROJECT_LENGTH,
+                     NEW_PROJECTS_PER_TIMESTEP)
 
-# 6.50 to 7.50: added bid invitation and project ranking functionality. Starting on worker tracking of their
-# current and future contributions
-
-# 8:15 to 8:50: writing methods to track worker contributions to projects over time
 # TODO:
+# - do skill balance (and the rest of prob function)
+# - write to do list with time estimates
 # - demo Team to_string in jupyter
+# - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report
-# - move parameters to config.py (set team ovr multipler from config)
-# - refactor to pass project length in to create_projects (from config)
+# - add function parameters to config
 # - rename private data members _XX
 # - change FunctionInterface to abstract base class (plot and print never change)
 
 # - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)
 # - remove historical work contributions from worker.contributes? (to free up memory)
+# - reorder and annotate config.py (and refactor tests to use config variables?)
 # - change remote name
 # - add requirements.txt and try installing on different system
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
@@ -50,7 +51,8 @@ class SuperScriptModel(Model):
         self.time = 0
 
     def step(self):
-        self.inventory.create_projects(20, self.time)
+        self.inventory.create_projects(NEW_PROJECTS_PER_TIMESTEP,
+                                       self.time, PROJECT_LENGTH)
         self.schedule.step()
         self.time += 1
 

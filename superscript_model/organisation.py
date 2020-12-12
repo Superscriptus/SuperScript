@@ -3,6 +3,9 @@ import json
 
 from .project import Project
 from .utilities import Random
+from .config import (TEAM_OVR_MULTIPLIER,
+                     MIN_TEAM_SIZE,
+                     MAX_TEAM_SIZE)
 
 
 class Team:
@@ -23,7 +26,7 @@ class Team:
         self.lead.remove_as_lead(project)
         self.lead = None
 
-    def compute_ovr(self, multiplier=20):
+    def compute_ovr(self, multiplier=TEAM_OVR_MULTIPLIER):
 
         skill_count = 0
         ovr = 0
@@ -99,10 +102,14 @@ class OrganisationStrategyInterface(Interface):
 
 class RandomStrategy(implements(OrganisationStrategyInterface)):
 
-    def __init__(self, model):
+    def __init__(self, model,
+                 min_team_size=MIN_TEAM_SIZE,
+                 max_team_size=MAX_TEAM_SIZE):
         self.model = model
+        self.min_team_size = min_team_size
+        self.max_team_size = max_team_size
 
-    def invite_bids(self, project:Project) -> list:
+    def invite_bids(self, project: Project) -> list:
 
         bid_pool = [
             worker for worker in self.model.schedule.agents
@@ -113,7 +120,8 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:
 
-        size = Random.randint(3, 7)
+        size = Random.randint(self.min_team_size,
+                              self.max_team_size)
         bid_pool = (self.model.schedule.agents
                     if bid_pool is None else bid_pool)
 
