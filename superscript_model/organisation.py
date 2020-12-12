@@ -63,6 +63,9 @@ class Team:
 
 class OrganisationStrategyInterface(Interface):
 
+    def invite_bids(self, project:Project) -> list:
+        pass
+
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:
         pass
@@ -72,6 +75,14 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
 
     def __init__(self, model):
         self.model = model
+
+    def invite_bids(self, project:Project) -> list:
+
+        bid_pool = [
+            worker for worker in self.model.schedule.agents
+            if worker.strategy.bid(project)
+        ]
+        return bid_pool
 
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:

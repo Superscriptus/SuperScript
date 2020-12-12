@@ -61,6 +61,14 @@ class TestRandomStrategy(unittest.TestCase):
                         .issubset(strategy.model.schedule.agents))
         self.assertTrue(team.lead in team.members.values())
 
+    @patch('superscript_model.project.Project')
+    def test_invite_bids(self, mock_project):
+
+        strategy = RandomStrategy(SuperScriptModel(42))
+        bids = strategy.invite_bids(mock_project)
+        self.assertEqual(len(bids), 42)
+
+
 
 class TestTeamAllocator(unittest.TestCase):
 
