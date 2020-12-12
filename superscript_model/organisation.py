@@ -11,8 +11,7 @@ class Team:
         self.members = members
         self.lead = lead
         self.assign_lead(self.project)
-        # do we need to store contributions here?
-        # currently this is automatic, but could be handled by TeamAllocator
+        # currently this is automatic, but could be handled by TeamAllocator:
         self.contributions = self.determine_member_contributions()
         self.team_ovr = self.compute_ovr()
 
@@ -23,9 +22,21 @@ class Team:
         self.lead.remove_as_lead(project)
         self.lead = None
 
-    def compute_ovr(self):
-        self.project.required_skills
-        return None
+    def compute_ovr(self, multiplier=20):
+
+        skill_count = 0
+        ovr = 0
+        for skill in self.project.required_skills:
+
+            workers = self.contributions[skill]
+            for worker_id in workers:
+                ovr += self.members[worker_id].get_skill(skill)
+                skill_count += 1
+
+        if skill_count > 0:
+            return multiplier * ovr / skill_count
+        else:
+            return 0.0
 
     def rank_members_by_skill(self, skill):
 

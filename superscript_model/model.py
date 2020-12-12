@@ -7,8 +7,9 @@ from .organisation import TeamAllocator
 
 # 6.50 to 7.50: added bid invitation and project ranking functionality. Starting on worker tracking of their
 # current and future contributions
+
+# 8:15 to 8:50: writing methods to track worker contributions to projects over time
 # TODO:
-# - do fix_contributions (changed team members to dict).
 # - method project/team OVR
 # - coverage run -m unittest discover && coverage report
 # - move parameters to config.py
@@ -18,6 +19,7 @@ from .organisation import TeamAllocator
 
 # - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)
+# - remove historical work contributions from worker.contributes? (to free up memory)
 # - change remote name
 # - add requirements.txt and try installing on different system
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)

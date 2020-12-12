@@ -21,7 +21,7 @@ class TestTeam(unittest.TestCase):
         team = Team(mock_project,
                     members={mock_worker.worker_id: mock_worker},
                     lead=mock_worker)
-        self.assertTrue(team.team_ovr is None)
+        self.assertEqual(team.team_ovr, 0.0)
         self.assertEqual(len(team.members), 1)
         self.assertIsInstance(team.members, dict)
         self.assertEqual(mock_worker.assign_as_lead.call_count, 1)
