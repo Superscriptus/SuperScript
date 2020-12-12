@@ -31,7 +31,7 @@ class TestProject(unittest.TestCase):
     def test_terminate(self, mock_allocator, mock_team):
 
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(1)
+        inventory.create_projects(1, time=0)
         project = inventory.projects[0]
         project.team = mock_team
 
@@ -56,7 +56,7 @@ class TestProjectInventory(unittest.TestCase):
     def test_create_projects(self, mock_allocator):
 
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(5)
+        inventory.create_projects(5, time=0)
         self.assertEqual(inventory.active_count, 5)
 
     @patch('superscript_model.organisation.TeamAllocator')
@@ -73,7 +73,7 @@ class TestProjectInventory(unittest.TestCase):
     def test_delete_project(self, mock_allocator):
 
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(5)
+        inventory.create_projects(5, time=0)
         self.assertRaises(KeyError, inventory.delete_project, 42)
         self.assertEqual(inventory.active_count, 5)
         inventory.delete_project(0)
@@ -84,10 +84,37 @@ class TestProjectInventory(unittest.TestCase):
     def test_advance_projects(self, mock_allocator):
 
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(10)
+        inventory.create_projects(10, time=0)
         for i in range(5):
             inventory.advance_projects()
         self.assertEqual(inventory.active_count, 0)
+
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_rank_projects(self, mock_allocator):
+
+        inventory = ProjectInventory(mock_allocator)
+        projects = []
+        for i in range(10):
+            projects.append(
+                Project(inventory, i, 5)
+            )
+        projects = inventory.rank_projects(projects)
+
+        risk = [p.risk for p in projects]
+        risk_copy = risk[:]
+        risk_copy.sort(reverse=True)
+        self.assertEqual(risk, risk_copy)
+
+        risk_unique = set(risk)
+        creativity = [p.creativity for p in projects]
+        for r in risk_unique:
+
+            indices = [i for i, e in enumerate(risk) if e == r]
+            creativity_subset = [creativity[i] for i in indices]
+            creativity_subset_copy = creativity_subset[:]
+            creativity_subset_copy.sort(reverse=True)
+            self.assertEqual(creativity_subset,
+                             creativity_subset_copy)
 
 
 class TestProjectRequirements(unittest.TestCase):

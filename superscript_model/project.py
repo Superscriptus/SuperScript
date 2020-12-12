@@ -41,15 +41,26 @@ class ProjectInventory:
         else:
             return 0
 
-    def create_projects(self, new_projects_count):
+    def create_projects(self, new_projects_count, time):
 
+        new_projects = []
         for i in range(new_projects_count):
             p = Project(
-                self, self.index_total,
+                self, self.index_total + i,
                 start_time_offset=self.get_start_time_offset()
             )
+            new_projects.append(p)
+
+        new_projects = self.rank_projects(new_projects)
+
+        for p in new_projects:
             self.team_allocator.allocate_team(p)
             self.add_project(p)
+
+    @staticmethod
+    def rank_projects(project_list):
+        project_list.sort(reverse=True, key=lambda x: (x.risk, x.creativity))
+        return project_list
 
     def add_project(self, project):
 
@@ -102,6 +113,21 @@ class Project:
             self.team = None
 
         self.inventory.delete_project(self.project_id)
+
+    @property
+    def required_skills(self):
+        return self.requirements.get_required_skills()
+
+    @property
+    def risk(self):
+        return self.requirements.risk
+
+    @property
+    def creativity(self):
+        return self.requirements.creativity
+
+    def get_skill_requirement(self, skill):
+        return self.requirements.hard_skills[skill]
 
 
 class ProjectRequirements:
@@ -180,6 +206,11 @@ class ProjectRequirements:
             self.hard_skills[skill]['level'] = Random.randint(1, 5)
             self.hard_skills[skill]['units'] = units
             remaining_skill_units -= units
+
+    def get_required_skills(self):
+        return [skill for skill
+                in self.hard_skills.keys()
+                if self.hard_skills[skill]['level'] is not None]
 
     def to_string(self):
 

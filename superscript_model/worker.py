@@ -51,6 +51,12 @@ class Worker(Agent):
             if project in self.leads_on.values():
                 project.advance()
 
+    def get_skill(self, skill, hard_skill=True):
+        if hard_skill:
+            return self.skills.hard_skills[skill]
+        else:
+            return self.skills.soft_skills[skill]
+
 
 class SkillMatrix:
 

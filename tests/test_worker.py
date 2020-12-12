@@ -67,6 +67,18 @@ class TestWorker(unittest.TestCase):
         worker.step()
         self.assertEqual(mock_terminate.call_count, 1)
 
+    @patch('superscript_model.model.Model')
+    def test_get_skill(self, mock_model):
+
+        worker = Worker(42, mock_model)
+
+        skill_a = worker.get_skill('A', hard_skill=True)
+        self.assertIsInstance(skill_a, float)
+        self.assertTrue((skill_a >= 0.0) & (skill_a <= 5.0))
+
+        skill_f = worker.get_skill('F', hard_skill=False)
+        self.assertIsInstance(skill_f, float)
+        self.assertTrue((skill_f >= 0.0) & (skill_f <= 5.0))
 
 class TestWorkerStrategyInterface(unittest.TestCase):
 

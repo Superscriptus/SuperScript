@@ -17,9 +17,12 @@ class TestTeam(unittest.TestCase):
     @patch('superscript_model.worker.Worker')
     def test_init(self, mock_worker, mock_project):
 
-        team = Team(mock_project, members=[mock_worker],lead=mock_worker)
+        team = Team(mock_project,
+                    members={mock_worker.worker_id: mock_worker},
+                    lead=mock_worker)
         self.assertTrue(team.team_ovr is None)
         self.assertEqual(len(team.members), 1)
+        self.assertIsInstance(team.members, dict)
         self.assertEqual(mock_worker.assign_as_lead.call_count, 1)
 
     @patch('superscript_model.project.Project')
@@ -49,13 +52,14 @@ class TestRandomStrategy(unittest.TestCase):
 
         strategy = RandomStrategy(SuperScriptModel(42))
         inventory = ProjectInventory(mock_allocator)
-        inventory.create_projects(1)
+        inventory.create_projects(1, time=0)
         team = strategy.select_team(inventory.projects[0],
                                     bid_pool=None)
 
         self.assertIsInstance(team, Team)
-        self.assertTrue(set(team.members).issubset(strategy.model.schedule.agents))
-        self.assertTrue(team.lead in team.members)
+        self.assertTrue(set(team.members.values())
+                        .issubset(strategy.model.schedule.agents))
+        self.assertTrue(team.lead in team.members.values())
 
 
 class TestTeamAllocator(unittest.TestCase):

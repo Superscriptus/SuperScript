@@ -7,7 +7,8 @@ from .organisation import TeamAllocator
 
 
 # TODO:
-# - add worker OVR method and demo print in jupyter
+# - do fix_contributions (changed team members to dict). 30-35 minutes.
+# - method project/team OVR
 # - coverage run -m unittest discover && coverage report
 # - move parameters to config.py
 # - refactor to pass project length in to create_projects (from config)
@@ -15,6 +16,8 @@ from .organisation import TeamAllocator
 # - change FunctionInterface to abstract base class (plot and print never change)
 
 # - set worker contribution to project from within team/project on project start..(when progress reaches 0)
+# - implement invite_bids
+# - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)
 # - does project inventory need to be an ordered dict?
 # - change remote name
@@ -42,9 +45,12 @@ class SuperScriptModel(Model):
             w = Worker(i, self)
             self.schedule.add(w)
 
+        self.time = 0
+
     def step(self):
-        self.inventory.create_projects(20)
+        self.inventory.create_projects(20, self.time)
         self.schedule.step()
+        self.time += 1
 
     def run_model(self, step_count: int):
         for i in range(step_count):
