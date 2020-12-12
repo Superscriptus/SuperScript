@@ -1,4 +1,5 @@
 from interface import Interface, implements
+import json
 
 from .project import Project
 from .utilities import Random
@@ -46,6 +47,7 @@ class Team:
         }
         return {
             k: v for k, v in sorted(ranked_members.items(),
+                                    reverse=True,
                                     key=lambda item: item[1])
         }
 
@@ -72,6 +74,17 @@ class Team:
                 self.members[member_id].add_contribution(
                     self.project, skill
                 )
+
+    def to_string(self):
+
+        output = {
+            'project': self.project.project_id,
+            'members': list(self.members.keys()),
+            'lead': self.lead.worker_id,
+            'team_ovr': self.team_ovr,
+            'skill_contributions': self.contributions
+        }
+        return json.dumps(output, indent=4)
 
 
 class OrganisationStrategyInterface(Interface):

@@ -129,7 +129,6 @@ class TestProjectRequirements(unittest.TestCase):
 
     def test_assign_skill_requirements(self):
         r = ProjectRequirements()
-        #r.assign_skill_requirements()
         self.assertEqual(sum([s['units'] for s in r.hard_skills.values()]),
                          r.total_skill_units)
 

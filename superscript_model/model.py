@@ -10,9 +10,9 @@ from .organisation import TeamAllocator
 
 # 8:15 to 8:50: writing methods to track worker contributions to projects over time
 # TODO:
-# - method project/team OVR
+# - demo Team to_string in jupyter
 # - coverage run -m unittest discover && coverage report
-# - move parameters to config.py
+# - move parameters to config.py (set team ovr multipler from config)
 # - refactor to pass project length in to create_projects (from config)
 # - rename private data members _XX
 # - change FunctionInterface to abstract base class (plot and print never change)
