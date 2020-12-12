@@ -105,11 +105,9 @@ class TeamAllocator:
         self.model = model
         self.strategy = RandomStrategy(model)
 
-    def invite_bids(self):
-        # NOT IMPLEMENTED
-        pass
-
     def allocate_team(self, project: Project):
 
-        project.team = self.strategy.select_team(project,
-                                                 bid_pool=None)
+        bid_pool = self.strategy.invite_bids(project)
+        project.team = self.strategy.select_team(
+            project, bid_pool=bid_pool
+        )
