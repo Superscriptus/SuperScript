@@ -5,7 +5,8 @@ from .worker import Worker
 from .project import ProjectInventory
 from .organisation import TeamAllocator
 
-# 35 - 40 minutes
+# 6.50 to 7.50: added bid invitation and project ranking functionality. Starting on worker tracking of their
+# current and future contributions
 # TODO:
 # - do fix_contributions (changed team members to dict).
 # - method project/team OVR
@@ -15,11 +16,8 @@ from .organisation import TeamAllocator
 # - rename private data members _XX
 # - change FunctionInterface to abstract base class (plot and print never change)
 
-# - set worker contribution to project from within team/project on project start..(when progress reaches 0)
-# - implement invite_bids
 # - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)
-# - does project inventory need to be an ordered dict?
 # - change remote name
 # - add requirements.txt and try installing on different system
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)

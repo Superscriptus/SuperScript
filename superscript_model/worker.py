@@ -36,12 +36,26 @@ class Worker(Agent):
         super().__init__(worker_id, model)
         self.strategy = AllInStrategy('All-In')
         self.leads_on = dict()
+        self.contributes = dict()
 
     def assign_as_lead(self, project):
         self.leads_on[project.project_id] = project
 
     def remove_as_lead(self, project):
         del self.leads_on[project.project_id]
+
+    def add_contribution(self, project, skill):
+
+        for time_offset in range(project.length):
+            time = project.start_time + time_offset
+
+            if time not in self.contributes.keys():
+                self.contributes[time] = {
+                    skill: []
+                    for skill in self.skills.hard_skills.keys()
+                }
+            (self.contributes[time][skill]
+             .append(project.project_id))
 
     def step(self):
         """Dict can be updated during loop (one other?)"""

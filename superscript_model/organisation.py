@@ -11,14 +11,10 @@ class Team:
         self.members = members
         self.lead = lead
         self.assign_lead(self.project)
-
-        # update all unit tests
-        self.contributions = self.determine_contributions() # do we need to store contributions here?
-        #check if team is viable: can it meet the project requirements? If not? (handle in TeamAllocator)
-        # Introduce time tracking...(count steps())
+        # do we need to store contributions here?
+        # currently this is automatic, but could be handled by TeamAllocator
+        self.contributions = self.determine_member_contributions()
         self.team_ovr = self.compute_ovr()
-        #self.set_contributions() #Log contributions (and when they are required) in worker
-                                  # so they can bid based on their availability
 
     def assign_lead(self, project):
         self.lead.assign_as_lead(project)
@@ -42,7 +38,7 @@ class Team:
                                     key=lambda item: item[1])
         }
 
-    def determine_contributions(self):
+    def determine_member_contributions(self):
 
         contributions = dict()
         for skill in self.project.required_skills:
@@ -50,15 +46,21 @@ class Team:
             ranked_members = self.rank_members_by_skill(skill)
             skill_requirement = self.project.get_skill_requirement(skill)
 
-            top_members = list(
-                ranked_members.items()
-            )[:skill_requirement['units']]
-
             contributions[skill] = [
-                m[0] for m in top_members
-                if m[1] >= skill_requirement['level']
-            ]
+                m[0] for m in ranked_members.items()
+            ][:skill_requirement['units']]
+
+        self.assign_contributions_to_members(contributions)
+
         return contributions
+
+    def assign_contributions_to_members(self, contributions):
+
+        for skill in contributions.keys():
+            for member_id in contributions[skill]:
+                self.members[member_id].add_contribution(
+                    self.project, skill
+                )
 
 
 class OrganisationStrategyInterface(Interface):
