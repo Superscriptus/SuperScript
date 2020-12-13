@@ -5,16 +5,19 @@ from .project import Project
 from .utilities import Random
 from .config import (TEAM_OVR_MULTIPLIER,
                      MIN_TEAM_SIZE,
-                     MAX_TEAM_SIZE)
+                     MAX_TEAM_SIZE,
+                     PRINT_DECIMALS_TO)
 
 
 class Team:
 
-    def __init__(self, project, members, lead):
+    def __init__(self, project, members,
+                 lead, round_to=PRINT_DECIMALS_TO):
         self.project = project
         self.members = members
         self.lead = lead
         self.assign_lead(self.project)
+        self.round_to = round_to
         # currently this is automatic, but could be handled by TeamAllocator:
         self.contributions = self.determine_member_contributions()
         self.team_ovr = self.compute_ovr()
@@ -112,7 +115,8 @@ class Team:
             'project': self.project.project_id,
             'members': list(self.members.keys()),
             'lead': self.lead.worker_id,
-            'team_ovr': self.team_ovr,
+            'team_ovr': round(self.team_ovr, self.round_to),
+            'skill_balance': round(self.skill_balance, self.round_to),
             'skill_contributions': self.contributions
         }
         return json.dumps(output, indent=4)
