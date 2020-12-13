@@ -18,6 +18,7 @@ class Team:
         # currently this is automatic, but could be handled by TeamAllocator:
         self.contributions = self.determine_member_contributions()
         self.team_ovr = self.compute_ovr()
+        self.skill_balance = self.compute_skill_balance()
 
     def assign_lead(self, project):
         self.lead.assign_as_lead(project)
@@ -77,6 +78,33 @@ class Team:
                 self.members[member_id].add_contribution(
                     self.project, skill
                 )
+
+    def compute_skill_balance(self):
+
+        skill_balance = 0
+        number_with_negative_differences = 0
+        for skill in self.project.required_skills:
+
+            required_units = (
+                self.project.get_skill_requirement(skill)['units']
+            )
+            required_level = (
+                self.project.get_skill_requirement(skill)['level']
+            )
+            worker_skills = [
+                self.members[worker_id].get_skill(skill)
+                for worker_id in self.contributions[skill]
+            ]
+            supplied_units = sum([s for s in worker_skills if s >= required_level])
+
+            if supplied_units < required_units:
+                skill_balance += (supplied_units - required_units) ** 2
+                number_with_negative_differences += 1
+
+        if number_with_negative_differences > 0:
+            return skill_balance / number_with_negative_differences
+        else:
+            return 0
 
     def to_string(self):
 
