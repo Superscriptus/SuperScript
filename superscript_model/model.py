@@ -8,7 +8,7 @@ from .config import (PROJECT_LENGTH,
                      NEW_PROJECTS_PER_TIMESTEP)
 
 # TODO:
-# - first in morning: do functions for ovr and skill balance prob, then check it all runs in jupyter.
+# - first in morning: do functions for skill balance prob, then check it all runs in jupyter.
 # - implement all functions (and calculate prob function)
 # - write to do list with time estimates (check what MC wants tracked over time)
 # - demo Team to_string in jupyter

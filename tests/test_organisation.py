@@ -142,7 +142,6 @@ class TestRandomStrategy(unittest.TestCase):
         self.assertEqual(len(bids), 42)
 
 
-
 class TestTeamAllocator(unittest.TestCase):
 
     def test_init(self):

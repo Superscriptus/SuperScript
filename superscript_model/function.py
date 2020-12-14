@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from interface import Interface, implements
+from .config import (SUCCESS_PROBABILITY_OVR_GRADIENT)
 
 
 class FunctionFactory:
@@ -16,7 +17,7 @@ class FunctionFactory:
 
 class FunctionInterface(Interface):
 
-    def get_values(self, x: np.ndarray) -> float:
+    def get_values(self, x: np.ndarray) -> np.ndarray:
         pass
 
     def plot_function(self, xrange, title=None):
@@ -25,7 +26,7 @@ class FunctionInterface(Interface):
     def print_function(self) -> str:
         pass
 
-
+# Get parameters from config...
 class TimelineFlexibility(implements(FunctionInterface)):
 
     def __init__(self, parameters=(50, -0.8)):
@@ -37,7 +38,7 @@ class TimelineFlexibility(implements(FunctionInterface)):
         denominator = sum(y)
         return y / denominator
 
-    def get_values(self, x: np.ndarray) -> float:
+    def get_values(self, x: np.ndarray) -> np.ndarray:
         return self.normalise(
             self.a * (np.exp(self.b * np.array(x)))
         )
@@ -49,7 +50,8 @@ class TimelineFlexibility(implements(FunctionInterface)):
         plt.show()
 
     def print_function(self):
-        return "TimelineFlexibility = %.2f * (e^(%.2f * X))" % (self.a, self.b)
+        return ("TimelineFlexibility = %.2f * (e^(%.2f * X))"
+                % (self.a, self.b))
 
 
 class NoFlexibility(implements(FunctionInterface)):
@@ -57,7 +59,7 @@ class NoFlexibility(implements(FunctionInterface)):
     def __init__(self, parameters=(0,)):
         self.a = int(parameters[0])
 
-    def get_values(self, x: np.ndarray) -> float:
+    def get_values(self, x: np.ndarray) -> np.ndarray:
         values = np.zeros(len(x))
         values[self.a] = 1.0
         return values
@@ -69,4 +71,22 @@ class NoFlexibility(implements(FunctionInterface)):
         plt.show()
 
     def print_function(self):
-        return "NoFlexibility : all probability assigned to %d element" % (self.a,)
+        return ("NoFlexibility : all probability assigned to %d element"
+                % (self.a,))
+
+
+class SuccessProbabilityOVR(implements(FunctionInterface)):
+
+    def __init__(self, gradient=SUCCESS_PROBABILITY_OVR_GRADIENT):
+        self.gradient = gradient
+
+    def get_values(self, x: np.ndarray) -> np.ndarray:
+        return self.gradient * np.array(x)
+
+    def plot_function(self, xrange, title=None):
+        plt.plot(xrange, self.get_values(xrange))
+        plt.title(title)
+        plt.show()
+
+    def print_function(self):
+        return "SuccessProbabilityOVR = %.2f * X" % self.gradient
