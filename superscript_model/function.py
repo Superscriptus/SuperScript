@@ -75,10 +75,15 @@ class NoFlexibility(implements(FunctionInterface)):
                 % (self.a,))
 
 
-class SuccessProbabilityOVR(implements(FunctionInterface)):
+class LinearFunction(implements(FunctionInterface)):
 
-    def __init__(self, gradient=SUCCESS_PROBABILITY_OVR_GRADIENT):
+    def __init__(self, name="success_probability_ovr",
+                 gradient=SUCCESS_PROBABILITY_OVR_GRADIENT,
+                 intercept=0):
+
+        self.name = name
         self.gradient = gradient
+        self.intercept = intercept
 
     def get_values(self, x: np.ndarray) -> np.ndarray:
         return self.gradient * np.array(x)
@@ -89,4 +94,4 @@ class SuccessProbabilityOVR(implements(FunctionInterface)):
         plt.show()
 
     def print_function(self):
-        return "SuccessProbabilityOVR = %.2f * X" % self.gradient
+        return "%s = %.2f * X" % (self.name, self.gradient)

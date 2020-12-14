@@ -6,7 +6,7 @@ from .test_worker import implements_interface
 from superscript_model.function import (FunctionInterface,
                                         TimelineFlexibility,
                                         NoFlexibility,
-                                        SuccessProbabilityOVR)
+                                        LinearFunction)
 from superscript_model.config import (SUCCESS_PROBABILITY_OVR_GRADIENT,)
 
 
@@ -85,19 +85,19 @@ class TestSuccessProbabilityOVR(unittest.TestCase):
 
     def test_get_values(self):
 
-        func = SuccessProbabilityOVR(SUCCESS_PROBABILITY_OVR_GRADIENT)
+        func = LinearFunction(SUCCESS_PROBABILITY_OVR_GRADIENT)
         x = np.asarray([0.0, 50.0, 100.0])
         self.assertEqual(list(func.get_values(x)),
                          [0.0, 37.5, 75.0])
 
     @patch('matplotlib.pyplot.show')
     def test_plot_function(self, mock_show):
-        func = SuccessProbabilityOVR(SUCCESS_PROBABILITY_OVR_GRADIENT)
+        func = LinearFunction(SUCCESS_PROBABILITY_OVR_GRADIENT)
         func.plot_function([1,2,3])
         self.assertEqual(mock_show.call_count, 1)
 
     def test_print_function(self):
-        func = SuccessProbabilityOVR(SUCCESS_PROBABILITY_OVR_GRADIENT)
+        func = LinearFunction(SUCCESS_PROBABILITY_OVR_GRADIENT)
         self.assertEqual(func.print_function(),
                          "SuccessProbabilityOVR = 0.75 * X")
 
