@@ -7,7 +7,8 @@ from superscript_model.function import (FunctionInterface,
                                         TimelineFlexibility,
                                         NoFlexibility,
                                         LinearFunction)
-from superscript_model.config import (SUCCESS_PROBABILITY_OVR_GRADIENT,)
+from superscript_model.config import (SUCCESS_PROBABILITY_OVR_GRADIENT,
+                                      SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT)
 
 
 class TestFunctionInterface(unittest.TestCase):
@@ -80,26 +81,41 @@ class TestSuccessProbabilityOVR(unittest.TestCase):
 
     def test_init(self):
 
-        func = SuccessProbabilityOVR(SUCCESS_PROBABILITY_OVR_GRADIENT)
+        func = LinearFunction()
         self.assertEqual(func.gradient, SUCCESS_PROBABILITY_OVR_GRADIENT)
 
     def test_get_values(self):
 
-        func = LinearFunction(SUCCESS_PROBABILITY_OVR_GRADIENT)
+        func = LinearFunction()
         x = np.asarray([0.0, 50.0, 100.0])
         self.assertEqual(list(func.get_values(x)),
                          [0.0, 37.5, 75.0])
 
     @patch('matplotlib.pyplot.show')
     def test_plot_function(self, mock_show):
-        func = LinearFunction(SUCCESS_PROBABILITY_OVR_GRADIENT)
-        func.plot_function([1,2,3])
+        func = LinearFunction()
+        func.plot_function([1, 2, 3])
         self.assertEqual(mock_show.call_count, 1)
 
     def test_print_function(self):
-        func = LinearFunction(SUCCESS_PROBABILITY_OVR_GRADIENT)
+        func = LinearFunction()
         self.assertEqual(func.print_function(),
-                         "SuccessProbabilityOVR = 0.75 * X")
+                         "success_probability_ovr = 0.75 * X")
 
+    @patch('matplotlib.pyplot.show')
+    def test_success_probability_skill_balance(self, mock_show):
 
+        func = LinearFunction(name="success_probability_skill_balance",
+                              gradient=SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT,
+                              intercept=0)
+
+        x = np.asarray([0.0, 8.0, 16.0])
+        self.assertEqual(list(func.get_values(x)),
+                     [0.0, -20.0, -40.0])
+
+        func.plot_function([1, 2, 3])
+        self.assertEqual(mock_show.call_count, 1)
+
+        self.assertEqual(func.print_function(),
+                         "success_probability_skill_balance = -2.50 * X")
 
