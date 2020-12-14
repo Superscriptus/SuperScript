@@ -8,16 +8,19 @@ from .config import (PROJECT_LENGTH,
                      NEW_PROJECTS_PER_TIMESTEP)
 
 # TODO:
-# - implement all functions (and calculate prob function)
 # - write to do list with time estimates (check what MC wants tracked over time)
-# - demo Team to_string in jupyter
+
+# - update units tests
+# - add other components to success calculator
+# - inject SuccessCalculator (not create)
+
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report
 # - add training and skill decay functionality
 # - add department functionality
 # - add function parameters to config
-# - rename private data members _XX
 # - change FunctionInterface to abstract base class (plot and print never change)
+# - rename private data members _XX
 
 # - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)

@@ -100,12 +100,12 @@ class TestSuccessProbabilityOVR(unittest.TestCase):
     def test_print_function(self):
         func = LinearFunction()
         self.assertEqual(func.print_function(),
-                         "success_probability_ovr = 0.75 * X")
+                         "SuccessProbabilityOVR = 0.75 * X")
 
     @patch('matplotlib.pyplot.show')
     def test_success_probability_skill_balance(self, mock_show):
 
-        func = LinearFunction(name="success_probability_skill_balance",
+        func = LinearFunction(name="SuccessProbabilitySkillBalance",
                               gradient=SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT,
                               intercept=0)
 
@@ -117,5 +117,5 @@ class TestSuccessProbabilityOVR(unittest.TestCase):
         self.assertEqual(mock_show.call_count, 1)
 
         self.assertEqual(func.print_function(),
-                         "success_probability_skill_balance = -2.50 * X")
+                         "SuccessProbabilitySkillBalance = -2.50 * X")
 

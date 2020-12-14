@@ -2,7 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from interface import Interface, implements
-from .config import (SUCCESS_PROBABILITY_OVR_GRADIENT)
+from .config import (SUCCESS_PROBABILITY_OVR_GRADIENT,
+                     SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT)
 
 
 class FunctionFactory:
@@ -13,6 +14,13 @@ class FunctionFactory:
             return TimelineFlexibility()
         elif function_name == 'NoFlexibility':
             return NoFlexibility()
+        elif function_name == 'SuccessProbabilityOVR':
+            return LinearFunction()
+        elif function_name == 'SuccessProbabilitySkillBalance':
+            return LinearFunction(
+                name='SuccessProbabilityOVR',
+                gradient=SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT
+            )
 
 
 class FunctionInterface(Interface):
@@ -40,7 +48,7 @@ class TimelineFlexibility(implements(FunctionInterface)):
 
     def get_values(self, x: np.ndarray) -> np.ndarray:
         return self.normalise(
-            self.a * (np.exp(self.b * np.array(x)))
+            self.a * (np.exp(self.b * np.asarray(x)))
         )
 
     def plot_function(self, xrange, title=None):
@@ -77,7 +85,7 @@ class NoFlexibility(implements(FunctionInterface)):
 
 class LinearFunction(implements(FunctionInterface)):
 
-    def __init__(self, name="success_probability_ovr",
+    def __init__(self, name="SuccessProbabilityOVR",
                  gradient=SUCCESS_PROBABILITY_OVR_GRADIENT,
                  intercept=0):
 
@@ -86,7 +94,7 @@ class LinearFunction(implements(FunctionInterface)):
         self.intercept = intercept
 
     def get_values(self, x: np.ndarray) -> np.ndarray:
-        return self.gradient * np.array(x)
+        return self.gradient * np.asarray(x)
 
     def plot_function(self, xrange, title=None):
         plt.plot(xrange, self.get_values(xrange))

@@ -35,6 +35,7 @@ class ProjectInventory:
             FunctionFactory.get(timeline_flexibility)
         )
         self.max_timeline_flex = max_timeline_flex
+        self.success_calculator = SuccessCalculator()
 
     @property
     def active_count(self):
@@ -82,6 +83,7 @@ class ProjectInventory:
         new_projects = self.rank_projects(new_projects)
         for p in new_projects:
             self.team_allocator.allocate_team(p)
+            self.success_calculator.calculate_success_probability(p)
             self.add_project(p)
 
     @staticmethod
@@ -130,6 +132,7 @@ class Project:
         self.start_time = start_time + start_time_offset
         self.team = None
         self.requirements = ProjectRequirements()
+        self.success_probability = 0.0
 
     def advance(self):
         self.progress += 1
@@ -261,3 +264,32 @@ class ProjectRequirements:
             'hard_skills': self.hard_skills
         }
         return json.dumps(output, indent=4)
+
+
+class SuccessCalculator:
+
+    def __init__(self):
+        self.probability_ovr = (
+            FunctionFactory.get('SuccessProbabilityOVR')
+        )
+        self.probability_skill_balance = (
+            FunctionFactory.get('SuccessProbabilitySkillBalance')
+        )
+
+    def calculate_success_probability(self, project):
+
+        if project.team is not None:
+            ovr = project.team.team_ovr
+            skill_balance = project.team.skill_balance
+        else:
+            ovr = 0.0
+            skill_balance = 0.0
+
+        project.success_probability = (
+            self.probability_ovr.get_values(ovr)
+            + self.probability_skill_balance.get_values(skill_balance)
+        )
+
+    def determine_success(self):
+        """To be called when settling project (terminate?)"""
+        pass

@@ -115,6 +115,7 @@ class Team:
             'project': self.project.project_id,
             'members': list(self.members.keys()),
             'lead': self.lead.worker_id,
+            'success_probability': self.project.success_probability,
             'team_ovr': round(self.team_ovr, self.round_to),
             'skill_balance': round(self.skill_balance, self.round_to),
             'skill_contributions': self.contributions
