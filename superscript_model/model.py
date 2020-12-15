@@ -8,8 +8,8 @@ from .config import (PROJECT_LENGTH,
                      NEW_PROJECTS_PER_TIMESTEP)
 
 # TODO:
-# - write to do list with time estimates (check what MC wants tracked over time)
 
+# - add creativity_match to prob calc using saturating function
 # - update units tests
 # - rename skill balance - degree of mismatch..
 # - add other components to success calculator

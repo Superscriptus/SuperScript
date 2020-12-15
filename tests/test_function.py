@@ -10,8 +10,8 @@ from superscript_model.function import (FunctionInterface,
                                         SaturatingFunction)
 from superscript_model.config import (SUCCESS_PROBABILITY_OVR_GRADIENT,
                                       SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT,
-                                      SUCCESS_PROBABILITY_SKILL_BALANCE_RATE,
-                                      SUCCESS_PROBABILITY_SKILL_BALANCE_INTERCEPT)
+                                      SUCCESS_PROBABILITY_CREATIVITY_MATCH_RATE,
+                                      SUCCESS_PROBABILITY_CREATIVITY_MATCH_INTERCEPT)
 
 
 class TestFunctionInterface(unittest.TestCase):
@@ -128,8 +128,8 @@ class TestSaturatingFunction(unittest.TestCase):
     def test_success_probability_creativity_match(self):
         func = SaturatingFunction(
             name="SuccessProbabilityCreativityMatch",
-            rate=SUCCESS_PROBABILITY_SKILL_BALANCE_RATE,
-            intercept=SUCCESS_PROBABILITY_SKILL_BALANCE_INTERCEPT
+            rate=SUCCESS_PROBABILITY_CREATIVITY_MATCH_RATE,
+            intercept=SUCCESS_PROBABILITY_CREATIVITY_MATCH_INTERCEPT
         )
         x = [0.0, 1.0, 16.0]
         y = [10.0, -15.28, -30.00]

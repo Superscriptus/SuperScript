@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 from interface import Interface, implements
 from .config import (SUCCESS_PROBABILITY_OVR_GRADIENT,
                      SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT,
-                     SUCCESS_PROBABILITY_SKILL_BALANCE_RATE,
-                     SUCCESS_PROBABILITY_SKILL_BALANCE_INTERCEPT)
+                     SUCCESS_PROBABILITY_CREATIVITY_MATCH_RATE,
+                     SUCCESS_PROBABILITY_CREATIVITY_MATCH_INTERCEPT)
 
 
 class FunctionFactory:
@@ -22,6 +22,12 @@ class FunctionFactory:
             return LinearFunction(
                 name='SuccessProbabilityOVR',
                 gradient=SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT
+            )
+        elif function_name == 'SuccessProbabilityCreativityMatch':
+            return SaturatingFunction(
+                name='SuccessProbabilityCreativityMatch',
+                intercept=SUCCESS_PROBABILITY_CREATIVITY_MATCH_INTERCEPT,
+                rate=SUCCESS_PROBABILITY_CREATIVITY_MATCH_RATE
             )
 
 
@@ -112,8 +118,8 @@ class LinearFunction(implements(FunctionInterface)):
 class SaturatingFunction(implements(FunctionInterface)):
 
     def __init__(self, name="SuccessProbabilityCreativityMatch",
-                 rate=SUCCESS_PROBABILITY_SKILL_BALANCE_RATE,
-                 intercept=SUCCESS_PROBABILITY_SKILL_BALANCE_INTERCEPT):
+                 rate=SUCCESS_PROBABILITY_CREATIVITY_MATCH_RATE,
+                 intercept=SUCCESS_PROBABILITY_CREATIVITY_MATCH_INTERCEPT):
 
         self.name = name
         self.rate = rate
