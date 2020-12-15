@@ -3,7 +3,9 @@ import matplotlib.pyplot as plt
 
 from interface import Interface, implements
 from .config import (SUCCESS_PROBABILITY_OVR_GRADIENT,
-                     SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT)
+                     SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT,
+                     SUCCESS_PROBABILITY_SKILL_BALANCE_RATE,
+                     SUCCESS_PROBABILITY_SKILL_BALANCE_INTERCEPT)
 
 
 class FunctionFactory:
@@ -94,7 +96,7 @@ class LinearFunction(implements(FunctionInterface)):
         self.intercept = intercept
 
     def get_values(self, x: np.ndarray) -> np.ndarray:
-        return self.gradient * np.asarray(x)
+        return self.intercept + self.gradient * np.asarray(x)
 
     def plot_function(self, xrange, title=None):
         plt.plot(xrange, self.get_values(xrange))
@@ -102,4 +104,30 @@ class LinearFunction(implements(FunctionInterface)):
         plt.show()
 
     def print_function(self):
-        return "%s = %.2f * X" % (self.name, self.gradient)
+        return "%s = %.2f + %.2f * X" % (self.name,
+                                         self.intercept,
+                                         self.gradient)
+
+
+class SaturatingFunction(implements(FunctionInterface)):
+
+    def __init__(self, name="SuccessProbabilityCreativityMatch",
+                 rate=SUCCESS_PROBABILITY_SKILL_BALANCE_RATE,
+                 intercept=SUCCESS_PROBABILITY_SKILL_BALANCE_INTERCEPT):
+
+        self.name = name
+        self.rate = rate
+        self.intercept = intercept
+
+    def get_values(self, x: np.ndarray) -> np.ndarray:
+        return self.intercept - self.rate * (1 - np.exp(-np.asarray(x)))
+
+    def plot_function(self, xrange, title=None):
+        plt.plot(xrange, self.get_values(xrange))
+        plt.title(title)
+        plt.show()
+
+    def print_function(self):
+        return "%s = %.2f - %.2f * (1 - exp(X))" % (self.name,
+                                                   self.intercept,
+                                                   self.rate)

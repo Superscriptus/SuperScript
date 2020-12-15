@@ -6,9 +6,12 @@ from .test_worker import implements_interface
 from superscript_model.function import (FunctionInterface,
                                         TimelineFlexibility,
                                         NoFlexibility,
-                                        LinearFunction)
+                                        LinearFunction,
+                                        SaturatingFunction)
 from superscript_model.config import (SUCCESS_PROBABILITY_OVR_GRADIENT,
-                                      SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT)
+                                      SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT,
+                                      SUCCESS_PROBABILITY_SKILL_BALANCE_RATE,
+                                      SUCCESS_PROBABILITY_SKILL_BALANCE_INTERCEPT)
 
 
 class TestFunctionInterface(unittest.TestCase):
@@ -77,7 +80,7 @@ class TestNoFlexibility(unittest.TestCase):
                          "NoFlexibility : all probability assigned to 0 element")
 
 
-class TestSuccessProbabilityOVR(unittest.TestCase):
+class TestLinearFunction(unittest.TestCase):
 
     def test_init(self):
 
@@ -100,7 +103,7 @@ class TestSuccessProbabilityOVR(unittest.TestCase):
     def test_print_function(self):
         func = LinearFunction()
         self.assertEqual(func.print_function(),
-                         "SuccessProbabilityOVR = 0.75 * X")
+                         "SuccessProbabilityOVR = 0.00 + 0.75 * X")
 
     @patch('matplotlib.pyplot.show')
     def test_success_probability_skill_balance(self, mock_show):
@@ -117,5 +120,21 @@ class TestSuccessProbabilityOVR(unittest.TestCase):
         self.assertEqual(mock_show.call_count, 1)
 
         self.assertEqual(func.print_function(),
-                         "SuccessProbabilitySkillBalance = -2.50 * X")
+                         "SuccessProbabilitySkillBalance = 0.00 + -2.50 * X")
 
+
+class TestSaturatingFunction(unittest.TestCase):
+
+    def test_success_probability_creativity_match(self):
+        func = SaturatingFunction(
+            name="SuccessProbabilityCreativityMatch",
+            rate=SUCCESS_PROBABILITY_SKILL_BALANCE_RATE,
+            intercept=SUCCESS_PROBABILITY_SKILL_BALANCE_INTERCEPT
+        )
+        x = [0.0, 1.0, 16.0]
+        y = [10.0, -15.28, -30.00]
+        for xi, yi in zip(x, y):
+            self.assertEqual(round(func.get_values(xi), 2), yi)
+
+        self.assertEqual(func.print_function(),
+                         "SuccessProbabilityCreativityMatch = 10.00 - 40.00 * (1 - exp(X))")
