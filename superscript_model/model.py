@@ -15,6 +15,7 @@ from .config import (PROJECT_LENGTH,
 # - add other components to success calculator
 # - inject SuccessCalculator (not create)
 # - refactor ovr and skill_balance tests to use the smae objects?
+# - time the model running in jupyter..
 
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report

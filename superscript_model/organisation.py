@@ -1,4 +1,5 @@
 from interface import Interface, implements
+from itertools import combinations
 import json
 
 from .project import Project
@@ -6,7 +7,9 @@ from .utilities import Random
 from .config import (TEAM_OVR_MULTIPLIER,
                      MIN_TEAM_SIZE,
                      MAX_TEAM_SIZE,
-                     PRINT_DECIMALS_TO)
+                     PRINT_DECIMALS_TO,
+                     MAX_SKILL_LEVEL,
+                     MIN_SOFT_SKILL_LEVEL)
 
 
 class Team:
@@ -22,6 +25,7 @@ class Team:
         self.contributions = self.determine_member_contributions()
         self.team_ovr = self.compute_ovr()
         self.skill_balance = self.compute_skill_balance()
+        self.creativity_match = self.compute_creativity_match()
 
     def assign_lead(self, project):
         self.lead.assign_as_lead(project)
@@ -111,6 +115,42 @@ class Team:
         else:
             return 0
 
+    def compute_creativity_match(self,
+                                 max_skill_level=MAX_SKILL_LEVEL,
+                                 min_skill_level=MIN_SOFT_SKILL_LEVEL):
+
+        creativity_level = 0
+        number_of_existing_skills = 0
+        max_distance = max_skill_level - min_skill_level
+        if len(self.members) > 1:
+            max_distance /= (len(self.members) - 1)
+
+        for skill in self.lead.skills.soft_skills.keys():
+
+            worker_skills = [
+                member.get_skill(
+                    skill, hard_skill=False
+                )
+                for member in self.members.values()
+            ]
+
+            pairs = list(combinations(worker_skills, 2))
+            if len(pairs) > 0:
+                creativity_level += (
+                    sum([((p[1] - p[0]) / max_distance) ** 2
+                         for p in pairs])
+                    / len(pairs)
+                )
+                number_of_existing_skills += 1
+
+        if number_of_existing_skills > 0:
+            creativity_level /= number_of_existing_skills
+        else:
+            creativity_level = 0
+
+        creativity_level = (creativity_level * max_distance) + 1
+        return (self.project.creativity - creativity_level) ** 2
+
     def to_string(self):
 
         output = {
@@ -122,6 +162,9 @@ class Team:
             ),
             'team_ovr': round(self.team_ovr, self.round_to),
             'skill_balance': round(self.skill_balance, self.round_to),
+            'creativity_match': round(
+                self.creativity_match, self.round_to
+            ),
             'skill_contributions': self.contributions
         }
         return json.dumps(output, indent=4)

@@ -8,6 +8,7 @@ HARD_SKILLS = ['A', 'B', 'C', 'D', 'E']
 SOFT_SKILLS = ['F', 'G', 'H', 'I', 'J']
 # worker:
 MAX_SKILL_LEVEL = 5
+MIN_SOFT_SKILL_LEVEL = 1
 P_HARD_SKILL = 0.8
 WORKER_OVR_MULTIPLIER = 20
 

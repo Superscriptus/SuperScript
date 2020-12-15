@@ -7,6 +7,7 @@ from .utilities import Random
 from .config import (HARD_SKILLS,
                      SOFT_SKILLS,
                      MAX_SKILL_LEVEL,
+                     MIN_SOFT_SKILL_LEVEL,
                      P_HARD_SKILL,
                      WORKER_OVR_MULTIPLIER,
                      PRINT_DECIMALS_TO)
@@ -84,6 +85,7 @@ class SkillMatrix:
                  hard_skills=HARD_SKILLS,
                  soft_skills=SOFT_SKILLS,
                  max_skill=MAX_SKILL_LEVEL,
+                 min_soft_skill=MIN_SOFT_SKILL_LEVEL,
                  hard_skill_probability=P_HARD_SKILL,
                  round_to=PRINT_DECIMALS_TO,
                  ovr_multiplier=WORKER_OVR_MULTIPLIER):
@@ -92,7 +94,8 @@ class SkillMatrix:
                                     [0.0 for s in hard_skills]))
         self.soft_skills = dict(
             zip(soft_skills,
-                [Random.uniform(0.0, max_skill) for s in hard_skills]
+                [Random.uniform(min_soft_skill, max_skill)
+                 for s in soft_skills]
                 )
         )
         self.max_skill = max_skill

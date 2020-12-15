@@ -140,6 +140,37 @@ class TestTeam(unittest.TestCase):
 
         self.assertEqual(round(team.compute_skill_balance(), 2), 0.16)
 
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.ProjectInventory')
+    def test_compute_creativity_match(self, mock_inventory, mock_model):
+
+        w1 = Worker(1, mock_model)
+        w2 = Worker(2, mock_model)
+        project = Project(mock_inventory,
+                          project_id=42,
+                          project_length=5)
+        team = Team(project,
+                    members={w1.worker_id: w1,
+                             w2.worker_id: w2},
+                    lead=w1)
+        self.assertTrue(team.compute_creativity_match() <= 16)
+        self.assertTrue(team.compute_creativity_match() >= 0)
+
+        soft_skills = ['F', 'G','H', 'I', 'J']
+        w1.skills.soft_skills = dict(zip(soft_skills,
+                                         [1.0, 1.0, 1.0, 1.0, 1.0]))
+        w2.skills.soft_skills = dict(zip(soft_skills,
+                                         [5.0, 5.0, 5.0, 5.0, 5.0]))
+        project = Project(mock_inventory,
+                          project_id=42,
+                          project_length=5)
+        project.requirements.creativity = 5
+        team = Team(project,
+                    members={w1.worker_id: w1,
+                             w2.worker_id: w2},
+                    lead=w1)
+        self.assertEqual(team.creativity_match, 0)
+
 
 class TestOrganisationStrategyInterface(unittest.TestCase):
 
