@@ -107,6 +107,39 @@ class TestTeam(unittest.TestCase):
 
         self.assertEqual(round(team.compute_ovr(),2), 72.36)
 
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.ProjectInventory')
+    def test_compute_skill_balance(self, mock_inventory, mock_model):
+
+        workers = [Worker(i, mock_model) for i in range(5)]
+        hard_skills = ['A', 'B','C', 'D', 'E']
+        workers[0].skills.hard_skills = dict(zip(hard_skills,
+                                                 [0.0, 3.9, 3.2, 4.1, 1.5]))
+        workers[1].skills.hard_skills = dict(zip(hard_skills,
+                                                 [4.1, 4.4, 2.1, 2.9, 0.4]))
+        workers[2].skills.hard_skills = dict(zip(hard_skills,
+                                                 [0.0, 0.0, 0.0, 0.5, 3.9]))
+        workers[3].skills.hard_skills = dict(zip(hard_skills,
+                                                 [0.0, 3.6, 2.5, 4.9, 5.0]))
+        workers[4].skills.hard_skills = dict(zip(hard_skills,
+                                                 [0.0, 0.0, 0.0, 2.9, 0.0]))
+        project = Project(mock_inventory,
+                          project_id=42,
+                          project_length=5)
+        project.requirements.hard_skills = {
+            'A': {'units': 0, 'level': 3},
+            'B': {'units': 2, 'level': 3},
+            'C': {'units': 3, 'level': 3},
+            'D': {'units': 4, 'level': 3},
+            'E': {'units': 2, 'level': 3}
+        }
+        team = Team(project,
+                    members={worker.worker_id: worker
+                             for worker in workers},
+                    lead=workers[0])
+
+        self.assertEqual(round(team.compute_skill_balance(), 2), 0.16)
+
 
 class TestOrganisationStrategyInterface(unittest.TestCase):
 

@@ -11,13 +11,16 @@ from .config import (PROJECT_LENGTH,
 # - write to do list with time estimates (check what MC wants tracked over time)
 
 # - update units tests
+# - rename skill balance - degree of mismatch..
 # - add other components to success calculator
 # - inject SuccessCalculator (not create)
+# - refactor ovr and skill_balance tests to use the smae objects?
 
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report
 # - add training and skill decay functionality
 # - add department functionality
+# - add budget constraint functionality
 # - add function parameters to config
 # - change FunctionInterface to abstract base class (plot and print never change)
 # - rename private data members _XX

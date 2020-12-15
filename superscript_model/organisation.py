@@ -98,10 +98,12 @@ class Team:
                 self.members[worker_id].get_skill(skill)
                 for worker_id in self.contributions[skill]
             ]
-            supplied_units = sum([s for s in worker_skills if s >= required_level])
+            skill_mismatch = (
+                (sum(worker_skills) / required_units) - required_level
+            ) if required_units > 0 else 0
 
-            if supplied_units < required_units:
-                skill_balance += (supplied_units - required_units) ** 2
+            if skill_mismatch < 0:
+                skill_balance += skill_mismatch ** 2
                 number_with_negative_differences += 1
 
         if number_with_negative_differences > 0:
