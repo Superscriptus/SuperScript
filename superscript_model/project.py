@@ -288,7 +288,7 @@ class SuccessCalculator:
         project.success_probability = (
             self.probability_ovr.get_values(ovr)
             + self.probability_skill_balance.get_values(skill_balance)
-        )
+        ) / 100
 
     def determine_success(self):
         """To be called when settling project (terminate?)"""
