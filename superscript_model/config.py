@@ -5,6 +5,8 @@ MAX_TEAM_SIZE = 7
 
 # department:
 DEPARTMENTAL_WORKLOAD = 0.1
+WORKLOAD_SATISFIED_TOLERANCE = 2  # minimum number of units slack when a worker is checking if they can bid
+UNITS_PER_FTE = 10  # number of units equal to full-time equivalent
 
 # worker (and project):
 HARD_SKILLS = ['A', 'B', 'C', 'D', 'E']

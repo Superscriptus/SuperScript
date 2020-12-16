@@ -10,7 +10,9 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      PRINT_DECIMALS_TO,
                      MAX_SKILL_LEVEL,
                      MIN_SOFT_SKILL_LEVEL,
-                     DEPARTMENTAL_WORKLOAD)
+                     DEPARTMENTAL_WORKLOAD,
+                     WORKLOAD_SATISFIED_TOLERANCE,
+                     UNITS_PER_FTE)
 
 
 class Team:
@@ -245,10 +247,15 @@ class TeamAllocator:
 
 class Department:
 
-    def __init__(self, dept_id, workload=DEPARTMENTAL_WORKLOAD):
+    def __init__(self, dept_id, workload=DEPARTMENTAL_WORKLOAD,
+                 units_per_full_time=UNITS_PER_FTE,
+                 tolerance=WORKLOAD_SATISFIED_TOLERANCE):
 
         self.dept_id = dept_id
+        self.number_of_workers = 0
         self.workload = workload
+        self.units_per_full_time = units_per_full_time
+        self.tolerance = tolerance
         self.units_supplied_to_projects = dict()
 
     def update_supplied_units(self, worker_id,
@@ -268,4 +275,27 @@ class Department:
             self.units_supplied_to_projects[time][worker_id] = units
         else:
             self.units_supplied_to_projects[time][worker_id] += units
+
+    def is_workload_satisfied(self, start, length):
+
+        total_units_dept_can_supply = (
+                self.number_of_workers * self.units_per_full_time
+        )
+        departmental_workload_units = (
+            total_units_dept_can_supply * self.workload
+        )
+
+        for t in range(length):
+
+            total_supplied_units = sum(
+                self.units_supplied_to_projects[start + t].values()
+            )
+            if (total_supplied_units
+                    >= (total_units_dept_can_supply
+                        - departmental_workload_units
+                        - self.tolerance)):
+                return False
+
+        return True
+
 

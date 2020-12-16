@@ -10,8 +10,9 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# 5 - 10 minutes left over
-# - write update_supplied_nits
+# 30 minutes left over
+# - implement checking if dept workload is met (for bid, and when assinging worker contributions
+# - check that worker not contributing too many units..
 # handle negative probability?
 
 # - refactor so that Team creation does not automatically assign worker contributions -

@@ -40,10 +40,12 @@ class Worker(Agent):
     def __init__(self, worker_id: int,
                  model, department=Department(0)):
 
+        super().__init__(worker_id, model)
         self.worker_id = worker_id
         self.skills = SkillMatrix()
-        super().__init__(worker_id, model)
         self.department = department
+        self.department.number_of_workers += 1
+
         self.strategy = AllInStrategy('All-In')
         self.leads_on = dict()
         self.contributes = dict()
@@ -80,6 +82,10 @@ class Worker(Agent):
             return self.skills.hard_skills[skill]
         else:
             return self.skills.soft_skills[skill]
+
+    def replace(self):
+        # ensure to reduce number of workers in dept by 1
+        pass
 
 
 class SkillMatrix:
