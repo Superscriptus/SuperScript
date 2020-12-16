@@ -9,7 +9,11 @@ from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import (Team,
                                             OrganisationStrategyInterface,
                                             RandomStrategy,
-                                            TeamAllocator)
+                                            TeamAllocator,
+                                            Department)
+from superscript_model.config import (DEPARTMENTAL_WORKLOAD,
+                                      UNITS_PER_FTE,
+                                      WORKLOAD_SATISFIED_TOLERANCE)
 
 
 class TestTeam(unittest.TestCase):
@@ -197,7 +201,8 @@ class TestRandomStrategy(unittest.TestCase):
         self.assertIsInstance(strategy.model, Model)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_select_team(self, mock_allocator):
+    @patch('builtins.print')
+    def test_select_team(self, mock_print, mock_allocator):
 
         strategy = RandomStrategy(SuperScriptModel(100))
         inventory = ProjectInventory(mock_allocator)
@@ -209,6 +214,12 @@ class TestRandomStrategy(unittest.TestCase):
         self.assertTrue(set(team.members.values())
                         .issubset(strategy.model.schedule.agents))
         self.assertTrue(team.lead in team.members.values())
+
+        team = strategy.select_team(inventory.projects[0],
+                                    bid_pool=[])
+        self.assertEqual(team.members, {})
+        self.assertIs(team.lead, None)
+        self.assertEqual(mock_print.call_count, 1)
 
     @patch('superscript_model.project.Project')
     def test_invite_bids(self, mock_project):
@@ -238,3 +249,22 @@ class TestTeamAllocator(unittest.TestCase):
         self.assertIsInstance(mock_project.team, Team)
 
 
+class TestDepartment(unittest.TestCase):
+
+    def test_init(self):
+        dept = Department(0)
+        self.assertEqual(dept.workload, DEPARTMENTAL_WORKLOAD)
+        self.assertEqual(dept.units_per_full_time, UNITS_PER_FTE)
+        self.assertEqual(dept.tolerance, WORKLOAD_SATISFIED_TOLERANCE)
+
+    def test_is_workload_satisfied(self):
+        dept = Department(0)
+        dept.number_of_workers += 1
+        dept.units_supplied_to_projects[0] = {
+            'worker_1': 8
+        }
+        self.assertFalse(dept.is_workload_satisfied(0, 1))
+
+    def test_to_string(self):
+        dept = Department(0)
+        self.assertIsInstance(dept.to_string(), str)

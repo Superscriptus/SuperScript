@@ -80,6 +80,20 @@ class TestWorker(unittest.TestCase):
         self.assertIsInstance(skill_f, float)
         self.assertTrue((skill_f >= 0.0) & (skill_f <= 5.0))
 
+    @patch('superscript_model.model.Model')
+    def test_get_units_contributed(self, mock_model):
+        worker = Worker(42, mock_model)
+        worker.contributes[0] = {'B': [1, 2]}
+        self.assertEqual(worker.get_units_contributed(0, 'A'), 0)
+
+    @patch('superscript_model.model.Model')
+    def test_contributes_less_than_full_time(self, mock_model):
+        worker = Worker(42, mock_model)
+        worker.contributes[0] = {'B': range(10)}
+        self.assertFalse(worker.contributes_less_than_full_time(0, 1))
+
+
+
 class TestWorkerStrategyInterface(unittest.TestCase):
 
     def test_interface(self):

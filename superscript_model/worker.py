@@ -63,7 +63,7 @@ class Worker(Agent):
 
         for t in range(length):
 
-            time = start + length
+            time = start + t
             contributes_at_time = 0
             for skill in self.skills.hard_skills.keys():
                 contributes_at_time += self.get_units_contributed(time, skill)
