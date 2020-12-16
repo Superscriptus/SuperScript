@@ -146,12 +146,22 @@ class TestTeam(unittest.TestCase):
 
         w1 = Worker(1, mock_model)
         w2 = Worker(2, mock_model)
+        w3 = Worker(1, mock_model)
+        w4 = Worker(2, mock_model)
+        w5 = Worker(1, mock_model)
+        w6 = Worker(2, mock_model)
+        w7 = Worker(2, mock_model)
         project = Project(mock_inventory,
                           project_id=42,
                           project_length=5)
         team = Team(project,
                     members={w1.worker_id: w1,
-                             w2.worker_id: w2},
+                             w2.worker_id: w2,
+                             w3.worker_id: w3,
+                             w4.worker_id: w4,
+                             w5.worker_id: w5,
+                             w6.worker_id: w6,
+                             w7.worker_id: w7},
                     lead=w1)
         self.assertTrue(team.compute_creativity_match() <= 16)
         self.assertTrue(team.compute_creativity_match() >= 0)

@@ -9,8 +9,10 @@ from .config import (PROJECT_LENGTH,
 
 # TODO:
 
-# - add creativity_match to prob calc using saturating function
-# - update units tests
+# 5 minutes left
+# handle negative probability?
+
+# - update units tests (and test creativity_match in jupyter)
 # - rename skill balance - degree of mismatch..
 # - add other components to success calculator
 # - inject SuccessCalculator (not create)
