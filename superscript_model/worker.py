@@ -14,27 +14,6 @@ from .config import (HARD_SKILLS,
                      PRINT_DECIMALS_TO)
 
 
-class WorkerStrategyInterface(Interface):
-
-    def bid(self, project: Project) -> bool:
-        pass
-
-    def accept(self, project: Project) -> bool:
-        pass
-
-
-class AllInStrategy(implements(WorkerStrategyInterface)):
-
-    def __init__(self, name: str):
-        self.name = name
-
-    def bid(self, project: Project) -> bool:
-        return True
-
-    def accept(self, project: Project) -> bool:
-        return True
-
-
 class Worker(Agent):
 
     def __init__(self, worker_id: int,
@@ -86,6 +65,35 @@ class Worker(Agent):
     def replace(self):
         # ensure to reduce number of workers in dept by 1
         pass
+
+    def bid(self, project):
+        return self.strategy.bid(project, self)
+
+
+class WorkerStrategyInterface(Interface):
+
+    def bid(self, project: Project, worker: Worker) -> bool:
+        pass
+
+    def accept(self, project: Project) -> bool:
+        pass
+
+
+class AllInStrategy(implements(WorkerStrategyInterface)):
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def bid(self, project: Project, worker: Worker) -> bool:
+
+        if worker.department.is_workload_satisfied(
+                project.start_time, project.length):
+            return True
+        else:
+            return False
+
+    def accept(self, project: Project) -> bool:
+        return True
 
 
 class SkillMatrix:

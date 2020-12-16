@@ -10,6 +10,7 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      PRINT_DECIMALS_TO,
                      MAX_SKILL_LEVEL,
                      MIN_SOFT_SKILL_LEVEL,
+                     SOFT_SKILLS,
                      DEPARTMENTAL_WORKLOAD,
                      WORKLOAD_SATISFIED_TOLERANCE,
                      UNITS_PER_FTE)
@@ -18,12 +19,14 @@ from .config import (TEAM_OVR_MULTIPLIER,
 class Team:
 
     def __init__(self, project, members,
-                 lead, round_to=PRINT_DECIMALS_TO):
+                 lead, round_to=PRINT_DECIMALS_TO,
+                 soft_skills=SOFT_SKILLS):
         self.project = project
         self.members = members
         self.lead = lead
         self.assign_lead(self.project)
         self.round_to = round_to
+        self.soft_skills = soft_skills  # used by compute_creativity_match()
         # currently this is automatic, but could be handled by TeamAllocator:
         self.contributions = self.determine_member_contributions()
         self.team_ovr = self.compute_ovr()
@@ -31,7 +34,8 @@ class Team:
         self.creativity_match = self.compute_creativity_match()
 
     def assign_lead(self, project):
-        self.lead.assign_as_lead(project)
+        if self.lead is not None:
+            self.lead.assign_as_lead(project)
 
     def remove_lead(self, project):
         self.lead.remove_as_lead(project)
@@ -143,7 +147,7 @@ class Team:
         if len(self.members.keys()) > 1:
             max_distance /= (len(self.members.keys()) - 1)
 
-        for skill in self.lead.skills.soft_skills.keys():
+        for skill in self.soft_skills:
 
             worker_skills = [
                 member.get_skill(
@@ -211,7 +215,7 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
 
         bid_pool = [
             worker for worker in self.model.schedule.agents
-            if worker.strategy.bid(project)
+            if worker.bid(project)
         ]
         return bid_pool
 
@@ -223,10 +227,17 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
         bid_pool = (self.model.schedule.agents
                     if bid_pool is None else bid_pool)
 
-        workers = {worker.worker_id: worker
-                   for worker in
-                   Random.choices(bid_pool, size)}
-        lead = Random.choice(list(workers.values()))
+# Check this functionality...
+        if size > len(bid_pool):
+            print("Cannot select %d workers from bid_pool of size %d"
+                  % (size, len(bid_pool)))
+            workers = {}
+            lead = None
+        else:
+            workers = {worker.worker_id: worker
+                       for worker in
+                       Random.choices(bid_pool, size)}
+            lead = Random.choice(list(workers.values()))
 
         return Team(project, workers, lead)
 
@@ -287,9 +298,11 @@ class Department:
 
         for t in range(length):
 
+            time = start + t
             total_supplied_units = sum(
-                self.units_supplied_to_projects[start + t].values()
-            )
+                self.units_supplied_to_projects[time].values()
+            ) if time in self.units_supplied_to_projects else 0
+
             if (total_supplied_units
                     >= (total_units_dept_can_supply
                         - departmental_workload_units
@@ -298,4 +311,13 @@ class Department:
 
         return True
 
+    def to_string(self):
+        output = {
+            'dept_id': self.dept_id,
+            'number_of_workers': self.number_of_workers,
+            'workload': self.workload,
+            'units_per_full_time': self.units_per_full_time,
+            'tolerance': self.tolerance
+        }
+        return json.dumps(output, indent=4)
 

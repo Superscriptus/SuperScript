@@ -95,10 +95,11 @@ class TestAllInStrategy(unittest.TestCase):
         strategy = AllInStrategy('test')
         self.assertEqual(strategy.name, 'test')
 
-    def test_bid(self):
-
+    @patch('superscript_model.model.Model')
+    def test_bid(self, mock_model):
+        worker = Worker(42, mock_model)
         strategy = AllInStrategy('test')
-        self.assertTrue(strategy.bid(Project(42, 5)))
+        self.assertTrue(strategy.bid(Project(42, 5), worker))
 
     def test_accept(self):
 

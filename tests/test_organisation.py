@@ -193,13 +193,13 @@ class TestOrganisationStrategyInterface(unittest.TestCase):
 class TestRandomStrategy(unittest.TestCase):
 
     def test_init(self):
-        strategy = RandomStrategy(SuperScriptModel(42))
+        strategy = RandomStrategy(SuperScriptModel(100))
         self.assertIsInstance(strategy.model, Model)
 
     @patch('superscript_model.organisation.TeamAllocator')
     def test_select_team(self, mock_allocator):
 
-        strategy = RandomStrategy(SuperScriptModel(42))
+        strategy = RandomStrategy(SuperScriptModel(100))
         inventory = ProjectInventory(mock_allocator)
         inventory.create_projects(1, time=0, length=5)
         team = strategy.select_team(inventory.projects[0],
@@ -213,21 +213,26 @@ class TestRandomStrategy(unittest.TestCase):
     @patch('superscript_model.project.Project')
     def test_invite_bids(self, mock_project):
 
-        strategy = RandomStrategy(SuperScriptModel(42))
+        mock_project.start_time = 0
+        mock_project.length = 5
+        strategy = RandomStrategy(SuperScriptModel(worker_count=100,
+                                                   department_count=10))
         bids = strategy.invite_bids(mock_project)
-        self.assertEqual(len(bids), 42)
+        self.assertEqual(len(bids), 100)
 
 
 class TestTeamAllocator(unittest.TestCase):
 
     def test_init(self):
-        allocator = TeamAllocator(SuperScriptModel(42))
+        allocator = TeamAllocator(SuperScriptModel(100))
         self.assertTrue(implements_interface(allocator.strategy,
                                              OrganisationStrategyInterface))
 
     @patch('superscript_model.project.Project')
     def test_allocate_team(self, mock_project):
 
+        mock_project.start_time = 0
+        mock_project.length = 5
         allocator = TeamAllocator(SuperScriptModel(42))
         allocator.allocate_team(mock_project)
         self.assertIsInstance(mock_project.team, Team)

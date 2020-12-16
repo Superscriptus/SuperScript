@@ -51,6 +51,8 @@ from .config import (PROJECT_LENGTH,
 # - patch TeamAllocator throughout whole class/file in test_project?
 # - refactor so that plot_function takes a function plotter object
 # - assert that time=start_time when project progress=0
+# - number of workers needs to be divisible by number of departments
+# to run single test: python -m unittest tests.test_organisation.TestRandomStrategy.test_invite_bids
 
 
 class SuperScriptModel(Model):
