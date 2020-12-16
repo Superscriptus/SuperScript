@@ -73,6 +73,21 @@ class Worker(Agent):
 
         return True
 
+    def get_remaining_units(self, start, length):
+
+        remaining_units = []
+        for t in range(length):
+
+            time = start + length
+            contributes_at_time = 0
+            for skill in self.skills.hard_skills.keys():
+                contributes_at_time += self.get_units_contributed(time, skill)
+
+            remaining_units.append(
+                self.units_per_full_time - contributes_at_time
+            )
+        return min(remaining_units)
+
     def step(self):
         """Dict can be updated during loop (one other?)"""
         projects = list(self.leads_on.values())

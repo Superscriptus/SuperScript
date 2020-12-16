@@ -79,6 +79,12 @@ class Team:
                 [m.department for m in self.members.values()]
             )
         }
+        member_unit_budgets = {
+            member.worker_id: member.get_remaining_units(
+                self.project.start_time, self.project.length
+            )
+            for member in self.members.values()
+        }
 
         contributions = dict()
         for skill in self.project.required_skills:
@@ -93,9 +99,12 @@ class Team:
                     break
 
                 member = self.members[member_id]
-                if dept_unit_budgets[member.department.dept_id] > 0:
+                if (dept_unit_budgets[member.department.dept_id] > 0
+                        and member_unit_budgets[member.worker_id] > 0):
+
                     contributions[skill].append(member_id)
                     dept_unit_budgets[member.department.dept_id] -= 1
+                    member_unit_budgets[member.worker_id] -= 1
                     unit_count += 1
 
         self.assign_contributions_to_members(contributions) #  this will be called elsewhere

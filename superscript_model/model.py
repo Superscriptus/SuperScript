@@ -10,7 +10,7 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# - 35 minutes left over
+# - 35 minutes left over...
 # - check that worker not contributing too many units...
 # - update units tests
 
