@@ -10,7 +10,7 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# - 10 minutes left over?
+# - 35 minutes left over
 # - implement checking if dept workload is met when assinging worker contributions
 # - check that worker not contributing too many units..
 # handle negative probability?
@@ -36,6 +36,7 @@ from .config import (PROJECT_LENGTH,
 # - change FunctionInterface to abstract base class (plot and print never change)
 # - rename private data members _XX
 
+# - confirm that skill balance calculations are correct when worker is unable to supply skill due to dept constraint
 # - ensure worker is deleted from dept when worker 'dies'
 # - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)

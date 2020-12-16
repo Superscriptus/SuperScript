@@ -71,17 +71,34 @@ class Team:
 
     def determine_member_contributions(self):
 
+        dept_unit_budgets = {
+            dept.dept_id: dept.get_remaining_unit_budget(
+                self.project.start_time, self.project.length
+            )
+            for dept in set(
+                [m.department for m in self.members.values()]
+            )
+        }
+
         contributions = dict()
         for skill in self.project.required_skills:
 
             ranked_members = self.rank_members_by_skill(skill)
             skill_requirement = self.project.get_skill_requirement(skill)
 
-            contributions[skill] = [
-                m[0] for m in ranked_members.items()
-            ][:skill_requirement['units']]
+            contributions[skill] = []
+            unit_count = 0
+            for member_id in ranked_members.keys():
+                if unit_count >= skill_requirement['units']:
+                    break
 
-        self.assign_contributions_to_members(contributions)
+                member = self.members[member_id]
+                if dept_unit_budgets[member.department.dept_id] > 0:
+                    contributions[skill].append(member_id)
+                    dept_unit_budgets[member.department.dept_id] -= 1
+                    unit_count += 1
+
+        self.assign_contributions_to_members(contributions) #  this will be called elsewhere
 
         return contributions
 

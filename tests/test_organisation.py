@@ -107,7 +107,7 @@ class TestTeam(unittest.TestCase):
                              for worker in workers},
                     lead=workers[0])
 
-        self.assertEqual(round(team.compute_ovr(),2), 72.36)
+        self.assertEqual(round(team.compute_ovr(), 2), 72.36)
 
     @patch('superscript_model.model.Model')
     @patch('superscript_model.project.ProjectInventory')
