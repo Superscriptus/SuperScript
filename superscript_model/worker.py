@@ -4,6 +4,7 @@ import json
 
 from .project import Project
 from .utilities import Random
+from .organisation import Department
 from .config import (HARD_SKILLS,
                      SOFT_SKILLS,
                      MAX_SKILL_LEVEL,
@@ -36,11 +37,13 @@ class AllInStrategy(implements(WorkerStrategyInterface)):
 
 class Worker(Agent):
 
-    def __init__(self, worker_id: int, model):
+    def __init__(self, worker_id: int,
+                 model, department=Department(0)):
 
         self.worker_id = worker_id
         self.skills = SkillMatrix()
         super().__init__(worker_id, model)
+        self.department = department
         self.strategy = AllInStrategy('All-In')
         self.leads_on = dict()
         self.contributes = dict()

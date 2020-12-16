@@ -30,7 +30,9 @@ class TestTeam(unittest.TestCase):
     @patch('superscript_model.worker.Worker')
     def test_remove_lead(self, mock_worker, mock_project):
 
-        team = Team(mock_project, members=[mock_worker], lead=mock_worker)
+        team = Team(mock_project,
+                    members={mock_worker.worker_id: mock_worker},
+                    lead=mock_worker)
         team.remove_lead(mock_project)
         self.assertEqual(mock_worker.remove_as_lead.call_count, 1)
         self.assertIs(team.lead, None)

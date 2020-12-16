@@ -278,6 +278,9 @@ class SuccessCalculator:
         self.probability_creativity_match = (
             FunctionFactory.get('SuccessProbabilityCreativityMatch')
         )
+        self.probability_risk = (
+            FunctionFactory.get('SuccessProbabilityRisk')
+        )
 
     def calculate_success_probability(self, project):
 
@@ -285,15 +288,18 @@ class SuccessCalculator:
             ovr = project.team.team_ovr
             skill_balance = project.team.skill_balance
             creativity_match = project.team.creativity_match
+            risk = project.risk
         else:
             ovr = 0.0
             skill_balance = 0.0
             creativity_match = 0.0
+            risk = 0.0
 
         project.success_probability = (
             self.probability_ovr.get_values(ovr)
             + self.probability_skill_balance.get_values(skill_balance)
             + self.probability_creativity_match.get_values(creativity_match)
+            + self.probability_risk.get_values(risk)
         ) / 100
 
     def determine_success(self):

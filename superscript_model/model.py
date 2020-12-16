@@ -3,17 +3,24 @@ from mesa.time import RandomActivation
 
 from .worker import Worker
 from .project import ProjectInventory
-from .organisation import TeamAllocator
+from .organisation import TeamAllocator, Department
 from .config import (PROJECT_LENGTH,
-                     NEW_PROJECTS_PER_TIMESTEP)
+                     NEW_PROJECTS_PER_TIMESTEP,
+                     WORKER_COUNT,
+                     DEPARTMENT_COUNT)
 
 # TODO:
-
-# 5 minutes left
+# 5 - 10 minutes left over
+# - write update_supplied_nits
 # handle negative probability?
+
+# - refactor so that Team creation does not automatically assign worker contributions -
+#       need to be able to create hypothetical teams to compare success prob
+#       solution: only call assign_contributions_to_members once team is finalised
 
 # - update units tests (and test creativity_match in jupyter)
 # - rename skill balance - degree of mismatch..
+# - refactor to use Contributions class to log worker and department contributions?
 # - add other components to success calculator
 # - inject SuccessCalculator (not create)
 # - refactor ovr and skill_balance tests to use the smae objects?
@@ -28,6 +35,7 @@ from .config import (PROJECT_LENGTH,
 # - change FunctionInterface to abstract base class (plot and print never change)
 # - rename private data members _XX
 
+# - ensure worker is deleted from dept when worker 'dies'
 # - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)
 # - remove historical work contributions from worker.contributes? (to free up memory)
@@ -46,18 +54,34 @@ from .config import (PROJECT_LENGTH,
 
 class SuperScriptModel(Model):
 
-    def __init__(self, worker_count):
+    def __init__(self, worker_count=WORKER_COUNT,
+                 department_count=DEPARTMENT_COUNT):
 
         self.worker_count = worker_count
+        self.departments = dict()
+
         self.schedule = RandomActivation(self)
         self.inventory = ProjectInventory(
             TeamAllocator(self),
             timeline_flexibility='TimelineFlexibility'
         )
 
+        for di in range(department_count):
+            self.departments[di] = Department(di)
+
+        workers_per_department = department_count / worker_count
+        assert workers_per_department * worker_count == department_count
+
+        di = 0
+        assigned_to_di = 0
         for i in range(self.worker_count):
-            w = Worker(i, self)
+            w = Worker(i, self, self.departments[di])
             self.schedule.add(w)
+
+            assigned_to_di +=1
+            if assigned_to_di == workers_per_department:
+                di += 1
+                assigned_to_di = 0
 
         self.time = 0
 

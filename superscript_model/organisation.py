@@ -9,7 +9,8 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      MAX_TEAM_SIZE,
                      PRINT_DECIMALS_TO,
                      MAX_SKILL_LEVEL,
-                     MIN_SOFT_SKILL_LEVEL)
+                     MIN_SOFT_SKILL_LEVEL,
+                     DEPARTMENTAL_WORKLOAD)
 
 
 class Team:
@@ -80,11 +81,26 @@ class Team:
 
     def assign_contributions_to_members(self, contributions):
 
-        for skill in contributions.keys():
-            for member_id in contributions[skill]:
-                self.members[member_id].add_contribution(
-                    self.project, skill
-                )
+        # for skill in contributions.keys():
+        #     for member_id in contributions[skill]:
+        #         self.members[member_id].add_contribution(
+        #             self.project, skill
+        #         )
+        for member_id in self.members.keys():
+
+            units_contributed_by_member = 0
+            for skill in contributions.keys():
+
+                if member_id in contributions[skill]:
+                    self.members[member_id].add_contribution(
+                        self.project, skill
+                    )
+                    units_contributed_by_member += 1
+
+            (self.members[member_id]
+             .department.update_supplied_units(
+                member_id, units_contributed_by_member, self.project
+            ))
 
     def compute_skill_balance(self):
 
@@ -122,8 +138,8 @@ class Team:
         creativity_level = 0
         number_of_existing_skills = 0
         max_distance = max_skill_level - min_skill_level
-        if len(self.members) > 1:
-            max_distance /= (len(self.members) - 1)
+        if len(self.members.keys()) > 1:
+            max_distance /= (len(self.members.keys()) - 1)
 
         for skill in self.lead.skills.soft_skills.keys():
 
@@ -225,3 +241,31 @@ class TeamAllocator:
         project.team = self.strategy.select_team(
             project, bid_pool=bid_pool
         )
+
+
+class Department:
+
+    def __init__(self, dept_id, workload=DEPARTMENTAL_WORKLOAD):
+
+        self.dept_id = dept_id
+        self.workload = workload
+        self.units_supplied_to_projects = dict()
+
+    def update_supplied_units(self, worker_id,
+                              units_contributed, project):
+
+        for time_offset in range(project.length):
+            time = project.start_time + time_offset
+
+            if time not in self.units_supplied_to_projects.keys():
+                self.units_supplied_to_projects[time] = dict()
+
+            self.add_worker_units(worker_id, units_contributed, time)
+
+    def add_worker_units(self, worker_id, units, time):
+
+        if worker_id not in self.units_supplied_to_projects[time].keys():
+            self.units_supplied_to_projects[time][worker_id] = units
+        else:
+            self.units_supplied_to_projects[time][worker_id] += units
+

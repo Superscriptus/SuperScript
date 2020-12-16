@@ -125,7 +125,8 @@ class TestLinearFunction(unittest.TestCase):
 
 class TestSaturatingFunction(unittest.TestCase):
 
-    def test_success_probability_creativity_match(self):
+    @patch('matplotlib.pyplot.show')
+    def test_success_probability_creativity_match(self, mock_show):
         func = SaturatingFunction(
             name="SuccessProbabilityCreativityMatch",
             rate=SUCCESS_PROBABILITY_CREATIVITY_MATCH_RATE,
@@ -135,6 +136,9 @@ class TestSaturatingFunction(unittest.TestCase):
         y = [10.0, -15.28, -30.00]
         for xi, yi in zip(x, y):
             self.assertEqual(round(func.get_values(xi), 2), yi)
+
+        func.plot_function([1, 2, 3])
+        self.assertEqual(mock_show.call_count, 1)
 
         self.assertEqual(func.print_function(),
                          "SuccessProbabilityCreativityMatch = 10.00 - 40.00 * (1 - exp(X))")
