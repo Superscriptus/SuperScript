@@ -287,7 +287,8 @@ class Department:
         else:
             self.units_supplied_to_projects[time][worker_id] += units
 
-    def is_workload_satisfied(self, start, length):
+    @property
+    def maximum_project_units(self):
 
         total_units_dept_can_supply = (
                 self.number_of_workers * self.units_per_full_time
@@ -295,21 +296,33 @@ class Department:
         departmental_workload_units = (
             total_units_dept_can_supply * self.workload
         )
+        return total_units_dept_can_supply - departmental_workload_units
+
+    def units_supplied_to_projects_at_time(self, time):
+        return sum(
+                self.units_supplied_to_projects[time].values()
+            ) if time in self.units_supplied_to_projects else 0
+
+    def is_workload_satisfied(self, start, length):
+
+        # total_units_dept_can_supply = (
+        #         self.number_of_workers * self.units_per_full_time
+        # )
+        # departmental_workload_units = (
+        #     total_units_dept_can_supply * self.workload
+        # )
 
         for t in range(length):
 
             time = start + t
-            total_supplied_units = sum(
-                self.units_supplied_to_projects[time].values()
-            ) if time in self.units_supplied_to_projects else 0
-
-            if (total_supplied_units
-                    >= (total_units_dept_can_supply
-                        - departmental_workload_units
-                        - self.tolerance)):
+            if (self.units_supplied_to_projects_at_time(time)
+                    >= (self.maximum_project_units - self.tolerance)):
                 return False
 
         return True
+
+    def get_remaining_budget(self, start, length):
+        return 0
 
     def to_string(self):
         output = {

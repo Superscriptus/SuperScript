@@ -10,8 +10,8 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# 30 minutes left over
-# - implement checking if dept workload is met (for bid, and when assinging worker contributions
+# - 10 minutes left over?
+# - implement checking if dept workload is met when assinging worker contributions
 # - check that worker not contributing too many units..
 # handle negative probability?
 
