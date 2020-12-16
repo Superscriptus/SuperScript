@@ -305,13 +305,6 @@ class Department:
 
     def is_workload_satisfied(self, start, length):
 
-        # total_units_dept_can_supply = (
-        #         self.number_of_workers * self.units_per_full_time
-        # )
-        # departmental_workload_units = (
-        #     total_units_dept_can_supply * self.workload
-        # )
-
         for t in range(length):
 
             time = start + t
@@ -321,8 +314,16 @@ class Department:
 
         return True
 
-    def get_remaining_budget(self, start, length):
-        return 0
+    def get_remaining_unit_budget(self, start, length):
+
+        budget_over_time = []
+        for t in range(length):
+            budget_over_time.append(
+                self.maximum_project_units
+                - self.units_supplied_to_projects_at_time(start + t)
+                - self.tolerance
+            )
+        return min(budget_over_time)
 
     def to_string(self):
         output = {
