@@ -295,12 +295,13 @@ class SuccessCalculator:
             creativity_match = 0.0
             risk = 0.0
 
-        project.success_probability = (
+        probability = (
             self.probability_ovr.get_values(ovr)
             + self.probability_skill_balance.get_values(skill_balance)
             + self.probability_creativity_match.get_values(creativity_match)
             + self.probability_risk.get_values(risk)
         ) / 100
+        project.success_probability = max(0, probability)
 
     def determine_success(self):
         """To be called when settling project (terminate?)"""

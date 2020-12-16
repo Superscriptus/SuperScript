@@ -11,18 +11,21 @@ from .config import (HARD_SKILLS,
                      MIN_SOFT_SKILL_LEVEL,
                      P_HARD_SKILL,
                      WORKER_OVR_MULTIPLIER,
-                     PRINT_DECIMALS_TO)
+                     PRINT_DECIMALS_TO,
+                     UNITS_PER_FTE)
 
 
 class Worker(Agent):
 
     def __init__(self, worker_id: int,
-                 model, department=Department(0)):
+                 model, department=Department(0),
+                 units_per_full_time=UNITS_PER_FTE):
 
         super().__init__(worker_id, model)
         self.worker_id = worker_id
         self.skills = SkillMatrix()
         self.department = department
+        self.units_per_full_time = units_per_full_time
         self.department.number_of_workers += 1
 
         self.strategy = AllInStrategy('All-In')
@@ -47,6 +50,28 @@ class Worker(Agent):
                 }
             (self.contributes[time][skill]
              .append(project.project_id))
+
+    def get_units_contributed(self, time, skill):
+        if time not in self.contributes.keys():
+            return 0
+        elif skill not in self.contributes[time].keys():
+            return 0
+        else:
+            return len(self.contributes[time][skill])
+
+    def contributes_less_than_full_time(self, start, length):
+
+        for t in range(length):
+
+            time = start + length
+            contributes_at_time = 0
+            for skill in self.skills.hard_skills.keys():
+                contributes_at_time += self.get_units_contributed(time, skill)
+
+            if contributes_at_time >= self.units_per_full_time:
+                return False
+
+        return True
 
     def step(self):
         """Dict can be updated during loop (one other?)"""
@@ -86,8 +111,11 @@ class AllInStrategy(implements(WorkerStrategyInterface)):
 
     def bid(self, project: Project, worker: Worker) -> bool:
 
-        if worker.department.is_workload_satisfied(
-                project.start_time, project.length):
+        if (worker.department.is_workload_satisfied(
+                project.start_time, project.length)
+            and
+            worker.contributes_less_than_full_time(
+                project.start_time, project.length)):
             return True
         else:
             return False
@@ -127,7 +155,6 @@ class SkillMatrix:
 
         for key in self.hard_skills.keys():
             if Random.uniform() <= self.hard_skill_probability:
-
                 self.hard_skills[key] = Random.uniform(
                     0.0, self.max_skill)
 
@@ -158,5 +185,3 @@ class SkillMatrix:
                        self.hard_skills.values()
                        if s > 0.0])
                 ) * self.ovr_multiplier
-
-

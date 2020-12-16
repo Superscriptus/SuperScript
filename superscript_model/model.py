@@ -11,15 +11,13 @@ from .config import (PROJECT_LENGTH,
 
 # TODO:
 # - 35 minutes left over
-# - implement checking if dept workload is met when assinging worker contributions
-# - check that worker not contributing too many units..
-# handle negative probability?
+# - check that worker not contributing too many units...
+# - update units tests
 
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob
 #       solution: only call assign_contributions_to_members once team is finalised
 
-# - update units tests (and test creativity_match in jupyter)
 # - rename skill balance - degree of mismatch..
 # - refactor to use Contributions class to log worker and department contributions?
 # - add other components to success calculator
@@ -40,7 +38,7 @@ from .config import (PROJECT_LENGTH,
 # - ensure worker is deleted from dept when worker 'dies'
 # - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)
-# - remove historical work contributions from worker.contributes? (to free up memory)
+# - remove historical work contributions from worker.contributes? (to free up memory) + remove department history?
 # - reorder and annotate config.py (and refactor tests to use config variables?)
 # - change remote name
 # - add requirements.txt and try installing on different system
