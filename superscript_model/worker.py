@@ -46,7 +46,7 @@ class Worker(Agent):
 
     @property
     def training_horizon(self):
-        return self.department.trainer.training_length
+        return self.model.trainer.training_length
 
     def assign_as_lead(self, project):
         self.leads_on[project.project_id] = project
@@ -57,7 +57,7 @@ class Worker(Agent):
     def step(self):
 
         if self.is_free(self.now, self.training_horizon):
-            self.department.trainer.train(self)
+            self.model.trainer.train(self)
 
         """Dict can be updated during loop (one other?)"""
         projects = list(self.leads_on.values())
@@ -159,6 +159,7 @@ class WorkerContributions:
             return True
         else:
             return False
+
 
 class WorkerStrategyInterface(Interface):
 

@@ -26,7 +26,8 @@ class ProjectInventory:
     def __init__(self,
                  team_allocator,
                  timeline_flexibility='NoFlexibility',
-                 max_timeline_flex = MAXIMUM_TIMELINE_FLEXIBILITY):
+                 max_timeline_flex = MAXIMUM_TIMELINE_FLEXIBILITY,
+                 hard_skills=HARD_SKILLS):
 
         self.projects = dict()
         self.index_total = 0
@@ -36,12 +37,19 @@ class ProjectInventory:
         )
         self.max_timeline_flex = max_timeline_flex
         self.success_calculator = SuccessCalculator()
+        self.total_skill_requirement = dict(zip(
+            hard_skills, [0 for s in hard_skills]
+        ))
 
     @property
     def active_count(self):
         return sum([1 for p
                     in self.projects.values()
                     if p.progress >= 0])
+
+    @property
+    def top_two_skills(self):
+        return list(self.total_skill_requirement.keys())[:2]
 
     def get_start_time_offset(self):
 
@@ -67,6 +75,24 @@ class ProjectInventory:
         # else:
         #     return 0
 
+    def determine_total_skill_requirements(self, projects):
+
+        for skill in self.total_skill_requirement.keys():
+            self.total_skill_requirement[skill] = sum([
+                project.requirements.hard_skills[skill]['units']
+                for project in projects
+            ])
+        self.rank_total_requirements()
+
+    def rank_total_requirements(self):
+        self.total_skill_requirement = {
+            k: v for k, v in sorted(
+                self.total_skill_requirement.items(),
+                reverse=True,
+                key=lambda item: item[1]
+            )
+        }
+
     def create_projects(self, new_projects_count,
                         time, length):
 
@@ -80,7 +106,9 @@ class ProjectInventory:
             )
             new_projects.append(p)
 
+        self.determine_total_skill_requirements(new_projects)
         new_projects = self.rank_projects(new_projects)
+
         for p in new_projects:
             self.team_allocator.allocate_team(p)
             self.success_calculator.calculate_success_probability(p)

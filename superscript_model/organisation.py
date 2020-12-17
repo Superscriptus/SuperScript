@@ -286,28 +286,36 @@ class TeamAllocator:
 
 class Trainer:
 
-    def __init__(self, training_length=TRAINING_LENGTH,
+    def __init__(self, model,
+                 training_length=TRAINING_LENGTH,
                  training_increment=TRAINING_INCREMENT,
                  max_skill_level=MAX_SKILL_LEVEL):
 
+        self.model = model
         self.training_length = training_length
         self.training_increment = training_increment
         self.max_skill_level = max_skill_level
 
+    def top_two_demanded_skills(self):
+        print(self.model.inventory)
+
     def train(self, worker):
-        pass
+
+        for skill in self.model.inventory.top_two_skills:
+            worker.skills.hard_skills[skill] *= self.training_increment
+            worker.skills.hard_skills[skill] = min(
+                worker.skills.hard_skills[skill], self.max_skill_level
+            )
 
 
 class Department:
 
     def __init__(self, dept_id,
-                 trainer=Trainer(),
                  workload=DEPARTMENTAL_WORKLOAD,
                  units_per_full_time=UNITS_PER_FTE,
                  tolerance=WORKLOAD_SATISFIED_TOLERANCE):
 
         self.dept_id = dept_id
-        self.trainer = trainer
         self.number_of_workers = 0
         self.workload = workload
         self.units_per_full_time = units_per_full_time

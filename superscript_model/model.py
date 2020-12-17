@@ -13,6 +13,9 @@ from .config import (PROJECT_LENGTH,
 
 # TODO:
 # 30 mins: planning social graph implementation in networkX, refactored contirbutions to own class
+# 40 mins: implementing training
+# -finish training and test it
+
 # success history to own class
 # - add training and skill decay functionality
 #       worker.step() needs to know time to check if free for next 5 timesteps...
@@ -77,10 +80,10 @@ class SuperScriptModel(Model):
             TeamAllocator(self),
             timeline_flexibility='TimelineFlexibility'
         )
-        self.trainer = Trainer()
+        self.trainer = Trainer(self)
 
         for di in range(department_count):
-            self.departments[di] = Department(di, self.trainer)
+            self.departments[di] = Department(di)
 
         workers_per_department = department_count / worker_count
         assert workers_per_department * worker_count == department_count
