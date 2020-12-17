@@ -1,5 +1,6 @@
 from interface import Interface, implements
 from itertools import combinations
+from numpy import percentile
 import json
 
 from .project import Project
@@ -312,17 +313,22 @@ class Trainer:
         return self.model.inventory.top_two_skills
 
     def update_skill_quartiles(self):
-        #self.model.schedule.agents
-        pass
+        for skill in self.hard_skills:
+            self.skill_quartiles[skill] = percentile(
+                [worker.get_skill(skill)
+                 for worker in self.model.schedule.agents],
+                [25, 50, 75]
+            )
 
     def train(self, worker):
 
         if worker.now >= self.training_commences:
             for skill in self.top_two_demanded_skills():
-                worker.skills.hard_skills[skill] *= self.training_increment
-                worker.skills.hard_skills[skill] = min(
-                    worker.skills.hard_skills[skill], self.max_skill_level
-                )
+
+                if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
+                    new_skill = min(self.skill_quartiles[skill][2], self.max_skill_level)
+                    worker.skills.hard_skills[skill] = new_skill
+
             worker.department.add_training(worker, self.training_length)
 
 

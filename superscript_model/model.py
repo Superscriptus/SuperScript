@@ -12,11 +12,11 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# 45 minutes left over.
-# update training to use median (and quartile)
+# 60 minutes left over.
+
 # success history to own class
 # - add skill decay functionality
-
+# - write TestTrainer
 
 # - For skill decay: needs to know which skills have been used recently. Solution: track in new contribution class.
 # (- * add contribution class for Dept.)
@@ -30,6 +30,7 @@ from .config import (PROJECT_LENGTH,
 # - rename skill balance - degree of mismatch..
 
 # - inject SuccessCalculator (not create)
+
 
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report
