@@ -16,7 +16,6 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      WORKLOAD_SATISFIED_TOLERANCE,
                      UNITS_PER_FTE,
                      TRAINING_LENGTH,
-                     TRAINING_INCREMENT,
                      TRAINING_COMMENCES,
                      HARD_SKILLS)
 
@@ -296,14 +295,12 @@ class Trainer:
 
     def __init__(self, model,
                  training_length=TRAINING_LENGTH,
-                 training_increment=TRAINING_INCREMENT,
                  training_commences=TRAINING_COMMENCES,
                  max_skill_level=MAX_SKILL_LEVEL,
                  hard_skills=HARD_SKILLS):
 
         self.model = model
         self.training_length = training_length
-        self.training_increment = training_increment
         self.training_commences = training_commences
         self.max_skill_level = max_skill_level
         self.hard_skills = hard_skills
