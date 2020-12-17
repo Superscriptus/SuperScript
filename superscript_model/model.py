@@ -12,12 +12,10 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# 30 mins: planning social graph implementation in networkX, refactored contirbutions to own class
-# 50 mins: implementing training
 
 # success history to own class
 # - add skill decay functionality
-# - update all unit tests
+
 
 # - For skill decay: needs to know which skills have been used recently. Solution: track in new contribution class.
 # (- * add contribution class for Dept.)
