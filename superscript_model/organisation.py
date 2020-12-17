@@ -306,6 +306,7 @@ class Trainer:
             worker.skills.hard_skills[skill] = min(
                 worker.skills.hard_skills[skill], self.max_skill_level
             )
+        worker.department.add_training(worker, self.training_length)
 
 
 class Department:
@@ -332,6 +333,19 @@ class Department:
                 self.units_supplied_to_projects[time] = dict()
 
             self.add_worker_units(worker_id, units_contributed, time)
+
+    def add_training(self, worker, length):
+
+        worker_id = worker.worker_id
+        start = worker.now
+
+        for time_offset in range(length):
+            time = start + time_offset
+
+            if time not in self.units_supplied_to_projects.keys():
+                self.units_supplied_to_projects[time] = dict()
+
+            self.add_worker_units(worker_id, self.units_per_full_time, time)
 
     def add_worker_units(self, worker_id, units, time):
 

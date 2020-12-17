@@ -13,15 +13,10 @@ from .config import (PROJECT_LENGTH,
 
 # TODO:
 # 30 mins: planning social graph implementation in networkX, refactored contirbutions to own class
-# 40 mins: implementing training
-# -finish training and test it
+# 50 mins: implementing training
 
 # success history to own class
-# - add training and skill decay functionality
-#       worker.step() needs to know time to check if free for next 5 timesteps...
-#       Solution: delete old contributions from worker.contributes() (see below) - add contribution class.
-#           then contributions.now() has the current time
-#       Trainer needs to know top 2 skills...Solution: store in inventory after project creation.
+# - add skill decay functionality
 #       Worker is only trained if departmental workload is met - update units_supplied_to_projects when worker enters training
 
 # - For skill decay: needs to know which skills have been used recently. Solution: track in new contribution class.
