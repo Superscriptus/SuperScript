@@ -25,10 +25,31 @@ class TestSuperScriptModel(unittest.TestCase):
 
     @patch('superscript_model.model.RandomActivation.step')
     def test_run_model(self, mock_step):
-        model = SuperScriptModel(worker_count=1000)
+        model = SuperScriptModel(worker_count=1000,
+                                 department_count=10)
         model.run_model(2)
         self.assertEqual(mock_step.call_count, 2)
         self.assertEqual(model.schedule.get_agent_count(), 1000)
+
+    def test_integration(self):
+        model = SuperScriptModel(worker_count=1000,
+                                 department_count=10)
+        model.trainer.training_commences = 0
+        model.run_model(1)
+        self.assertEqual(model.schedule.get_agent_count(), 1000)
+        self.assertEqual(len(model.inventory.projects), 20)
+        model.run_model(1)
+        self.assertEqual(model.schedule.get_agent_count(), 1000)
+        self.assertEqual(len(model.inventory.projects), 40)
+        self.assertTrue(model.inventory.projects[20].team.size == 0)
+
+        model = SuperScriptModel(worker_count=1000,
+                                 department_count=10)
+        model.trainer.training_commences = 10
+        model.run_model(2)
+        self.assertEqual(model.schedule.get_agent_count(), 1000)
+        self.assertEqual(len(model.inventory.projects), 40)
+        self.assertTrue(model.inventory.projects[20].team.size > 0)
 
 
 if __name__ == '__main__':

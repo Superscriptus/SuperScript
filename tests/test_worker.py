@@ -83,9 +83,12 @@ class TestWorker(unittest.TestCase):
     @patch('superscript_model.model.Model')
     def test_get_units_contributed(self, mock_model):
         worker = Worker(42, mock_model)
-        worker.contributes[0] = {'B': [1, 2]}
+        worker.contributions.contributes[0] = {'B': [1, 2]}
         self.assertEqual(
             worker.contributions.get_units_contributed(0, 'A'), 0
+        )
+        self.assertEqual(
+            worker.contributions.get_units_contributed(0, 'B'), 2
         )
 
     @patch('superscript_model.model.Model')
@@ -96,6 +99,10 @@ class TestWorker(unittest.TestCase):
             worker.contributions.contributes_less_than_full_time(0, 1)
         )
 
+    @patch('superscript_model.model.Model')
+    def test_recent_success_rate(self, mock_model):
+        worker = Worker(42, mock_model)
+        self.assertEqual(worker.recent_success_rate, 0)
 
 
 class TestWorkerStrategyInterface(unittest.TestCase):

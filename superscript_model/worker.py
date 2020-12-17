@@ -147,7 +147,7 @@ class WorkerContributions:
         return min(remaining_units)
 
     def get_success_rate(self):
-        return self.success_history
+        return 0 #self.success_history
 
     def is_free_over_period(self, start, length):
         if ((self.get_remaining_units(start, length)

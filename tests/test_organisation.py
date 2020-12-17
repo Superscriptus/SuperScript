@@ -10,7 +10,9 @@ from superscript_model.organisation import (Team,
                                             OrganisationStrategyInterface,
                                             RandomStrategy,
                                             TeamAllocator,
-                                            Department)
+                                            Department,
+                                            Trainer)
+
 from superscript_model.config import (DEPARTMENTAL_WORKLOAD,
                                       UNITS_PER_FTE,
                                       WORKLOAD_SATISFIED_TOLERANCE)
@@ -268,3 +270,14 @@ class TestDepartment(unittest.TestCase):
     def test_to_string(self):
         dept = Department(0)
         self.assertIsInstance(dept.to_string(), str)
+
+    @patch('superscript_model.model.Model')
+    def test_add_training(self, mock_model):
+
+        mock_model.trainer = Trainer(mock_model)
+        dept = Department(0)
+        worker = Worker(42, mock_model, department=dept)
+        dept.add_training(worker, 5)
+        #worker.model.trainer.train(worker)
+
+

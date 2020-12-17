@@ -15,7 +15,8 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      WORKLOAD_SATISFIED_TOLERANCE,
                      UNITS_PER_FTE,
                      TRAINING_LENGTH,
-                     TRAINING_INCREMENT)
+                     TRAINING_INCREMENT,
+                     TRAINING_COMMENCES)
 
 
 class Team:
@@ -34,6 +35,10 @@ class Team:
         self.team_ovr = self.compute_ovr()
         self.skill_balance = self.compute_skill_balance()
         self.creativity_match = self.compute_creativity_match()
+
+    @property
+    def size(self):
+        return len(self.members.keys())
 
     def assign_lead(self, project):
         if self.lead is not None:
@@ -257,8 +262,9 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
 
 # Check this functionality...
         if size > len(bid_pool):
-            print("Cannot select %d workers from bid_pool of size %d"
-                  % (size, len(bid_pool)))
+            print("Cannot select %d workers from "
+                  "bid_pool of size %d for project %d"
+                  % (size, len(bid_pool), project.project_id))
             workers = {}
             lead = None
         else:
@@ -289,24 +295,27 @@ class Trainer:
     def __init__(self, model,
                  training_length=TRAINING_LENGTH,
                  training_increment=TRAINING_INCREMENT,
+                 training_commences=TRAINING_COMMENCES,
                  max_skill_level=MAX_SKILL_LEVEL):
 
         self.model = model
         self.training_length = training_length
         self.training_increment = training_increment
+        self.training_commences = training_commences
         self.max_skill_level = max_skill_level
 
     def top_two_demanded_skills(self):
-        print(self.model.inventory)
+        return self.model.inventory.top_two_skills
 
     def train(self, worker):
 
-        for skill in self.model.inventory.top_two_skills:
-            worker.skills.hard_skills[skill] *= self.training_increment
-            worker.skills.hard_skills[skill] = min(
-                worker.skills.hard_skills[skill], self.max_skill_level
-            )
-        worker.department.add_training(worker, self.training_length)
+        if worker.now >= self.training_commences:
+            for skill in self.top_two_demanded_skills():
+                worker.skills.hard_skills[skill] *= self.training_increment
+                worker.skills.hard_skills[skill] = min(
+                    worker.skills.hard_skills[skill], self.max_skill_level
+                )
+            worker.department.add_training(worker, self.training_length)
 
 
 class Department:

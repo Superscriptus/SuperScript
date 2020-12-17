@@ -17,7 +17,7 @@ from .config import (PROJECT_LENGTH,
 
 # success history to own class
 # - add skill decay functionality
-#       Worker is only trained if departmental workload is met - update units_supplied_to_projects when worker enters training
+# - update all unit tests
 
 # - For skill decay: needs to know which skills have been used recently. Solution: track in new contribution class.
 # (- * add contribution class for Dept.)
@@ -34,7 +34,7 @@ from .config import (PROJECT_LENGTH,
 # - add other components to success calculator
 # - inject SuccessCalculator (not create)
 # - refactor ovr and skill_balance tests to use the smae objects?
-# - time the model running in jupyter..
+# - OPTIMISE code
 
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report
