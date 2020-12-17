@@ -3,13 +3,17 @@ from mesa.time import RandomActivation
 
 from .worker import Worker
 from .project import ProjectInventory
-from .organisation import TeamAllocator, Department
+from .organisation import (TeamAllocator,
+                           Department,
+                           Trainer)
 from .config import (PROJECT_LENGTH,
                      NEW_PROJECTS_PER_TIMESTEP,
                      WORKER_COUNT,
                      DEPARTMENT_COUNT)
 
 # TODO:
+# 30 mins: planning social graph implementation in networkX, refactored contirbutions to own class
+# success history to own class
 # - add training and skill decay functionality
 #       worker.step() needs to know time to check if free for next 5 timesteps...
 #       Solution: delete old contributions from worker.contributes() (see below) - add contribution class.
@@ -20,8 +24,8 @@ from .config import (PROJECT_LENGTH,
 # - For skill decay: needs to know which skills have been used recently. Solution: track in new contribution class.
 # (- * add contribution class for Dept.)
 # - **add budget constraint functionality
+# - add chemistry booster (needs to know recent success history - track in history class)
 
-# - add chemistry booster
 
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob
@@ -73,9 +77,10 @@ class SuperScriptModel(Model):
             TeamAllocator(self),
             timeline_flexibility='TimelineFlexibility'
         )
+        self.trainer = Trainer()
 
         for di in range(department_count):
-            self.departments[di] = Department(di)
+            self.departments[di] = Department(di, self.trainer)
 
         workers_per_department = department_count / worker_count
         assert workers_per_department * worker_count == department_count

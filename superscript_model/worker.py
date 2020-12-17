@@ -12,7 +12,9 @@ from .config import (HARD_SKILLS,
                      P_HARD_SKILL,
                      WORKER_OVR_MULTIPLIER,
                      PRINT_DECIMALS_TO,
-                     UNITS_PER_FTE)
+                     UNITS_PER_FTE,
+                     WORKER_SUCCESS_HISTORY_LENGTH,
+                     WORKER_SUCCESS_HISTORY_THRESHOLD)
 
 
 class Worker(Agent):
@@ -34,6 +36,18 @@ class Worker(Agent):
     def contributes(self):
         return self.contributions.get_contributions()
 
+    @property
+    def recent_success_rate(self):
+        return self.contributions.get_success_rate()
+
+    @property
+    def now(self):
+        return self.model.schedule.steps
+
+    @property
+    def training_horizon(self):
+        return self.department.trainer.training_length
+
     def assign_as_lead(self, project):
         self.leads_on[project.project_id] = project
 
@@ -41,6 +55,10 @@ class Worker(Agent):
         del self.leads_on[project.project_id]
 
     def step(self):
+
+        if self.is_free(self.now, self.training_horizon):
+            self.department.trainer.train(self)
+
         """Dict can be updated during loop (one other?)"""
         projects = list(self.leads_on.values())
 
@@ -54,6 +72,9 @@ class Worker(Agent):
         else:
             return self.skills.soft_skills[skill]
 
+    def is_free(self, start, length):
+        return self.contributions.is_free_over_period(start, length)
+
     def replace(self):
         # ensure to reduce number of workers in dept by 1
         pass
@@ -64,10 +85,13 @@ class Worker(Agent):
 
 class WorkerContributions:
     """Class that logs current and future contributions to projects."""
-    def __init__(self, worker, units_per_full_time=UNITS_PER_FTE):
+    def __init__(self, worker, units_per_full_time=UNITS_PER_FTE,
+                 success_history_length=WORKER_SUCCESS_HISTORY_LENGTH,
+                 success_history_threshold=WORKER_SUCCESS_HISTORY_THRESHOLD):
         self.contributes = dict()
         self.worker = worker
         self.units_per_full_time = units_per_full_time
+        self.success_history = dict()
 
     def get_contributions(self):
         return self.contributes
@@ -122,6 +146,19 @@ class WorkerContributions:
             )
         return min(remaining_units)
 
+    def get_success_rate(self):
+        return self.success_history
+
+    def is_free_over_period(self, start, length):
+        if ((self.get_remaining_units(start, length)
+                == self.units_per_full_time)
+            and (self.worker.department
+                     .is_workload_satisfied(
+                        start, length)
+                )):
+            return True
+        else:
+            return False
 
 class WorkerStrategyInterface(Interface):
 

@@ -13,7 +13,9 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      SOFT_SKILLS,
                      DEPARTMENTAL_WORKLOAD,
                      WORKLOAD_SATISFIED_TOLERANCE,
-                     UNITS_PER_FTE)
+                     UNITS_PER_FTE,
+                     TRAINING_LENGTH,
+                     TRAINING_INCREMENT)
 
 
 class Team:
@@ -282,13 +284,30 @@ class TeamAllocator:
         )
 
 
+class Trainer:
+
+    def __init__(self, training_length=TRAINING_LENGTH,
+                 training_increment=TRAINING_INCREMENT,
+                 max_skill_level=MAX_SKILL_LEVEL):
+
+        self.training_length = training_length
+        self.training_increment = training_increment
+        self.max_skill_level = max_skill_level
+
+    def train(self, worker):
+        pass
+
+
 class Department:
 
-    def __init__(self, dept_id, workload=DEPARTMENTAL_WORKLOAD,
+    def __init__(self, dept_id,
+                 trainer=Trainer(),
+                 workload=DEPARTMENTAL_WORKLOAD,
                  units_per_full_time=UNITS_PER_FTE,
                  tolerance=WORKLOAD_SATISFIED_TOLERANCE):
 
         self.dept_id = dept_id
+        self.trainer = trainer
         self.number_of_workers = 0
         self.workload = workload
         self.units_per_full_time = units_per_full_time
@@ -360,10 +379,4 @@ class Department:
             'tolerance': self.tolerance
         }
         return json.dumps(output, indent=4)
-
-
-class Trainer:
-
-    def __init__(self):
-        pass
 
