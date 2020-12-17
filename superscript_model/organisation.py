@@ -16,7 +16,8 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      UNITS_PER_FTE,
                      TRAINING_LENGTH,
                      TRAINING_INCREMENT,
-                     TRAINING_COMMENCES)
+                     TRAINING_COMMENCES,
+                     HARD_SKILLS)
 
 
 class Team:
@@ -296,16 +297,23 @@ class Trainer:
                  training_length=TRAINING_LENGTH,
                  training_increment=TRAINING_INCREMENT,
                  training_commences=TRAINING_COMMENCES,
-                 max_skill_level=MAX_SKILL_LEVEL):
+                 max_skill_level=MAX_SKILL_LEVEL,
+                 hard_skills=HARD_SKILLS):
 
         self.model = model
         self.training_length = training_length
         self.training_increment = training_increment
         self.training_commences = training_commences
         self.max_skill_level = max_skill_level
+        self.hard_skills = hard_skills
+        self.skill_quartiles = dict(zip(hard_skills, []))
 
     def top_two_demanded_skills(self):
         return self.model.inventory.top_two_skills
+
+    def update_skill_quartiles(self):
+        #self.model.schedule.agents
+        pass
 
     def train(self, worker):
 
@@ -339,29 +347,21 @@ class Department:
             time = project.start_time + time_offset
 
             if time not in self.units_supplied_to_projects.keys():
-                self.units_supplied_to_projects[time] = dict()
-
-            self.add_worker_units(worker_id, units_contributed, time)
+                self.units_supplied_to_projects[time] = units_contributed
+            else:
+                self.units_supplied_to_projects[time] += units_contributed
 
     def add_training(self, worker, length):
 
-        worker_id = worker.worker_id
         start = worker.now
-
+        units = self.units_per_full_time
         for time_offset in range(length):
             time = start + time_offset
 
             if time not in self.units_supplied_to_projects.keys():
-                self.units_supplied_to_projects[time] = dict()
-
-            self.add_worker_units(worker_id, self.units_per_full_time, time)
-
-    def add_worker_units(self, worker_id, units, time):
-
-        if worker_id not in self.units_supplied_to_projects[time].keys():
-            self.units_supplied_to_projects[time][worker_id] = units
-        else:
-            self.units_supplied_to_projects[time][worker_id] += units
+                self.units_supplied_to_projects[time] = units
+            else:
+                self.units_supplied_to_projects[time] += units
 
     @property
     def maximum_project_units(self):
@@ -375,9 +375,9 @@ class Department:
         return total_units_dept_can_supply - departmental_workload_units
 
     def units_supplied_to_projects_at_time(self, time):
-        return sum(
-                self.units_supplied_to_projects[time].values()
-            ) if time in self.units_supplied_to_projects else 0
+        return (
+            self.units_supplied_to_projects[time]
+            ) if time in self.units_supplied_to_projects.keys() else 0
 
     def is_workload_satisfied(self, start, length):
 

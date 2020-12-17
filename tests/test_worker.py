@@ -81,20 +81,28 @@ class TestWorker(unittest.TestCase):
         self.assertTrue((skill_f >= 0.0) & (skill_f <= 5.0))
 
     @patch('superscript_model.model.Model')
-    def test_get_units_contributed(self, mock_model):
+    @patch('superscript_model.project.ProjectInventory')
+    def test_get_units_contributed(self, mock_inventory, mock_model):
         worker = Worker(42, mock_model)
-        worker.contributions.contributes[0] = {'B': [1, 2]}
+        project = Project(mock_inventory)
+        worker.contributions.add_contribution(project, 'B')
+        worker.contributions.add_contribution(project, 'C')
+        worker.contributions.add_contribution(project, 'D')
         self.assertEqual(
-            worker.contributions.get_units_contributed(0, 'A'), 0
-        )
-        self.assertEqual(
-            worker.contributions.get_units_contributed(0, 'B'), 2
+            worker.contributions.get_units_contributed(0), 3
         )
 
     @patch('superscript_model.model.Model')
-    def test_contributes_less_than_full_time(self, mock_model):
+    @patch('superscript_model.project.ProjectInventory')
+    def test_contributes_less_than_full_time(self, mock_inventory, mock_model):
         worker = Worker(42, mock_model)
-        worker.contributes[0] = {'B': range(10)}
+        project = Project(mock_inventory)
+        worker.contributions.add_contribution(project, 'B')
+        self.assertTrue(
+            worker.contributions.contributes_less_than_full_time(0, 1)
+        )
+        for i in range(10):
+            worker.contributions.add_contribution(project, 'B')
         self.assertFalse(
             worker.contributions.contributes_less_than_full_time(0, 1)
         )

@@ -12,7 +12,8 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-
+# 45 minutes left over.
+# update training to use median (and quartile)
 # success history to own class
 # - add skill decay functionality
 
@@ -22,17 +23,13 @@ from .config import (PROJECT_LENGTH,
 # - **add budget constraint functionality
 # - add chemistry booster (needs to know recent success history - track in history class)
 
-
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob
 #       solution: only call assign_contributions_to_members once team is finalised
 
 # - rename skill balance - degree of mismatch..
-# - refactor to use Contributions class to log worker and department contributions?
-# - add other components to success calculator
+
 # - inject SuccessCalculator (not create)
-# - refactor ovr and skill_balance tests to use the smae objects?
-# - OPTIMISE code
 
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report
@@ -95,6 +92,7 @@ class SuperScriptModel(Model):
         self.time = 0
 
     def step(self):
+        self.trainer.update_skill_quartiles()
         self.inventory.create_projects(NEW_PROJECTS_PER_TIMESTEP,
                                        self.time, PROJECT_LENGTH)
         self.schedule.step()

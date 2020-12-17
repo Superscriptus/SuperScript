@@ -88,44 +88,45 @@ class WorkerContributions:
     def __init__(self, worker, units_per_full_time=UNITS_PER_FTE,
                  success_history_length=WORKER_SUCCESS_HISTORY_LENGTH,
                  success_history_threshold=WORKER_SUCCESS_HISTORY_THRESHOLD):
-        self.contributes = dict()
+        self.per_skill_contributions = dict()
+        self.total_contribution = dict()
         self.worker = worker
         self.units_per_full_time = units_per_full_time
         self.success_history = dict()
 
     def get_contributions(self):
-        return self.contributes
+        return self.per_skill_contributions
 
     def add_contribution(self, project, skill):
 
         for time_offset in range(project.length):
             time = project.start_time + time_offset
 
-            if time not in self.contributes.keys():
-                self.contributes[time] = {
+            if time not in self.per_skill_contributions.keys():
+                self.per_skill_contributions[time] = {
                     skill: []
                     for skill in self.worker.skills.hard_skills.keys()
                 }
-            (self.contributes[time][skill]
+            (self.per_skill_contributions[time][skill]
              .append(project.project_id))
 
-    def get_units_contributed(self, time, skill):
-        if time not in self.contributes.keys():
-            return 0
-        elif skill not in self.contributes[time].keys():
+            if time not in self.total_contribution.keys():
+                self.total_contribution[time] = 1
+            else:
+                self.total_contribution[time] += 1
+
+    def get_units_contributed(self, time):
+        if time not in self.total_contribution.keys():
             return 0
         else:
-            return len(self.contributes[time][skill])
+            return self.total_contribution[time]
 
     def contributes_less_than_full_time(self, start, length):
 
         for t in range(length):
 
             time = start + t
-            contributes_at_time = 0
-            for skill in self.worker.skills.hard_skills.keys():
-                contributes_at_time += self.get_units_contributed(time, skill)
-
+            contributes_at_time = self.get_units_contributed(time)
             if contributes_at_time >= self.units_per_full_time:
                 return False
 
@@ -137,10 +138,7 @@ class WorkerContributions:
         for t in range(length):
 
             time = start + length
-            contributes_at_time = 0
-            for skill in self.worker.skills.hard_skills.keys():
-                contributes_at_time += self.get_units_contributed(time, skill)
-
+            contributes_at_time = self.get_units_contributed(time)
             remaining_units.append(
                 self.units_per_full_time - contributes_at_time
             )

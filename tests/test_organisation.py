@@ -262,9 +262,8 @@ class TestDepartment(unittest.TestCase):
     def test_is_workload_satisfied(self):
         dept = Department(0)
         dept.number_of_workers += 1
-        dept.units_supplied_to_projects[0] = {
-            'worker_1': 8
-        }
+        dept.units_supplied_to_projects[0] = 8
+
         self.assertFalse(dept.is_workload_satisfied(0, 1))
 
     def test_to_string(self):
