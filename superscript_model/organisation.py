@@ -80,7 +80,7 @@ class Team:
             )
         }
         member_unit_budgets = {
-            member.worker_id: member.get_remaining_units(
+            member.worker_id: member.contributions.get_remaining_units(
                 self.project.start_time, self.project.length
             )
             for member in self.members.values()
@@ -124,7 +124,7 @@ class Team:
             for skill in contributions.keys():
 
                 if member_id in contributions[skill]:
-                    self.members[member_id].add_contribution(
+                    self.members[member_id].contributions.add_contribution(
                         self.project, skill
                     )
                     units_contributed_by_member += 1
@@ -360,4 +360,10 @@ class Department:
             'tolerance': self.tolerance
         }
         return json.dumps(output, indent=4)
+
+
+class Trainer:
+
+    def __init__(self):
+        pass
 

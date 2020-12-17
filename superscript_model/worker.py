@@ -18,75 +18,27 @@ from .config import (HARD_SKILLS,
 class Worker(Agent):
 
     def __init__(self, worker_id: int,
-                 model, department=Department(0),
-                 units_per_full_time=UNITS_PER_FTE):
+                 model, department=Department(0)):
 
         super().__init__(worker_id, model)
         self.worker_id = worker_id
         self.skills = SkillMatrix()
         self.department = department
-        self.units_per_full_time = units_per_full_time
         self.department.number_of_workers += 1
 
         self.strategy = AllInStrategy('All-In')
         self.leads_on = dict()
-        self.contributes = dict()
+        self.contributions = WorkerContributions(self)
+
+    @property
+    def contributes(self):
+        return self.contributions.get_contributions()
 
     def assign_as_lead(self, project):
         self.leads_on[project.project_id] = project
 
     def remove_as_lead(self, project):
         del self.leads_on[project.project_id]
-
-    def add_contribution(self, project, skill):
-
-        for time_offset in range(project.length):
-            time = project.start_time + time_offset
-
-            if time not in self.contributes.keys():
-                self.contributes[time] = {
-                    skill: []
-                    for skill in self.skills.hard_skills.keys()
-                }
-            (self.contributes[time][skill]
-             .append(project.project_id))
-
-    def get_units_contributed(self, time, skill):
-        if time not in self.contributes.keys():
-            return 0
-        elif skill not in self.contributes[time].keys():
-            return 0
-        else:
-            return len(self.contributes[time][skill])
-
-    def contributes_less_than_full_time(self, start, length):
-
-        for t in range(length):
-
-            time = start + t
-            contributes_at_time = 0
-            for skill in self.skills.hard_skills.keys():
-                contributes_at_time += self.get_units_contributed(time, skill)
-
-            if contributes_at_time >= self.units_per_full_time:
-                return False
-
-        return True
-
-    def get_remaining_units(self, start, length):
-
-        remaining_units = []
-        for t in range(length):
-
-            time = start + length
-            contributes_at_time = 0
-            for skill in self.skills.hard_skills.keys():
-                contributes_at_time += self.get_units_contributed(time, skill)
-
-            remaining_units.append(
-                self.units_per_full_time - contributes_at_time
-            )
-        return min(remaining_units)
 
     def step(self):
         """Dict can be updated during loop (one other?)"""
@@ -110,6 +62,67 @@ class Worker(Agent):
         return self.strategy.bid(project, self)
 
 
+class WorkerContributions:
+    """Class that logs current and future contributions to projects."""
+    def __init__(self, worker, units_per_full_time=UNITS_PER_FTE):
+        self.contributes = dict()
+        self.worker = worker
+        self.units_per_full_time = units_per_full_time
+
+    def get_contributions(self):
+        return self.contributes
+
+    def add_contribution(self, project, skill):
+
+        for time_offset in range(project.length):
+            time = project.start_time + time_offset
+
+            if time not in self.contributes.keys():
+                self.contributes[time] = {
+                    skill: []
+                    for skill in self.worker.skills.hard_skills.keys()
+                }
+            (self.contributes[time][skill]
+             .append(project.project_id))
+
+    def get_units_contributed(self, time, skill):
+        if time not in self.contributes.keys():
+            return 0
+        elif skill not in self.contributes[time].keys():
+            return 0
+        else:
+            return len(self.contributes[time][skill])
+
+    def contributes_less_than_full_time(self, start, length):
+
+        for t in range(length):
+
+            time = start + t
+            contributes_at_time = 0
+            for skill in self.worker.skills.hard_skills.keys():
+                contributes_at_time += self.get_units_contributed(time, skill)
+
+            if contributes_at_time >= self.units_per_full_time:
+                return False
+
+        return True
+
+    def get_remaining_units(self, start, length):
+
+        remaining_units = []
+        for t in range(length):
+
+            time = start + length
+            contributes_at_time = 0
+            for skill in self.worker.skills.hard_skills.keys():
+                contributes_at_time += self.get_units_contributed(time, skill)
+
+            remaining_units.append(
+                self.units_per_full_time - contributes_at_time
+            )
+        return min(remaining_units)
+
+
 class WorkerStrategyInterface(Interface):
 
     def bid(self, project: Project, worker: Worker) -> bool:
@@ -129,7 +142,7 @@ class AllInStrategy(implements(WorkerStrategyInterface)):
         if (worker.department.is_workload_satisfied(
                 project.start_time, project.length)
             and
-            worker.contributes_less_than_full_time(
+            worker.contributions.contributes_less_than_full_time(
                 project.start_time, project.length)):
             return True
         else:

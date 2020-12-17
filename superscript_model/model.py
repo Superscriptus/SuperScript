@@ -10,8 +10,18 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# - 10 minutes left over..
-# - update units tests
+# - add training and skill decay functionality
+#       worker.step() needs to know time to check if free for next 5 timesteps...
+#       Solution: delete old contributions from worker.contributes() (see below) - add contribution class.
+#           then contributions.now() has the current time
+#       Trainer needs to know top 2 skills...Solution: store in inventory after project creation.
+#       Worker is only trained if departmental workload is met - update units_supplied_to_projects when worker enters training
+
+# - For skill decay: needs to know which skills have been used recently. Solution: track in new contribution class.
+# (- * add contribution class for Dept.)
+# - **add budget constraint functionality
+
+# - add chemistry booster
 
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob
@@ -26,9 +36,6 @@ from .config import (PROJECT_LENGTH,
 
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report
-# - add training and skill decay functionality
-# - add department functionality
-# - add budget constraint functionality
 # - add function parameters to config
 # - change FunctionInterface to abstract base class (plot and print never change)
 # - rename private data members _XX
