@@ -12,12 +12,10 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# 60 minutes left over.
-# 20 minutes - writing Trainer unit tests
-# 30 minutes - implemented skill decay with testing
-# 20 minutes - added worker history class
-# 15 minutes - working on chemistry methods
+# 10 minutes left over
 
+# write test_determine_success, test_replace_worker
+# what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 # Add Social network
 # Implement go_settle
 # (- * add contribution class for Dept.)

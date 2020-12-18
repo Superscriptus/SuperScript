@@ -194,6 +194,27 @@ class TestTeam(unittest.TestCase):
                     lead=w1)
         self.assertEqual(team.creativity_match, 0)
 
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.ProjectInventory')
+    def test_log_project_outcome(self, mock_inventory, mock_model):
+
+        w1 = Worker(1, mock_model)
+        w2 = Worker(2, mock_model)
+        project = Project(mock_inventory,
+                          project_id=42,
+                          project_length=5)
+        team = Team(project,
+                    members={w1.worker_id: w1,
+                             w2.worker_id: w2},
+                    lead=w1
+                    )
+        team.log_project_outcome(success=True)
+        self.assertEqual(w1.history.get_success_rate(), 1)
+        self.assertEqual(w2.history.get_success_rate(), 1)
+        team.log_project_outcome(success=False)
+        self.assertEqual(w1.history.get_success_rate(), 0.5)
+        self.assertEqual(w2.history.get_success_rate(), 0.5)
+
 
 class TestOrganisationStrategyInterface(unittest.TestCase):
 

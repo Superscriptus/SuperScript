@@ -34,7 +34,7 @@ class TestProject(unittest.TestCase):
         inventory.create_projects(1, time=0, length=5)
         project = inventory.projects[0]
         project.team = mock_team
-
+        self.assertEqual(inventory.active_count, 1)
         project.advance()
         project.advance()
         project.advance()
@@ -42,7 +42,8 @@ class TestProject(unittest.TestCase):
         project.advance()
         self.assertEqual(mock_team.remove_lead.call_count, 1)
         self.assertIs(project.team, None)
-
+        self.assertTrue(0 not in inventory.projects.keys())
+        self.assertEqual(inventory.active_count, 0)
 
 class TestProjectInventory(unittest.TestCase):
 
