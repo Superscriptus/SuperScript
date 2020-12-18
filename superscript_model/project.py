@@ -168,7 +168,11 @@ class Project:
             self.terminate()
 
     def terminate(self):
+        success = (
+            self.inventory.success_calculator.determine_success(self)
+        )
         if self.team is not None:
+            self.team.log_project_outcome(success)
             self.team.remove_lead(self)
             self.team = None
 
@@ -331,6 +335,6 @@ class SuccessCalculator:
         ) / 100
         project.success_probability = max(0, probability)
 
-    def determine_success(self):
+    def determine_success(self, project):
         """To be called when settling project (terminate?)"""
-        pass
+        return True

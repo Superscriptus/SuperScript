@@ -14,9 +14,9 @@ from .config import (PROJECT_LENGTH,
 # TODO:
 # 60 minutes left over.
 # 20 minutes - writing Trainer unit tests
+# 30 minutes - implemented skill decay with testing
 
 # success history to own class
-
 
 # (- * add contribution class for Dept.)
 # - **add budget constraint functionality
@@ -30,7 +30,6 @@ from .config import (PROJECT_LENGTH,
 # - rename skill balance - degree of mismatch..
 
 # - inject SuccessCalculator (not create)
-
 
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - coverage run -m unittest discover && coverage report

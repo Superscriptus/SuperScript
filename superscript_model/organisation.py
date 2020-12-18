@@ -207,6 +207,10 @@ class Team:
         creativity_level = (creativity_level * max_distance) + 1
         return (self.project.creativity - creativity_level) ** 2
 
+    def log_project_outcome(self, project_id, success):
+        for member in self.members.values():
+            member.history.record(project_id, success)
+
     def to_string(self):
 
         output = {

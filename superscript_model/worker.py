@@ -32,6 +32,7 @@ class Worker(Agent):
         self.strategy = AllInStrategy('All-In')
         self.leads_on = dict()
         self.contributions = WorkerContributions(self)
+        self.history = WorkerHistory()
 
     @property
     def contributes(self):
@@ -39,7 +40,7 @@ class Worker(Agent):
 
     @property
     def recent_success_rate(self):
-        return self.contributions.get_success_rate()
+        return self.history.get_success_rate()
 
     @property
     def now(self):
@@ -88,14 +89,11 @@ class Worker(Agent):
 
 class WorkerContributions:
     """Class that logs current and future contributions to projects."""
-    def __init__(self, worker, units_per_full_time=UNITS_PER_FTE,
-                 success_history_length=WORKER_SUCCESS_HISTORY_LENGTH,
-                 success_history_threshold=WORKER_SUCCESS_HISTORY_THRESHOLD):
+    def __init__(self, worker, units_per_full_time=UNITS_PER_FTE):
         self.per_skill_contributions = dict()
         self.total_contribution = dict()
         self.worker = worker
         self.units_per_full_time = units_per_full_time
-        self.success_history = dict()
 
     def get_contributions(self, time=None):
         if time is None:
@@ -160,9 +158,6 @@ class WorkerContributions:
             )
         return min(remaining_units)
 
-    def get_success_rate(self):
-        return 0 #self.success_history
-
     def is_free_over_period(self, start, length):
         if ((self.get_remaining_units(start, length)
                 == self.units_per_full_time)
@@ -177,8 +172,21 @@ class WorkerContributions:
 
 class WorkerHistory:
     """Class to track recent worker's success rate."""
-    def __init__(self):
-        pass
+    def __init__(self, success_history_length=WORKER_SUCCESS_HISTORY_LENGTH):
+
+        self.success_history_length = success_history_length
+        self.success_history = []
+
+    def record(self, success):
+        self.success_history.append(success)
+        if len(self.success_history) > self.success_history_length:
+            self.success_history.pop(0)
+
+    def get_success_rate(self):
+        if len(self.success_history) == 0:
+            return 0
+        else:
+            return sum(self.success_history) / len(self.success_history)
 
 
 class WorkerStrategyInterface(Interface):

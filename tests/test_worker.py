@@ -10,7 +10,8 @@ from superscript_model.worker import (Worker,
                                       SkillMatrix)
 from superscript_model.project import Project, ProjectInventory
 from superscript_model.config import (HARD_SKILLS,
-                                      SKILL_DECAY_FACTOR)
+                                      SKILL_DECAY_FACTOR,
+                                      WORKER_SUCCESS_HISTORY_LENGTH)
 
 
 def implements_interface(cls, interface):
@@ -127,6 +128,28 @@ class TestWorker(unittest.TestCase):
         for skill in HARD_SKILLS:
             self.assertEqual(worker.get_skill(skill),
                              SKILL_DECAY_FACTOR * worker_skills[skill])
+
+
+class TestWorkerHistory(unittest.TestCase):
+
+    @patch('superscript_model.model.Model')
+    def test_init(self, mock_model):
+        worker = Worker(42, mock_model)
+        self.assertEqual(worker.history.success_history_length,
+                         WORKER_SUCCESS_HISTORY_LENGTH)
+        self.assertTrue(len(
+            worker.history.success_history) <= WORKER_SUCCESS_HISTORY_LENGTH)
+
+    @patch('superscript_model.model.Model')
+    def test_get_success_rate(self, mock_model):
+        worker = Worker(42, mock_model)
+
+        for i in range(5):
+            worker.history.record(True)
+
+        self.assertTrue(len(
+            worker.history.success_history) <= WORKER_SUCCESS_HISTORY_LENGTH)
+        self.assertEqual(worker.history.get_success_rate(), 1)
 
 
 class TestWorkerStrategyInterface(unittest.TestCase):
