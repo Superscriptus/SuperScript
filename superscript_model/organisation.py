@@ -46,8 +46,9 @@ class Team:
             self.lead.assign_as_lead(project)
 
     def remove_lead(self, project):
-        self.lead.remove_as_lead(project)
-        self.lead = None
+        if self.lead is not None:
+            self.lead.remove_as_lead(project)
+            self.lead = None
 
     def compute_ovr(self, multiplier=TEAM_OVR_MULTIPLIER):
 

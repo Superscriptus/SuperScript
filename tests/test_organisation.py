@@ -247,7 +247,7 @@ class TestRandomStrategy(unittest.TestCase):
                                     bid_pool=[])
         self.assertEqual(team.members, {})
         self.assertIs(team.lead, None)
-        self.assertEqual(mock_print.call_count, 1)
+        self.assertEqual(mock_print.call_count, 2)
 
     @patch('superscript_model.project.Project')
     def test_invite_bids(self, mock_project):

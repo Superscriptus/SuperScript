@@ -12,18 +12,17 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# 40 minutes - writing tests (test_replace_worker, test_calculate_success_probability etc)
+# 60 minutes - writing tests (test_replace_worker, test_calculate_success_probability etc)
+# 20 minutes
 
-# what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
+# **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
+#       -> notify Michael about this (and that actual average is 0.22)
+
 # Add Social network
 # Implement go_settle
 # (- * add contribution class for Dept.)
 # - **add budget constraint functionality
 # - add chemistry booster
-# - implement retire/replace worker
-# - ensure worker is deleted from dept when worker 'dies'
-
-# unit test for probability success - test not over 1
 
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob
@@ -63,6 +62,7 @@ class SuperScriptModel(Model):
                  department_count=DEPARTMENT_COUNT):
 
         self.worker_count = worker_count
+        self.new_workers = 0
         self.departments = dict()
 
         self.schedule = RandomActivation(self)
@@ -75,8 +75,8 @@ class SuperScriptModel(Model):
         for di in range(department_count):
             self.departments[di] = Department(di)
 
-        workers_per_department = department_count / worker_count
-        assert workers_per_department * worker_count == department_count
+        workers_per_department = worker_count / department_count
+        assert workers_per_department * department_count == worker_count
 
         di = 0
         assigned_to_di = 0
@@ -84,7 +84,7 @@ class SuperScriptModel(Model):
             w = Worker(i, self, self.departments[di])
             self.schedule.add(w)
 
-            assigned_to_di +=1
+            assigned_to_di += 1
             if assigned_to_di == workers_per_department:
                 di += 1
                 assigned_to_di = 0
@@ -96,6 +96,7 @@ class SuperScriptModel(Model):
         self.inventory.create_projects(NEW_PROJECTS_PER_TIMESTEP,
                                        self.time, PROJECT_LENGTH)
         self.schedule.step()
+        self.inventory.remove_null_projects()
         self.time += 1
 
     def run_model(self, step_count: int):

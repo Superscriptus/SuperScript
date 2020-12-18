@@ -4,6 +4,7 @@ from unittest.mock import patch
 import inspect
 from mesa import Agent
 
+from superscript_model.model import SuperScriptModel
 from superscript_model.worker import (Worker,
                                       WorkerStrategyInterface,
                                       AllInStrategy,
@@ -135,6 +136,17 @@ class TestWorker(unittest.TestCase):
         self.assertEqual(worker.individual_chemistry(project), 1)
         project.requirements.hard_skills = {'D': {'units': 2, 'level': 5}}
         self.assertEqual(worker.individual_chemistry(project), 2)
+
+    @patch('superscript_model.model.Model')
+    def test_replace(self, mock_model):
+
+        model = SuperScriptModel(100, department_count=10)
+        self.assertEqual(model.departments[1].number_of_workers, 10)
+        worker = model.schedule.agents[0]
+        self.assertEqual(worker.department.number_of_workers, 10)
+        worker.replace()
+        self.assertEqual(worker.department.number_of_workers, 10)
+        self.assertEqual(model.schedule.get_agent_count(), 100)
 
 
 class TestWorkerHistory(unittest.TestCase):

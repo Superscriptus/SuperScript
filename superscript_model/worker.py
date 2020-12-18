@@ -76,8 +76,13 @@ class Worker(Agent):
         return self.contributions.is_free_over_period(start, length)
 
     def replace(self):
-        # ensure to reduce number of workers in dept by 1
-        pass
+        self.department.number_of_workers -= 1
+        self.model.new_workers += 1
+        self.model.schedule.add(
+            Worker(self.model.worker_count + self.model.new_workers,
+                   self.model, self.department)
+        )
+        self.model.schedule.remove(self)
 
     def bid(self, project):
         return self.strategy.bid(project, self)

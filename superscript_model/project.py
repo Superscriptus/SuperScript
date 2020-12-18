@@ -30,6 +30,7 @@ class ProjectInventory:
                  hard_skills=HARD_SKILLS):
 
         self.projects = dict()
+        self.null_projects = dict()
         self.index_total = 0
         self.team_allocator = team_allocator
         self.timeline_flexibility_func = (
@@ -50,6 +51,12 @@ class ProjectInventory:
     @property
     def top_two_skills(self):
         return list(self.total_skill_requirement.keys())[:2]
+
+    def remove_null_projects(self):
+        nulls = list(self.null_projects.keys())
+        for project_id in nulls:
+            self.delete_project(project_id)
+            del self.null_projects[project_id]
 
     def get_start_time_offset(self):
 
@@ -121,6 +128,11 @@ class ProjectInventory:
 
     def add_project(self, project):
 
+        if project.team is None or project.team.lead is None:
+            self.null_projects[project.project_id] = project
+            self.null_projects[project.project_id] = project
+            print('Project %d fails because no team' % project.project_id)
+
         if project.project_id not in self.projects.keys():
             self.projects[project.project_id] = project
             self.index_total += 1
@@ -164,10 +176,11 @@ class Project:
 
     def advance(self):
         self.progress += 1
-        if self.progress == self.length:
+        if self.progress >= self.length:
             self.terminate()
 
     def terminate(self):
+
         success = (
             self.inventory.success_calculator.determine_success(self)
         )
@@ -349,17 +362,20 @@ class SuccessCalculator:
 
     def calculate_success_probability(self, project):
 
-        self.get_component_values(project)
-        probability = (
-            self.probability_ovr.get_values(self.ovr)
-            + self.probability_skill_balance.get_values(
-                          self.skill_balance)
-            + self.probability_creativity_match.get_values(
-                          self.creativity_match)
-            + self.probability_risk.get_values(self.risk)
-            + self.probability_chemistry.get_values(self.chemistry)
-        ) / 100
-        project.success_probability = max(0, probability)
+        if project.team is None or project.team.lead is None:
+            project.success_probability = 0
+        else:
+            self.get_component_values(project)
+            probability = (
+                self.probability_ovr.get_values(self.ovr)
+                + self.probability_skill_balance.get_values(
+                              self.skill_balance)
+                + self.probability_creativity_match.get_values(
+                              self.creativity_match)
+                + self.probability_risk.get_values(self.risk)
+                + self.probability_chemistry.get_values(self.chemistry)
+            ) / 100
+            project.success_probability = max(0, probability)
 
     def determine_success(self, project):
         return Random.uniform() < project.success_probability

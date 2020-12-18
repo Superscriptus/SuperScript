@@ -28,12 +28,16 @@ class TestProject(unittest.TestCase):
 
     @patch('superscript_model.organisation.Team')
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_terminate(self, mock_allocator, mock_team):
+    @patch('superscript_model.worker.Worker')
+    def test_terminate(self, mock_worker, mock_allocator, mock_team):
 
         inventory = ProjectInventory(mock_allocator)
         inventory.create_projects(1, time=0, length=5)
+
         project = inventory.projects[0]
+        mock_team.lead = mock_worker
         project.team = mock_team
+
         self.assertEqual(inventory.active_count, 1)
         project.advance()
         project.advance()
@@ -44,6 +48,8 @@ class TestProject(unittest.TestCase):
         self.assertIs(project.team, None)
         self.assertTrue(0 not in inventory.projects.keys())
         self.assertEqual(inventory.active_count, 0)
+        self.assertEqual(project.success_probability, 0.0)
+
 
 class TestProjectInventory(unittest.TestCase):
 
