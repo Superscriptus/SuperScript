@@ -3,6 +3,7 @@ from unittest.mock import patch
 from .test_worker import implements_interface
 
 from mesa import Model
+from mesa.time import RandomActivation
 from superscript_model.model import SuperScriptModel
 from superscript_model.worker import Worker
 from superscript_model.project import ProjectInventory, Project
@@ -15,7 +16,11 @@ from superscript_model.organisation import (Team,
 
 from superscript_model.config import (DEPARTMENTAL_WORKLOAD,
                                       UNITS_PER_FTE,
-                                      WORKLOAD_SATISFIED_TOLERANCE)
+                                      WORKLOAD_SATISFIED_TOLERANCE,
+                                      HARD_SKILLS,
+                                      TRAINING_COMMENCES,
+                                      TRAINING_LENGTH,
+                                      MAX_SKILL_LEVEL)
 
 
 class TestTeam(unittest.TestCase):
@@ -279,4 +284,63 @@ class TestDepartment(unittest.TestCase):
         dept.add_training(worker, 5)
         #worker.model.trainer.train(worker)
 
+class TestTrainer(unittest.TestCase):
 
+    @patch('superscript_model.model.Model')
+    def test_init(self, mock_model):
+        trainer = Trainer(mock_model)
+        self.assertEqual(trainer.hard_skills, HARD_SKILLS)
+        self.assertEqual(trainer.max_skill_level, MAX_SKILL_LEVEL)
+        self.assertEqual(trainer.training_length, TRAINING_LENGTH)
+        self.assertEqual(trainer.training_commences, TRAINING_COMMENCES)
+        self.assertIsInstance(trainer.skill_quartiles, dict)
+
+    @patch('superscript_model.model.Model')
+    def test_update_skill_quartiles(self, mock_model):
+        mock_model.schedule = RandomActivation(mock_model)
+        trainer = Trainer(mock_model)
+        dept = Department(0)
+        workers = []
+        for i in range(5):
+            w = Worker(i, mock_model, department=dept)
+            w.skills.hard_skills = dict(
+                zip(HARD_SKILLS, [i+1 for s in HARD_SKILLS])
+            )
+            mock_model.schedule.add(w)
+        trainer.update_skill_quartiles()
+        for skill in HARD_SKILLS:
+            self.assertEqual(list(trainer.skill_quartiles[skill]),
+                             [2, 3, 4])
+
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_train(self, mock_allocator, mock_model):
+
+        mock_model.schedule = RandomActivation(mock_model)
+        mock_model.inventory = ProjectInventory(mock_allocator)
+        mock_model.inventory.total_skill_requirement = {
+            'A': 10, 'B': 9
+        }
+
+        trainer = Trainer(mock_model)
+        dept = Department(0)
+        workers = []
+        for i in range(5):
+            w = Worker(i, mock_model, department=dept)
+            w.skills.hard_skills = dict(
+                zip(HARD_SKILLS, [i+1 for s in HARD_SKILLS])
+            )
+            workers.append(w)
+            mock_model.schedule.add(w)
+
+        trainer.update_skill_quartiles()
+        trainer.training_commences = 0
+        for i in range(5):
+            trainer.train(workers[i])
+
+        self.assertEqual(workers[0].skills.hard_skills['A'], 4)
+        self.assertEqual(workers[0].skills.hard_skills['B'], 4)
+        self.assertEqual(workers[0].skills.hard_skills['C'], 1)
+        self.assertEqual(workers[1].skills.hard_skills['B'], 4)
+        self.assertEqual(workers[2].skills.hard_skills['A'], 3)
+        self.assertEqual(workers[4].skills.hard_skills['B'], 5)

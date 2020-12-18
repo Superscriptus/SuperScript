@@ -13,6 +13,7 @@ from .config import (PROJECT_LENGTH,
 
 # TODO:
 # 60 minutes left over.
+# 20 minutes - writing Trainer unit tests
 
 # success history to own class
 # - add skill decay functionality
