@@ -4,7 +4,7 @@ from unittest.mock import patch
 from superscript_model.project import (Project,
                                        ProjectInventory,
                                        ProjectRequirements)
-
+from superscript_model.model import SuperScriptModel
 
 class TestProject(unittest.TestCase):
 
@@ -136,6 +136,40 @@ class TestProjectRequirements(unittest.TestCase):
     def test_to_string(self):
         r = ProjectRequirements()
         self.assertIsInstance(r.to_string(), str)
+
+
+class TestSuccessCalculator(unittest.TestCase):
+
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_determine_success(self, mock_allocator):
+
+        inventory = ProjectInventory(mock_allocator)
+        project = Project(42)
+        project.success_probability = 1
+        self.assertTrue(
+            inventory.success_calculator.determine_success(project)
+        )
+        project.success_probability = 0
+        self.assertFalse(
+            inventory.success_calculator.determine_success(project)
+        )
+
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_calculate_success_probability(self, mock_allocator):
+
+        N = 20
+        model = SuperScriptModel(1000)
+        model.inventory.create_projects(N, 0, 5)
+
+        for i in range(N):
+            project = model.inventory.projects[i]
+
+            model.inventory.success_calculator.calculate_success_probability(
+                project
+            )
+
+            self.assertTrue(project.success_probability >= 0)
+            self.assertTrue(project.success_probability <= 1)
 
 
 if __name__ == '__main__':

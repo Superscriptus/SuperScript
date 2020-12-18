@@ -12,9 +12,8 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT)
 
 # TODO:
-# 10 minutes left over
+# 40 minutes - writing tests (test_replace_worker, test_calculate_success_probability etc)
 
-# write test_determine_success, test_replace_worker
 # what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 # Add Social network
 # Implement go_settle
@@ -30,6 +29,7 @@ from .config import (PROJECT_LENGTH,
 #       need to be able to create hypothetical teams to compare success prob
 #       solution: only call assign_contributions_to_members once team is finalised
 
+# - calculate theoretical maximum/minimum prob for each component with current functions
 # - rename skill balance - degree of mismatch..
 # - inject SuccessCalculator (not create)
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
@@ -89,7 +89,7 @@ class SuperScriptModel(Model):
                 di += 1
                 assigned_to_di = 0
 
-        self.time = 0
+        self.time = 0 # replace with schedule.steps
 
     def step(self):
         self.trainer.update_skill_quartiles()

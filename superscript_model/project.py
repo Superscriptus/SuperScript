@@ -326,31 +326,67 @@ class SuccessCalculator:
         self.probability_chemistry = (
             FunctionFactory.get('SuccessProbabilityChemistry')
         )
+        self.ovr = 0.0
+        self.skill_balance = 0.0
+        self.creativity_match = 0.0
+        self.risk = 0.0
+        self.chemistry = 0.0
+
+    def get_component_values(self, project):
+
+        if project.team is not None:
+            self.ovr = project.team.team_ovr
+            self.skill_balance = project.team.skill_balance
+            self.creativity_match = project.team.creativity_match
+            self.risk = project.risk
+            self.chemistry = project.chemistry
+        else:
+            self.ovr = 0.0
+            self.skill_balance = 0.0
+            self.creativity_match = 0.0
+            self.risk = 0.0
+            self.chemistry = 0.0
 
     def calculate_success_probability(self, project):
 
-        if project.team is not None:
-            ovr = project.team.team_ovr
-            skill_balance = project.team.skill_balance
-            creativity_match = project.team.creativity_match
-            risk = project.risk
-            chemistry = project.chemistry
-        else:
-            ovr = 0.0
-            skill_balance = 0.0
-            creativity_match = 0.0
-            risk = 0.0
-            chemistry = 0.0
-
+        self.get_component_values(project)
         probability = (
-            self.probability_ovr.get_values(ovr)
-            + self.probability_skill_balance.get_values(skill_balance)
-            + self.probability_creativity_match.get_values(creativity_match)
-            + self.probability_risk.get_values(risk)
-            + self.probability_chemistry.get_values(chemistry)
+            self.probability_ovr.get_values(self.ovr)
+            + self.probability_skill_balance.get_values(
+                          self.skill_balance)
+            + self.probability_creativity_match.get_values(
+                          self.creativity_match)
+            + self.probability_risk.get_values(self.risk)
+            + self.probability_chemistry.get_values(self.chemistry)
         ) / 100
         project.success_probability = max(0, probability)
 
     def determine_success(self, project):
-        """To be called when settling project (terminate?)"""
-        return True
+        return Random.uniform() < project.success_probability
+
+    def to_string(self, project):
+        self.get_component_values(project)
+        output = {
+            'ovr (value, prob): ': (
+                self.ovr,
+                self.probability_ovr.get_values(self.ovr)
+            ),
+            'skill balance (value, prob): ': (
+                self.skill_balance,
+                self.probability_skill_balance.get_values(self.skill_balance)
+            ),
+            'creativity match (value, prob): ': (
+                self.creativity_match,
+                self.probability_creativity_match.get_values(
+                    self.creativity_match)
+            ),
+            'risk (value, prob): ': (
+                self.risk,
+                self.probability_risk.get_values(self.risk)
+            ),
+            'chemistry (value, prob): ': (
+                self.chemistry,
+                self.probability_chemistry.get_values(self.chemistry)
+            )
+        }
+        return json.dumps(output, indent=4)
