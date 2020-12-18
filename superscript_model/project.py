@@ -190,6 +190,16 @@ class Project:
     def creativity(self):
         return self.requirements.creativity
 
+    @property
+    def chemistry(self):
+
+        chemistry = np.mean(
+            [member.individual_chemistry(self)
+             for member in self.team.members.values()]
+        )
+        # chemistry += GET_FROM_GRAPH (derived class method)
+        return chemistry
+
     def get_skill_requirement(self, skill):
         return self.requirements.hard_skills[skill]
 
@@ -313,6 +323,9 @@ class SuccessCalculator:
         self.probability_risk = (
             FunctionFactory.get('SuccessProbabilityRisk')
         )
+        self.probability_chemistry = (
+            FunctionFactory.get('SuccessProbabilityChemistry')
+        )
 
     def calculate_success_probability(self, project):
 
@@ -321,17 +334,20 @@ class SuccessCalculator:
             skill_balance = project.team.skill_balance
             creativity_match = project.team.creativity_match
             risk = project.risk
+            chemistry = project.chemistry
         else:
             ovr = 0.0
             skill_balance = 0.0
             creativity_match = 0.0
             risk = 0.0
+            chemistry = 0.0
 
         probability = (
             self.probability_ovr.get_values(ovr)
             + self.probability_skill_balance.get_values(skill_balance)
             + self.probability_creativity_match.get_values(creativity_match)
             + self.probability_risk.get_values(risk)
+            + self.probability_chemistry.get_values(chemistry)
         ) / 100
         project.success_probability = max(0, probability)
 

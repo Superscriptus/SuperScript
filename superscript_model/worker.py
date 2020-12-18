@@ -39,10 +39,6 @@ class Worker(Agent):
         return self.contributions.get_contributions()
 
     @property
-    def recent_success_rate(self):
-        return self.history.get_success_rate()
-
-    @property
     def now(self):
         return self.model.schedule.steps
 
@@ -85,6 +81,17 @@ class Worker(Agent):
 
     def bid(self, project):
         return self.strategy.bid(project, self)
+
+    def individual_chemistry(self, project):
+        chemistry = 0
+
+        if (len(set(self.skills.top_two)
+                .intersection(project.required_skills)) > 0):
+            chemistry += 1
+
+        chemistry += self.history.momentum()
+        chemistry += project.risk >= 0.1 * self.skills.ovr
+        return chemistry
 
 
 class WorkerContributions:
@@ -172,9 +179,11 @@ class WorkerContributions:
 
 class WorkerHistory:
     """Class to track recent worker's success rate."""
-    def __init__(self, success_history_length=WORKER_SUCCESS_HISTORY_LENGTH):
+    def __init__(self, success_history_length=WORKER_SUCCESS_HISTORY_LENGTH,
+                 success_history_threshold=WORKER_SUCCESS_HISTORY_THRESHOLD):
 
         self.success_history_length = success_history_length
+        self.success_history_threshold = success_history_threshold
         self.success_history = []
 
     def record(self, success):
@@ -187,6 +196,9 @@ class WorkerHistory:
             return 0
         else:
             return sum(self.success_history) / len(self.success_history)
+
+    def momentum(self):
+        return self.get_success_rate() >= self.success_history_threshold
 
 
 class WorkerStrategyInterface(Interface):
@@ -257,6 +269,16 @@ class SkillMatrix:
                        self.hard_skills.values()
                        if s > 0.0])
                 ) * self.ovr_multiplier
+
+    @property
+    def top_two(self):
+        ranked_skills = {
+            k: v for k, v in sorted(
+            self.hard_skills.items(),
+            reverse=True,
+            key=lambda item: item[1]
+        )}
+        return list(ranked_skills.keys())[:2]
 
     def assign_hard_skills(self):
 

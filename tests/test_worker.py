@@ -111,11 +111,6 @@ class TestWorker(unittest.TestCase):
         )
 
     @patch('superscript_model.model.Model')
-    def test_recent_success_rate(self, mock_model):
-        worker = Worker(42, mock_model)
-        self.assertEqual(worker.recent_success_rate, 0)
-
-    @patch('superscript_model.model.Model')
     def test_degrade_unused_skills(self, mock_model):
         worker = Worker(42, mock_model)
 
@@ -128,6 +123,18 @@ class TestWorker(unittest.TestCase):
         for skill in HARD_SKILLS:
             self.assertEqual(worker.get_skill(skill),
                              SKILL_DECAY_FACTOR * worker_skills[skill])
+
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.ProjectInventory')
+    def test_individual_chemistry(self, mock_inventory, mock_model):
+        worker = Worker(42, mock_model)
+        worker.skills.hard_skills = dict(zip(HARD_SKILLS, [1, 2, 3, 4, 5]))
+        project = Project(mock_inventory)
+        project.requirements.hard_skills = {'A': {'units': 3, 'level': 4}}
+        project.requirements.risk = worker.skills.ovr
+        self.assertEqual(worker.individual_chemistry(project), 1)
+        project.requirements.hard_skills = {'D': {'units': 2, 'level': 5}}
+        self.assertEqual(worker.individual_chemistry(project), 2)
 
 
 class TestWorkerHistory(unittest.TestCase):
