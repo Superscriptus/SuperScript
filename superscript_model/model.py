@@ -16,13 +16,12 @@ from .config import (PROJECT_LENGTH,
 # 20 minutes - writing Trainer unit tests
 
 # success history to own class
-# - add skill decay functionality
-# - write TestTrainer
 
-# - For skill decay: needs to know which skills have been used recently. Solution: track in new contribution class.
+
 # (- * add contribution class for Dept.)
 # - **add budget constraint functionality
 # - add chemistry booster (needs to know recent success history - track in history class)
+# - implement retire/replace worker
 
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob

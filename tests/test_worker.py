@@ -9,6 +9,8 @@ from superscript_model.worker import (Worker,
                                       AllInStrategy,
                                       SkillMatrix)
 from superscript_model.project import Project, ProjectInventory
+from superscript_model.config import (HARD_SKILLS,
+                                      SKILL_DECAY_FACTOR)
 
 
 def implements_interface(cls, interface):
@@ -111,6 +113,20 @@ class TestWorker(unittest.TestCase):
     def test_recent_success_rate(self, mock_model):
         worker = Worker(42, mock_model)
         self.assertEqual(worker.recent_success_rate, 0)
+
+    @patch('superscript_model.model.Model')
+    def test_degrade_unused_skills(self, mock_model):
+        worker = Worker(42, mock_model)
+
+        worker_skills = {
+            skill: worker.get_skill(skill, hard_skill=True)
+            for skill in HARD_SKILLS
+        }
+
+        worker.skills.decay(worker)
+        for skill in HARD_SKILLS:
+            self.assertEqual(worker.get_skill(skill),
+                             SKILL_DECAY_FACTOR * worker_skills[skill])
 
 
 class TestWorkerStrategyInterface(unittest.TestCase):

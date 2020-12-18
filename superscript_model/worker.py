@@ -14,7 +14,8 @@ from .config import (HARD_SKILLS,
                      PRINT_DECIMALS_TO,
                      UNITS_PER_FTE,
                      WORKER_SUCCESS_HISTORY_LENGTH,
-                     WORKER_SUCCESS_HISTORY_THRESHOLD)
+                     WORKER_SUCCESS_HISTORY_THRESHOLD,
+                     SKILL_DECAY_FACTOR)
 
 
 class Worker(Agent):
@@ -66,6 +67,8 @@ class Worker(Agent):
             if project in self.leads_on.values():
                 project.advance()
 
+        self.skills.decay(self)
+
     def get_skill(self, skill, hard_skill=True):
         if hard_skill:
             return self.skills.hard_skills[skill]
@@ -94,8 +97,21 @@ class WorkerContributions:
         self.units_per_full_time = units_per_full_time
         self.success_history = dict()
 
-    def get_contributions(self):
-        return self.per_skill_contributions
+    def get_contributions(self, time=None):
+        if time is None:
+            return self.per_skill_contributions
+        elif time in self.per_skill_contributions.keys():
+            return self.per_skill_contributions[time]
+        else:
+            return {}
+
+    def get_skill_units_contributed(self, time, skill):
+        contributions = self.get_contributions(time)
+
+        if skill in contributions.keys():
+            return contributions[skill]
+        else:
+            return 0
 
     def add_contribution(self, project, skill):
 
@@ -159,6 +175,12 @@ class WorkerContributions:
             return False
 
 
+class WorkerHistory:
+    """Class to track recent worker's success rate."""
+    def __init__(self):
+        pass
+
+
 class WorkerStrategyInterface(Interface):
 
     def bid(self, project: Project, worker: Worker) -> bool:
@@ -197,7 +219,8 @@ class SkillMatrix:
                  min_soft_skill=MIN_SOFT_SKILL_LEVEL,
                  hard_skill_probability=P_HARD_SKILL,
                  round_to=PRINT_DECIMALS_TO,
-                 ovr_multiplier=WORKER_OVR_MULTIPLIER):
+                 ovr_multiplier=WORKER_OVR_MULTIPLIER,
+                 skill_decay_factor=SKILL_DECAY_FACTOR):
 
         self.hard_skills = dict(zip(hard_skills,
                                     [0.0 for s in hard_skills]))
@@ -210,10 +233,22 @@ class SkillMatrix:
         self.max_skill = max_skill
         self.hard_skill_probability = hard_skill_probability
         self.ovr_multiplier = ovr_multiplier
+        self.skill_decay_factor = skill_decay_factor
         self.round_to = round_to
 
         while sum(self.hard_skills.values()) == 0.0:
             self.assign_hard_skills()
+
+    @property
+    def ovr(self):
+
+        return (sum([s for s in
+                     self.hard_skills.values()
+                     if s > 0.0])
+                / sum([1 for s in
+                       self.hard_skills.values()
+                       if s > 0.0])
+                ) * self.ovr_multiplier
 
     def assign_hard_skills(self):
 
@@ -221,6 +256,17 @@ class SkillMatrix:
             if Random.uniform() <= self.hard_skill_probability:
                 self.hard_skills[key] = Random.uniform(
                     0.0, self.max_skill)
+
+    def decay(self, worker):
+
+        for skill in self.hard_skills.keys():
+
+            units = (
+                worker.contributions
+                      .get_skill_units_contributed(worker.now, skill)
+            )
+            if units == 0:
+                self.hard_skills[skill] *= self.skill_decay_factor
 
     def to_string(self):
 
@@ -238,14 +284,3 @@ class SkillMatrix:
             "OVR multiplier": self.ovr_multiplier}
 
         return json.dumps(output, indent=4)
-
-    @property
-    def ovr(self):
-
-        return (sum([s for s in
-                     self.hard_skills.values()
-                     if s > 0.0])
-                / sum([1 for s in
-                       self.hard_skills.values()
-                       if s > 0.0])
-                ) * self.ovr_multiplier
