@@ -8,6 +8,7 @@ from superscript_model.model import SuperScriptModel
 from superscript_model.worker import Worker
 from superscript_model.organisation import Team
 
+
 class TestProject(unittest.TestCase):
 
     @patch('superscript_model.organisation.TeamAllocator')
@@ -198,6 +199,23 @@ class TestSuccessCalculator(unittest.TestCase):
             self.assertTrue(project.success_probability >= 0)
             self.assertTrue(project.success_probability <= 1)
 
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_get_component_values(self, mock_allocator):
+        inventory = ProjectInventory(mock_allocator)
+        project = Project(42)
+        project.team = None
+        inventory.success_calculator.get_component_values(project)
+        self.assertEqual(inventory.success_calculator.ovr, 0.0)
+        self.assertEqual(inventory.success_calculator.risk, 0.0)
+
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_to_string(self, mock_allocator):
+        inventory = ProjectInventory(mock_allocator)
+        project = Project(42)
+        self.assertIsInstance(
+            inventory.success_calculator.to_string(project),
+            str
+        )
 
 if __name__ == '__main__':
     unittest.main()

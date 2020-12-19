@@ -17,7 +17,7 @@ from .config import (PROJECT_LENGTH,
 # ! message Michael about the Null teams issue
 # 70 minutes - starting to implement visualisation, finishing chemistry booster, (network) fixing:
 # 20 minutes - unit tests for chemistry and social network
-# 10 minutes - wokring on Social Graph
+# 40 minutes - wokring on Social Graph (unit tests)
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
 

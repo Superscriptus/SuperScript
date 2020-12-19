@@ -53,3 +53,6 @@ class TestProject(unittest.TestCase):
         self.assertTrue((0, 1) in model.grid.G.edges())
         self.assertTrue((0, 2) in model.grid.G.edges())
         self.assertTrue((2, 1) in model.grid.G.edges())
+        model.grid.add_team_edges(team)
+        self.assertTrue((0, 1) in model.grid.G.edges())
+        self.assertEqual(model.grid.G[0][1]['weight'], 2)
