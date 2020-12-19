@@ -4,7 +4,7 @@ import networkx as nx
 
 from .worker import Worker
 from .project import ProjectInventory
-from .network import InteractionNetwork
+from .network import SocialNetwork
 from .organisation import (TeamAllocator,
                            Department,
                            Trainer)
@@ -15,39 +15,50 @@ from .config import (PROJECT_LENGTH,
 
 # TODO:
 # ! message Michael about the Null teams issue
-# 10 minutes - fixing:
+# 60 minutes - starting to implement visualisation (network) fixing:
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
 
-# Add Social network (need scipy to use spring layout)
+# - test worker removed from graph on death + test other network methods
+
 # - implement special method for testing what % of Team links are pre-existing (successful)
 # Implement go_settle
 # (- * add contribution class for Dept.)
 # - **add budget constraint functionality
 # - add chemistry booster
 
+# For visualisation:
+# - allow turn network on/off (display reduced network(only recent edges)? specify fixed node positions?)
+# - add controls for main parameters
+# - add graph displays for main tracking variables
+#( - add description to model for "About")
+
 # - refactor to use .get() for safe dictionary access
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob
 #       solution: only call assign_contributions_to_members once team is finalised
 
+# - update all units tests
 # change use of time below to steps()
 # - calculate theoretical maximum/minimum prob for each component with current functions
 # - rename skill balance - degree of mismatch..
 # - inject SuccessCalculator (not create)
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
-# - coverage run -m unittest discover && coverage report
+# - add requirements.txt and try installing on different system
 # - add function parameters to config
+# - remove historical work contributions from worker.contributes? (to free up memory) + remove department history?
+# - reorder and annotate config.py (and refactor tests to use config variables?)
+
+# - coverage run -m unittest discover && coverage report
+
 # - change FunctionInterface to abstract base class (plot and print never change)
 # - rename private data members _XX
-
 # - confirm that skill balance calculations are correct when worker is unable to supply skill due to dept constraint
 # - inject strategy into TeamAllocator
 # - manually calculate active_projects (80 versus 85)
-# - remove historical work contributions from worker.contributes? (to free up memory) + remove department history?
-# - reorder and annotate config.py (and refactor tests to use config variables?)
+
 # - change remote name
-# - add requirements.txt and try installing on different system
+
 # - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
 # - remove accept method from worker strategy?
 # - refactor so that strategies are injected to clients (not constructed internally)
@@ -95,7 +106,7 @@ class SuperScriptModel(Model):
 
         self.time = 0 # replace with schedule.steps
         self.G = nx.Graph()
-        self.grid = InteractionNetwork(self, self.G)
+        self.grid = SocialNetwork(self, self.G)
         self.running = True
 
     def step(self):

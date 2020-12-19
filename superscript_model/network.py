@@ -1,16 +1,18 @@
-import networkx as nx
 from itertools import combinations
-import matplotlib.pyplot as plt
-
 from mesa.space import NetworkGrid
 
+from .config import HISTORICAL_SUCCESS_RATIO_THRESHOLD
 
-class InteractionNetwork(NetworkGrid):
 
-    def __init__(self, model, G):
+class SocialNetwork(NetworkGrid):
+
+    def __init__(self, model, G,
+                 success_threshold=HISTORICAL_SUCCESS_RATIO_THRESHOLD):
 
         self.model = model
-        self.G = G #nx.Graph()
+        self.G = G
+        self.success_threshold = success_threshold
+
         for worker in self.model.schedule.agents:
             self.G.add_node(worker.worker_id,
                             department=worker.department.dept_id)
@@ -18,9 +20,6 @@ class InteractionNetwork(NetworkGrid):
         super().__init__(self.G)
         for worker, node in zip(self.model.schedule.agents, self.G.nodes()):
             self.place_agent(worker, node)
-
-        #for worker in self.model.schedule.agents:
-        #    self.remove_from_graph(worker)
 
     def remove_from_graph(self, worker):
         self._remove_agent(worker, worker.worker_id)
@@ -42,5 +41,19 @@ class InteractionNetwork(NetworkGrid):
                 print('updating edge weight:', pair)
                 self.G[pair[0]][pair[1]]['weight'] += 1
 
-        # nx.draw(self.G)
-        # plt.show()
+    def get_team_historical_success_flag(self, team):
+
+        pairs = list(combinations(team.members.keys(), 2))
+        success_ratio = 0
+        for pair in pairs:
+            if (pair[0], pair[1]) in self.G.edges():
+                success_ratio += 1
+
+        success_ratio = (
+            success_ratio / len(pairs) if len(pairs) > 0 else 0.0
+        )
+        if success_ratio >= self.success_threshold:
+            return True
+        else:
+            return False
+

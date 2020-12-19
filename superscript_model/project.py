@@ -69,18 +69,7 @@ class ProjectInventory:
         for i in np.flip(np.arange(1, self.max_timeline_flex)):
             if r <= p_vector[i]:
                 return i
-
         return 0
-        # if r <= p_vector[4]:
-        #     return 4
-        # elif r <= p_vector[3]:
-        #     return 3
-        # elif r <= p_vector[2]:
-        #     return 3
-        # elif r <= p_vector[1]:
-        #     return 3
-        # else:
-        #     return 0
 
     def determine_total_skill_requirements(self, projects):
 
@@ -210,7 +199,7 @@ class Project:
             [member.individual_chemistry(self)
              for member in self.team.members.values()]
         )
-        # chemistry += GET_FROM_GRAPH (derived class method)
+        #chemistry += self.inventory.
         return chemistry
 
     def get_skill_requirement(self, skill):
