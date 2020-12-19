@@ -16,15 +16,19 @@ from .config import (PROJECT_LENGTH,
 # TODO:
 # ! message Michael about the Null teams issue
 # 70 minutes - starting to implement visualisation, finishing chemistry booster, (network) fixing:
+# 20 minutes - unit tests for chemistry and social network
+# 10 minutes - wokring on Social Graph
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
 
-# - test worker removed from graph on death + test other network methods
+# - update all units tests
 
 # Implement go_settle
 # (- * add contribution class for Dept.)
 # - **add budget constraint functionality
-# - add chemistry booster
+
+# - optimised AllInStrategy.bid - takes ~60% of run time...
+# remove pyplot?!
 
 # For visualisation:
 # - allow turn network on/off (display reduced network(only recent edges)? specify fixed node positions?)
@@ -33,12 +37,13 @@ from .config import (PROJECT_LENGTH,
 # - add graph displays for main tracking variables
 #( - add description to model for "About")
 
+# - model will only work with a constant number of agents because of Grid (network) constraints.
+
 # - refactor to use .get() for safe dictionary access
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob
 #       solution: only call assign_contributions_to_members once team is finalised
 
-# - update all units tests
 # change use of time below to steps()
 # - calculate theoretical maximum/minimum prob for each component with current functions
 # - rename skill balance - degree of mismatch..
@@ -48,7 +53,7 @@ from .config import (PROJECT_LENGTH,
 # - add function parameters to config
 # - remove historical work contributions from worker.contributes? (to free up memory) + remove department history?
 # - reorder and annotate config.py (and refactor tests to use config variables?)
-
+# - improve chemistry booster unit test.
 # - coverage run -m unittest discover && coverage report
 
 # - change FunctionInterface to abstract base class (plot and print never change)
@@ -80,10 +85,13 @@ class SuperScriptModel(Model):
         self.new_workers = 0
         self.departments = dict()
 
+        self.G = nx.Graph()
+        self.grid = SocialNetwork(self, self.G)
         self.schedule = RandomActivation(self)
         self.inventory = ProjectInventory(
             TeamAllocator(self),
-            timeline_flexibility='TimelineFlexibility'
+            timeline_flexibility='TimelineFlexibility',
+            social_network=self.grid
         )
         self.trainer = Trainer(self)
 
@@ -104,9 +112,8 @@ class SuperScriptModel(Model):
                 di += 1
                 assigned_to_di = 0
 
-        self.time = 0 # replace with schedule.steps
-        self.G = nx.Graph()
-        self.grid = SocialNetwork(self, self.G)
+        self.grid.initialise()
+        self.time = 0  # replace with schedule.steps
         self.running = True
 
     def step(self):

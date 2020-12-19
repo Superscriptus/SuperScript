@@ -5,6 +5,8 @@ from superscript_model.project import (Project,
                                        ProjectInventory,
                                        ProjectRequirements)
 from superscript_model.model import SuperScriptModel
+from superscript_model.worker import Worker
+from superscript_model.organisation import Team
 
 class TestProject(unittest.TestCase):
 
@@ -49,6 +51,25 @@ class TestProject(unittest.TestCase):
         self.assertTrue(0 not in inventory.projects.keys())
         self.assertEqual(inventory.active_count, 0)
         self.assertEqual(project.success_probability, 0.0)
+
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.ProjectInventory')
+    def test_chemistry(self, mock_inventory, mock_model):
+
+        model = SuperScriptModel(10)
+        model.inventory.create_projects(1, 0, 5)
+        project = model.inventory.projects[0]
+        project.team.log_project_outcome(success=False)
+        self.assertFalse(
+            model.grid.get_team_historical_success_flag(project.team)
+        )
+        model.inventory.create_projects(1, 0, 5)
+        project2 = model.inventory.projects[1]
+        project2.team = project.team
+        project2.team.log_project_outcome(success=True)
+        self.assertTrue(
+            model.grid.get_team_historical_success_flag(project2.team)
+        )
 
 
 class TestProjectInventory(unittest.TestCase):

@@ -1,3 +1,4 @@
+import networkx as nx
 from itertools import combinations
 from mesa.space import NetworkGrid
 
@@ -13,21 +14,34 @@ class SocialNetwork(NetworkGrid):
         self.G = G
         self.success_threshold = success_threshold
 
+    def initialise(self):
+
         for worker in self.model.schedule.agents:
             self.G.add_node(worker.worker_id,
                             department=worker.department.dept_id)
-
         super().__init__(self.G)
+
         for worker, node in zip(self.model.schedule.agents, self.G.nodes()):
             self.place_agent(worker, node)
 
-    def remove_from_graph(self, worker):
-        self._remove_agent(worker, worker.worker_id)
-        self.G.remove_node(worker.worker_id)
+    def replace_worker(self, old_worker, new_worker):
 
-    def add_to_graph(self, worker):
-        self.G.add_node(worker.worker_id)
-        self.place_agent(worker, worker.worker_id)
+        self._remove_agent(old_worker, old_worker.worker_id)
+        self.G = nx.relabel_nodes(
+            self.G,
+            {old_worker.worker_id: new_worker.worker_id},
+            copy=False
+        )
+        self.place_agent(new_worker, new_worker.worker_id)
+
+    # def remove_from_graph(self, worker):
+    #     self._remove_agent(worker, worker.worker_id)
+    #     self.G.remove_node(worker.worker_id)
+    #
+    # def add_to_graph(self, worker):
+    #     self.G.add_node(worker.worker_id,
+    #                     department=worker.department.dept_id)
+    #     self.place_agent(worker, self.G.nodes(worker.worker_id))
 
     def add_team_edges(self, team):
 

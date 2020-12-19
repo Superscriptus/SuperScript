@@ -28,7 +28,7 @@ class ProjectInventory:
                  timeline_flexibility='NoFlexibility',
                  max_timeline_flex=MAXIMUM_TIMELINE_FLEXIBILITY,
                  hard_skills=HARD_SKILLS,
-                 interaction_network=None):
+                 social_network=None):
 
         self.projects = dict()
         self.null_projects = dict()
@@ -42,7 +42,7 @@ class ProjectInventory:
         self.total_skill_requirement = dict(zip(
             hard_skills, [0 for s in hard_skills]
         ))
-        self.interaction_network = interaction_network
+        self.social_network = social_network
 
     @property
     def active_count(self):
@@ -201,9 +201,9 @@ class Project:
             [member.individual_chemistry(self)
              for member in self.team.members.values()]
         )
-        if self.inventory.interaction_network is not None:
+        if self.inventory.social_network is not None:
             chemistry += (
-                self.inventory.interaction_network
+                self.inventory.social_network
                     .get_team_historical_success_flag(self.team)
             )
         return chemistry

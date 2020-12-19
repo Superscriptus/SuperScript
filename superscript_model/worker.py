@@ -78,10 +78,12 @@ class Worker(Agent):
     def replace(self):
         self.department.number_of_workers -= 1
         self.model.new_workers += 1
-        self.model.schedule.add(
-            Worker(self.model.worker_count + self.model.new_workers,
-                   self.model, self.department)
+        w = Worker(
+            self.model.worker_count + self.model.new_workers,
+            self.model, self.department
         )
+        self.model.schedule.add(w)
+        self.model.grid.replace_worker(self, w)
         self.model.schedule.remove(self)
 
     def bid(self, project):
