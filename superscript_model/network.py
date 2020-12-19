@@ -35,10 +35,8 @@ class SocialNetwork(NetworkGrid):
         for pair in pairs:
 
             if (pair[0], pair[1]) not in self.G.edges():
-                print("edge not found:", pair)
                 self.G.add_edge(pair[0], pair[1], weight=1)
             else:
-                print('updating edge weight:', pair)
                 self.G[pair[0]][pair[1]]['weight'] += 1
 
     def get_team_historical_success_flag(self, team):

@@ -21,7 +21,6 @@ from .config import (PROJECT_LENGTH,
 
 # - test worker removed from graph on death + test other network methods
 
-# - implement special method for testing what % of Team links are pre-existing (successful)
 # Implement go_settle
 # (- * add contribution class for Dept.)
 # - **add budget constraint functionality

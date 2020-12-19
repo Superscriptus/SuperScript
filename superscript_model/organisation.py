@@ -269,11 +269,10 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
         bid_pool = (self.model.schedule.agents
                     if bid_pool is None else bid_pool)
 
-# Check this functionality...
         if size > len(bid_pool):
-            print("Cannot select %d workers from "
-                  "bid_pool of size %d for project %d"
-                  % (size, len(bid_pool), project.project_id))
+            #print("Cannot select %d workers from "
+            #      "bid_pool of size %d for project %d"
+            #      % (size, len(bid_pool), project.project_id))
             workers = {}
             lead = None
         else:
