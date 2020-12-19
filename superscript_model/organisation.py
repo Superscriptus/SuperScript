@@ -209,6 +209,9 @@ class Team:
         return (self.project.creativity - creativity_level) ** 2
 
     def log_project_outcome(self, success):
+
+        if success:
+            self.lead.model.grid.add_team_edges(self)
         for member in self.members.values():
             member.history.record(success)
 
