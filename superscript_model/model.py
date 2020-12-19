@@ -1,6 +1,8 @@
 from mesa import Model
 from mesa.time import RandomActivation
+from mesa.datacollection import DataCollector
 import networkx as nx
+import numpy as np
 
 from .worker import Worker
 from .project import ProjectInventory
@@ -81,6 +83,17 @@ from .config import (PROJECT_LENGTH,
 # to run single test: python -m unittest tests.test_organisation.TestRandomStrategy.test_invite_bids
 
 
+def active_project_count(model):
+    return model.inventory.active_count
+
+
+def recent_success_rate(model):
+    return np.mean([
+        worker.history.get_success_rate()
+        for worker in model.schedule.agents
+    ])
+
+
 class SuperScriptModel(Model):
 
     def __init__(self, worker_count=WORKER_COUNT,
@@ -127,7 +140,14 @@ class SuperScriptModel(Model):
         self.time = 0  # replace with schedule.steps
         self.running = True
 
+        self.datacollector = DataCollector(
+            model_reporters={"ActiveProjects": active_project_count,
+                             "RecentSuccessRate": recent_success_rate},
+            #agent_reporters={"RecentSuccessRate": recent_success_rate}
+        )
+
     def step(self):
+        self.datacollector.collect(self)
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)

@@ -98,7 +98,15 @@ model_params = {
 
 network = NetworkModule(network_portrayal, 500, 500, library="d3")
 
+chart1 = ChartModule([{"Label": "ActiveProjects",
+                      "Color": "Black"}],
+                    data_collector_name='datacollector')
+
+chart2 = ChartModule([{"Label": "RecentSuccessRate",
+                      "Color": "Blue"}],
+                     data_collector_name='datacollector')
+
 server = ModularServer(
-    SuperScriptModel, [network], "SuperScript Model", model_params
+    SuperScriptModel, [network, chart1, chart2], "SuperScript Model", model_params
 )
 server.port = 8521
