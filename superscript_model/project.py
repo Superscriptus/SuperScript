@@ -26,8 +26,9 @@ class ProjectInventory:
     def __init__(self,
                  team_allocator,
                  timeline_flexibility='NoFlexibility',
-                 max_timeline_flex = MAXIMUM_TIMELINE_FLEXIBILITY,
-                 hard_skills=HARD_SKILLS):
+                 max_timeline_flex=MAXIMUM_TIMELINE_FLEXIBILITY,
+                 hard_skills=HARD_SKILLS,
+                 interaction_network=None):
 
         self.projects = dict()
         self.null_projects = dict()
@@ -41,6 +42,7 @@ class ProjectInventory:
         self.total_skill_requirement = dict(zip(
             hard_skills, [0 for s in hard_skills]
         ))
+        self.interaction_network = interaction_network
 
     @property
     def active_count(self):
@@ -120,7 +122,7 @@ class ProjectInventory:
         if project.team is None or project.team.lead is None:
             self.null_projects[project.project_id] = project
             self.null_projects[project.project_id] = project
-            print('Project %d fails because no team' % project.project_id)
+            #print('Project %d fails because no team' % project.project_id)
 
         if project.project_id not in self.projects.keys():
             self.projects[project.project_id] = project
@@ -199,7 +201,11 @@ class Project:
             [member.individual_chemistry(self)
              for member in self.team.members.values()]
         )
-        #chemistry += self.inventory.
+        if self.inventory.interaction_network is not None:
+            chemistry += (
+                self.inventory.interaction_network
+                    .get_team_historical_success_flag(self.team)
+            )
         return chemistry
 
     def get_skill_requirement(self, skill):

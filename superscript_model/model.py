@@ -15,7 +15,7 @@ from .config import (PROJECT_LENGTH,
 
 # TODO:
 # ! message Michael about the Null teams issue
-# 60 minutes - starting to implement visualisation (network) fixing:
+# 70 minutes - starting to implement visualisation, finishing chemistry booster, (network) fixing:
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
 
@@ -28,7 +28,8 @@ from .config import (PROJECT_LENGTH,
 
 # For visualisation:
 # - allow turn network on/off (display reduced network(only recent edges)? specify fixed node positions?)
-# - add controls for main parameters
+# - add controls for main parameters (
+# - allow training to be switched on/off
 # - add graph displays for main tracking variables
 #( - add description to model for "About")
 
