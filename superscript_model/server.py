@@ -1,5 +1,7 @@
 from mesa.visualization.modules import NetworkModule
 from mesa.visualization.ModularVisualization import ModularServer
+from mesa.visualization.UserParam import UserSettableParameter
+from mesa.visualization.modules import ChartModule
 
 from .model import SuperScriptModel
 from .config import DEPARTMENT_COUNT
@@ -57,9 +59,46 @@ def network_portrayal(G):
     return portrayal
 
 
+model_params = {
+    "worker_count": UserSettableParameter(
+        "slider",
+        "Number of workers",
+        100,
+        10,
+        1000,
+        10,
+        description="Choose how many workers to include in the model",
+    ),
+    "project_length": UserSettableParameter(
+        "slider",
+        "Project length",
+        5,
+        1,
+        10,
+        1,
+        description="Choose length of each project",
+    ),
+    "new_projects_per_timestep": UserSettableParameter(
+        "slider",
+        "Projects per step",
+        20,
+        1,
+        50,
+        1,
+        description="Choose number of projects created on each step",
+    ),
+    "training_on": UserSettableParameter(
+        "checkbox",
+        "Training on/off",
+        value=True,
+        description="Turn training on or off",
+    )
+}
+
+
 network = NetworkModule(network_portrayal, 500, 500, library="d3")
 
 server = ModularServer(
-    SuperScriptModel, [network], "SuperScript Model"
+    SuperScriptModel, [network], "SuperScript Model", model_params
 )
 server.port = 8521

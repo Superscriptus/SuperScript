@@ -11,17 +11,17 @@ from .organisation import (TeamAllocator,
 from .config import (PROJECT_LENGTH,
                      NEW_PROJECTS_PER_TIMESTEP,
                      WORKER_COUNT,
-                     DEPARTMENT_COUNT)
+                     DEPARTMENT_COUNT,
+                     TRAINING_ON)
 
 # TODO:
 # ! message Michael about the Null teams issue
 # 70 minutes - starting to implement visualisation, finishing chemistry booster, (network) fixing:
-# 20 minutes - unit tests for chemistry and social network
+# 25 minutes - unit tests for chemistry and social network, success calculator
 # 40 minutes - wokring on Social Graph (unit tests)
+# 15 minutes - added basic user settable parameters
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
-
-# - update all units tests
 
 # Implement go_settle
 # (- * add contribution class for Dept.)
@@ -29,6 +29,10 @@ from .config import (PROJECT_LENGTH,
 
 # - optimised AllInStrategy.bid - takes ~60% of run time...
 # remove pyplot?!
+
+# Today: do basic live plot and control parameters..
+
+# add requested tracking functions...
 
 # For visualisation:
 # - allow turn network on/off (display reduced network(only recent edges)? specify fixed node positions?)
@@ -54,6 +58,7 @@ from .config import (PROJECT_LENGTH,
 # - remove historical work contributions from worker.contributes? (to free up memory) + remove department history?
 # - reorder and annotate config.py (and refactor tests to use config variables?)
 # - improve chemistry booster unit test.
+# - improve success calculator unit test
 # - coverage run -m unittest discover && coverage report
 
 # - change FunctionInterface to abstract base class (plot and print never change)
@@ -79,9 +84,14 @@ from .config import (PROJECT_LENGTH,
 class SuperScriptModel(Model):
 
     def __init__(self, worker_count=WORKER_COUNT,
-                 department_count=DEPARTMENT_COUNT):
+                 department_count=DEPARTMENT_COUNT,
+                 new_projects_per_timestep=NEW_PROJECTS_PER_TIMESTEP,
+                 project_length=PROJECT_LENGTH,
+                 training_on=TRAINING_ON):
 
         self.worker_count = worker_count
+        self.new_projects_per_timestep = new_projects_per_timestep
+        self.project_length = project_length
         self.new_workers = 0
         self.departments = dict()
 
@@ -93,7 +103,8 @@ class SuperScriptModel(Model):
             timeline_flexibility='TimelineFlexibility',
             social_network=self.grid
         )
-        self.trainer = Trainer(self)
+        self.training_on = training_on
+        self.trainer = Trainer(self, training_on=self.training_on)
 
         for di in range(department_count):
             self.departments[di] = Department(di)
@@ -118,8 +129,8 @@ class SuperScriptModel(Model):
 
     def step(self):
         self.trainer.update_skill_quartiles()
-        self.inventory.create_projects(NEW_PROJECTS_PER_TIMESTEP,
-                                       self.time, PROJECT_LENGTH)
+        self.inventory.create_projects(self.new_projects_per_timestep,
+                                       self.time, self.project_length)
         self.schedule.step()
         self.inventory.remove_null_projects()
         self.time += 1

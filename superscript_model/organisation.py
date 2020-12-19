@@ -17,7 +17,8 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      UNITS_PER_FTE,
                      TRAINING_LENGTH,
                      TRAINING_COMMENCES,
-                     HARD_SKILLS)
+                     HARD_SKILLS,
+                     TRAINING_ON)
 
 
 class Team:
@@ -301,12 +302,14 @@ class TeamAllocator:
 class Trainer:
 
     def __init__(self, model,
+                 training_on=TRAINING_ON,
                  training_length=TRAINING_LENGTH,
                  training_commences=TRAINING_COMMENCES,
                  max_skill_level=MAX_SKILL_LEVEL,
                  hard_skills=HARD_SKILLS):
 
         self.model = model
+        self.training_on = training_on
         self.training_length = training_length
         self.training_commences = training_commences
         self.max_skill_level = max_skill_level
@@ -326,7 +329,7 @@ class Trainer:
 
     def train(self, worker):
 
-        if worker.now >= self.training_commences:
+        if self.training_on and worker.now >= self.training_commences:
             for skill in self.top_two_demanded_skills():
 
                 if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
