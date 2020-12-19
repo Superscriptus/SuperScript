@@ -17,30 +17,34 @@ from .config import (PROJECT_LENGTH,
                      TRAINING_ON)
 
 # TODO:
+# check that budget interpretation is correct
 # ! message Michael about the Null teams issue
 # 70 minutes - starting to implement visualisation, finishing chemistry booster, (network) fixing:
 # 25 minutes - unit tests for chemistry and social network, success calculator
 # 40 minutes - wokring on Social Graph (unit tests)
 # 15 minutes - added basic user settable parameters
+# 30 minutes - added basic data collection and charting
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
 
-# Implement go_settle
-# (- * add contribution class for Dept.)
-# - **add budget constraint functionality
+# Implement go_settle - peer assessment
 
-# - optimised AllInStrategy.bid - takes ~60% of run time...
+# - optimise AllInStrategy.bid - takes ~60% of run time...
 # remove pyplot?!
 
-# Today: do basic live plot and control parameters..
+# add requested tracking functions...(successes and probabilities)
 
-# add requested tracking functions...
+# update all units tests
 
 # For visualisation:
 # - allow turn network on/off (display reduced network(only recent edges)? specify fixed node positions?)
 # - add controls for main parameters (
 # - allow training to be switched on/off
+# - allow turn budget constraint on/off
 # - add graph displays for main tracking variables
+# - edit layout of plots?
+# - show only recent edges (but track all?)
+# - display nodes in circle with node size and colour determined by...activity, success?
 #( - add description to model for "About")
 
 # - model will only work with a constant number of agents because of Grid (network) constraints.
@@ -49,6 +53,9 @@ from .config import (PROJECT_LENGTH,
 # - refactor so that Team creation does not automatically assign worker contributions -
 #       need to be able to create hypothetical teams to compare success prob
 #       solution: only call assign_contributions_to_members once team is finalised
+
+# - write better unit test for budget (and check usage in TeamAllocator - should be elsewhere?)
+#           check why budget is None (catch needed currently in TeamAllocator)
 
 # change use of time below to steps()
 # - calculate theoretical maximum/minimum prob for each component with current functions
@@ -81,7 +88,7 @@ from .config import (PROJECT_LENGTH,
 # - assert that time=start_time when project progress=0
 # - number of workers needs to be divisible by number of departments
 # to run single test: python -m unittest tests.test_organisation.TestRandomStrategy.test_invite_bids
-
+# (- * add contribution class for Dept.)
 
 def active_project_count(model):
     return model.inventory.active_count

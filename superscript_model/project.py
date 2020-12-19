@@ -208,6 +208,10 @@ class Project:
             )
         return chemistry
 
+    @property
+    def budget(self):
+        self.requirements.budget
+
     def get_skill_requirement(self, skill):
         return self.requirements.hard_skills[skill]
 
@@ -234,7 +238,6 @@ class ProjectRequirements:
         self.flexible_budget = (
             True if Random.uniform() <= p_budget_flexibility else False
         )
-        self.max_budget_increase = max_budget_increase
 
         self.p_hard_skill_required = p_hard_skill_required
         self.min_skill_required = min_skill_required
@@ -259,6 +262,8 @@ class ProjectRequirements:
                 [s['units'] for s in self.hard_skills.values()
                  if s['level'] is not None]
             )
+        self.budget = self.calculate_budget(self.flexible_budget,
+                                            max_budget_increase)
 
     def select_non_zero_skills(self):
 
@@ -300,13 +305,25 @@ class ProjectRequirements:
                 in self.hard_skills.keys()
                 if self.hard_skills[skill]['level'] is not None]
 
+    def calculate_budget(self, flexible_budget_flag,
+                         max_budget_increase):
+
+        budget = 0
+        for skill in self.get_required_skills():
+            budget += (self.hard_skills[skill]['units']
+                       * self.hard_skills[skill]['level'])
+
+        if flexible_budget_flag:
+            budget *= max_budget_increase
+        return budget
+
     def to_string(self):
 
         output = {
             'risk': self.risk,
             'creativity': self.creativity,
             'flexible_budget': self.flexible_budget,
-            'max_budget_increase': self.max_budget_increase,
+            'budget': self.budget,
             'p_hard_skill_required': self.p_hard_skill_required,
             'min_skill_required': self.min_skill_required,
             'per_skill_cap': self.per_skill_max,

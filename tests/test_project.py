@@ -151,7 +151,6 @@ class TestProjectRequirements(unittest.TestCase):
     def test_init(self):
         r = ProjectRequirements()
 
-        self.assertEqual(r.max_budget_increase, 0.25)
         self.assertTrue(r.risk in [5,10,25])
         self.assertTrue(r.flexible_budget in [True, False])
         self.assertTrue(r.creativity in [1,2,3,4,5])
@@ -182,8 +181,7 @@ class TestSuccessCalculator(unittest.TestCase):
             inventory.success_calculator.determine_success(project)
         )
 
-    @patch('superscript_model.organisation.TeamAllocator')
-    def test_calculate_success_probability(self, mock_allocator):
+    def test_calculate_success_probability(self):
 
         N = 20
         model = SuperScriptModel(1000)
@@ -191,7 +189,6 @@ class TestSuccessCalculator(unittest.TestCase):
 
         for i in range(N):
             project = model.inventory.projects[i]
-
             model.inventory.success_calculator.calculate_success_probability(
                 project
             )

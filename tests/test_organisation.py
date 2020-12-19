@@ -272,6 +272,7 @@ class TestTeamAllocator(unittest.TestCase):
 
         mock_project.start_time = 0
         mock_project.length = 5
+        mock_project.budget = 1000
         allocator = TeamAllocator(SuperScriptModel(42))
         allocator.allocate_team(mock_project)
         self.assertIsInstance(mock_project.team, Team)

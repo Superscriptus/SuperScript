@@ -294,9 +294,14 @@ class TeamAllocator:
     def allocate_team(self, project: Project):
 
         bid_pool = self.strategy.invite_bids(project)
-        project.team = self.strategy.select_team(
+        team = self.strategy.select_team(
             project, bid_pool=bid_pool
         )
+
+        if team is not None and project.budget is not None:
+            team = None if team.team_ovr > project.budget else team
+
+        project.team = team
 
 
 class Trainer:
