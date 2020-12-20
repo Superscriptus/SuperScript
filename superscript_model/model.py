@@ -20,17 +20,18 @@ from .config import (PROJECT_LENGTH,
 # check that budget interpretation is correct
 # ! message Michael about the Null teams issue
 # 25 minutes - added budget constraint (and emailed Michael)
+# 10 minutes ++ left over from installation
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
+
+# add requested tracking functions...(successes and probabilities)
 
 # Implement go_settle - peer assessment
 
 # - optimise AllInStrategy.bid - takes ~60% of run time...
 # remove pyplot?!
-
-# add requested tracking functions...(successes and probabilities)
-
 # update all units tests
+
 
 # For visualisation:
 # - allow turn network on/off (display reduced network(only recent edges)? specify fixed node positions?)
@@ -66,6 +67,7 @@ from .config import (PROJECT_LENGTH,
 # - improve success calculator unit test
 # - coverage run -m unittest discover && coverage report
 
+# - refactor: create success history class.
 # - change FunctionInterface to abstract base class (plot and print never change)
 # - rename private data members _XX
 # - confirm that skill balance calculations are correct when worker is unable to supply skill due to dept constraint
@@ -117,7 +119,8 @@ class SuperScriptModel(Model):
         self.inventory = ProjectInventory(
             TeamAllocator(self),
             timeline_flexibility='TimelineFlexibility',
-            social_network=self.grid
+            social_network=self.grid,
+            model=self
         )
         self.training_on = training_on
         self.trainer = Trainer(self, training_on=self.training_on)

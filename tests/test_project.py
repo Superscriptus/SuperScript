@@ -32,9 +32,12 @@ class TestProject(unittest.TestCase):
     @patch('superscript_model.organisation.Team')
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.worker.Worker')
-    def test_terminate(self, mock_worker, mock_allocator, mock_team):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_terminate(self, mock_model, mock_worker,
+                       mock_allocator, mock_team):
 
-        inventory = ProjectInventory(mock_allocator)
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         inventory.create_projects(1, time=0, length=5)
 
         project = inventory.projects[0]
@@ -110,9 +113,11 @@ class TestProjectInventory(unittest.TestCase):
         self.assertEqual(inventory.active_count, 3)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_advance_projects(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_advance_projects(self, mock_model, mock_allocator):
 
-        inventory = ProjectInventory(mock_allocator)
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         inventory.create_projects(10, time=0, length=5)
         for i in range(5):
             inventory.advance_projects()
@@ -168,10 +173,12 @@ class TestProjectRequirements(unittest.TestCase):
 class TestSuccessCalculator(unittest.TestCase):
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_determine_success(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_determine_success(self, mock_model, mock_allocator):
 
-        inventory = ProjectInventory(mock_allocator)
-        project = Project(42)
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
+        project = Project(inventory, 42)
         project.success_probability = 1
         self.assertTrue(
             inventory.success_calculator.determine_success(project)

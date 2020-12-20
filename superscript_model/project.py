@@ -28,7 +28,8 @@ class ProjectInventory:
                  timeline_flexibility='NoFlexibility',
                  max_timeline_flex=MAXIMUM_TIMELINE_FLEXIBILITY,
                  hard_skills=HARD_SKILLS,
-                 social_network=None):
+                 social_network=None,
+                 model=None):
 
         self.projects = dict()
         self.null_projects = dict()
@@ -38,11 +39,16 @@ class ProjectInventory:
             FunctionFactory.get(timeline_flexibility)
         )
         self.max_timeline_flex = max_timeline_flex
+
         self.success_calculator = SuccessCalculator()
+        self.success_history = dict()
+        self.fail_history = dict()
+
         self.total_skill_requirement = dict(zip(
             hard_skills, [0 for s in hard_skills]
         ))
         self.social_network = social_network
+        self.model = model
 
     @property
     def active_count(self):
@@ -122,7 +128,7 @@ class ProjectInventory:
         if project.team is None or project.team.lead is None:
             self.null_projects[project.project_id] = project
             self.null_projects[project.project_id] = project
-            #print('Project %d fails because no team' % project.project_id)
+            #print('Project %d fils because no team' % project.project_id)
 
         if project.project_id not in self.projects.keys():
             self.projects[project.project_id] = project
@@ -390,7 +396,21 @@ class SuccessCalculator:
             project.success_probability = max(0, probability)
 
     def determine_success(self, project):
-        return Random.uniform() < project.success_probability
+
+        success = Random.uniform() < project.success_probability
+        time = project.inventory.model.steps
+        if success:
+            if time in project.inventory.success_history.keys():
+                project.inventory.success_history[time] += 1
+            else:
+                project.inventory.success_history[time] = 1
+        else:
+            if time in project.inventory.fail_history.keys():
+                project.inventory.fail_history[time] += 1
+            else:
+                project.inventory.fail_history[time] = 1
+
+        return success
 
     def to_string(self, project):
         self.get_component_values(project)
