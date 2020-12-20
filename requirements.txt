@@ -1,73 +1,74 @@
-argon2-cffi @ file:///C:/ci/argon2-cffi_1596828585465/work
+argon2-cffi==20.1.0
 arrow==0.17.0
 async-generator==1.10
 atomicwrites==1.4.0
-attrs @ file:///tmp/build/80754af9/attrs_1604765588209/work
+attrs==20.3.0
 backcall==0.2.0
 binaryornot==0.4.4
-bleach @ file:///tmp/build/80754af9/bleach_1600439572647/work
+bleach==3.2.1
 brotlipy==0.7.0
 certifi==2020.12.5
-cffi @ file:///C:/ci/cffi_1606255208697/work
-chardet @ file:///C:/ci/chardet_1605303225733/work
+cffi==1.14.4
+chardet==3.0.4
 click==7.1.2
-colorama @ file:///tmp/build/80754af9/colorama_1603211150991/work
+colorama==0.4.4
 cookiecutter==1.7.2
-coverage @ file:///C:/ci/coverage_1605461801949/work
-cryptography @ file:///C:/ci/cryptography_1605526388508/work
+coverage==5.3
+cryptography==3.2.1
 cycler==0.10.0
 decorator==4.4.2
 defusedxml==0.6.0
 entrypoints==0.3
-idna @ file:///tmp/build/80754af9/idna_1593446292537/work
-importlib-metadata @ file:///tmp/build/80754af9/importlib-metadata_1602276842396/work
+idna==2.10
+importlib-metadata==2.0.0
 iniconfig==1.1.1
-ipykernel @ file:///C:/ci/ipykernel_1596190155316/work/dist/ipykernel-5.3.4-py3-none-any.whl
-ipython @ file:///C:/ci/ipython_1604083276484/work
-ipython-genutils @ file:///tmp/build/80754af9/ipython_genutils_1606773439826/work
-jedi @ file:///C:/ci/jedi_1606914528444/work
+ipykernel==5.3.4
+ipython==7.19.0
+ipython-genutils==0.2.0
+jedi==0.17.2
 Jinja2==2.11.2
 jinja2-time==0.2.0
 json5==0.9.5
-jsonschema @ file:///tmp/build/80754af9/jsonschema_1602607155483/work
-jupyter-client @ file:///tmp/build/80754af9/jupyter_client_1601311786391/work
-jupyter-core @ file:///C:/ci/jupyter_core_1606149073702/work
+jsonschema==3.2.0
+jupyter-client==6.1.7
+jupyter-core==4.7.0
 jupyterlab==2.2.6
-jupyterlab-pygments @ file:///tmp/build/80754af9/jupyterlab_pygments_1601490720602/work
-jupyterlab-server @ file:///tmp/build/80754af9/jupyterlab_server_1594164409481/work
-kiwisolver @ file:///C:/ci/kiwisolver_1604014703538/work
+jupyterlab-pygments==0.1.2
+jupyterlab-server==1.2.0
+kiwisolver==1.3.0
 MarkupSafe==1.1.1
-matplotlib @ file:///C:/ci/matplotlib-base_1603355780617/work
+matplotlib==3.3.2
 Mesa==0.8.7
 mistune==0.8.4
 mkl-fft==1.2.0
 mkl-random==1.1.1
 mkl-service==2.3.0
-nbclient @ file:///tmp/build/80754af9/nbclient_1602783176460/work
-nbconvert @ file:///C:/ci/nbconvert_1601914925608/work
-nbformat @ file:///tmp/build/80754af9/nbformat_1602783287752/work
-nest-asyncio @ file:///tmp/build/80754af9/nest-asyncio_1606153767164/work
+nbclient==0.5.1
+nbconvert==6.0.7
+nbformat==5.0.8
+nest-asyncio==1.4.3
 networkx==2.5
-notebook @ file:///C:/ci/notebook_1601501643625/work
+notebook==6.1.4
 numpy==1.19.4
 olefile==0.46
-packaging @ file:///tmp/build/80754af9/packaging_1606930849755/work
+packaging==20.7
 pandas==1.1.4
-pandocfilters @ file:///C:/ci/pandocfilters_1605102497129/work
+pandocfilters==1.4.3
 parso==0.7.0
-pickleshare @ file:///tmp/build/80754af9/pickleshare_1606932040724/work
-Pillow @ file:///C:/ci/pillow_1603823068645/work
+pickleshare==0.7.5
+Pillow==8.0.1
+pip==20.2.4
 pluggy==0.13.1
 poyo==0.5.0
-prometheus-client @ file:///tmp/build/80754af9/prometheus_client_1606344362066/work
-prompt-toolkit @ file:///tmp/build/80754af9/prompt-toolkit_1602688806899/work
+prometheus-client==0.9.0
+prompt-toolkit==3.0.8
 py==1.9.0
-pycparser @ file:///tmp/build/80754af9/pycparser_1594388511720/work
-Pygments @ file:///tmp/build/80754af9/pygments_1604103097372/work
-pyOpenSSL @ file:///tmp/build/80754af9/pyopenssl_1606517880428/work
+pycparser==2.20
+Pygments==2.7.2
+pyOpenSSL==20.0.0
 pyparsing==2.4.7
-pyrsistent @ file:///C:/ci/pyrsistent_1600141795814/work
-PySocks @ file:///C:/ci/pysocks_1605287845585/work
+pyrsistent==0.17.3
+PySocks==1.7.1
 python-dateutil==2.8.1
 python-interface==1.6.0
 python-slugify==4.0.1
@@ -75,21 +76,23 @@ pytz==2020.4
 pywin32==227
 pywinpty==0.5.7
 pyzmq==20.0.0
-requests @ file:///tmp/build/80754af9/requests_1606691187061/work
-scipy @ file:///C:/ci/scipy_1604596260408/work
+requests==2.25.0
+scipy==1.5.2
 Send2Trash==1.5.0
+setuptools==50.3.1.post20201107
 sip==4.19.13
-six @ file:///C:/ci/six_1605187374963/work
+six==1.15.0
 terminado==0.9.1
 testpath==0.4.4
 text-unidecode==1.3
 toml==0.10.2
-tornado @ file:///C:/ci/tornado_1606942392901/work
+tornado==6.1
 tqdm==4.53.0
-traitlets @ file:///tmp/build/80754af9/traitlets_1602787416690/work
+traitlets==5.0.5
 urllib3==1.26.2
-wcwidth @ file:///tmp/build/80754af9/wcwidth_1593447189090/work
+wcwidth==0.2.5
 webencodings==0.5.1
-win-inet-pton @ file:///C:/ci/win_inet_pton_1605306167264/work
+wheel==0.35.1
+win-inet-pton==1.1.0
 wincertstore==0.2
-zipp @ file:///tmp/build/80754af9/zipp_1604001098328/work
+zipp==3.4.0
