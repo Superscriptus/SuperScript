@@ -19,11 +19,7 @@ from .config import (PROJECT_LENGTH,
 # TODO:
 # check that budget interpretation is correct
 # ! message Michael about the Null teams issue
-# 70 minutes - starting to implement visualisation, finishing chemistry booster, (network) fixing:
-# 25 minutes - unit tests for chemistry and social network, success calculator
-# 40 minutes - wokring on Social Graph (unit tests)
-# 15 minutes - added basic user settable parameters
-# 30 minutes - added basic data collection and charting
+# 25 minutes - added budget constraint (and emailed Michael)
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
 
