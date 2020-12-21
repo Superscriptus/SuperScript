@@ -118,8 +118,18 @@ chart3 = ChartModule([{"Label": "SuccessfulProjects",
                        "Color": "Red"}],
                      data_collector_name='datacollector')
 
+chart4 = ChartModule([{"Label": "ActiveWorkers",
+                      "Color": "Green"},
+                      {"Label": "IdleWorkers",
+                       "Color": "Red"},
+                      {"Label": "TrainingWorkers",
+                       "Color": "Orange"}
+                      ],
+                     data_collector_name='datacollector')
+
+
 server = ModularServer(
     #SuperScriptModel, [network, chart1, chart2, chart3], "SuperScript Model", model_params
-SuperScriptModel, [chart1, chart2, chart3], "SuperScript Model", model_params
+SuperScriptModel, [chart1, chart2, chart3, chart4], "SuperScript Model", model_params
 )
 server.port = 8521

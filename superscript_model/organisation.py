@@ -307,14 +307,12 @@ class TeamAllocator:
 class Trainer:
 
     def __init__(self, model,
-                 training_on=TRAINING_ON,
                  training_length=TRAINING_LENGTH,
                  training_commences=TRAINING_COMMENCES,
                  max_skill_level=MAX_SKILL_LEVEL,
                  hard_skills=HARD_SKILLS):
 
         self.model = model
-        self.training_on = training_on
         self.training_length = training_length
         self.training_commences = training_commences
         self.max_skill_level = max_skill_level
@@ -334,7 +332,7 @@ class Trainer:
 
     def train(self, worker):
 
-        if self.training_on and worker.now >= self.training_commences:
+        if self.model.training_on and worker.now >= self.training_commences:
             for skill in self.top_two_demanded_skills():
 
                 if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
@@ -342,6 +340,7 @@ class Trainer:
                     worker.skills.hard_skills[skill] = new_skill
 
             worker.department.add_training(worker, self.training_length)
+            worker.training_remaining = self.training_length - 1
             for t in range(self.training_length):
                 worker.contributions.total_contribution[worker.now + t] = (
                     worker.contributions.units_per_full_time

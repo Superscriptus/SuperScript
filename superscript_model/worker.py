@@ -33,6 +33,7 @@ class Worker(Agent):
         self.leads_on = dict()
         self.contributions = WorkerContributions(self)
         self.history = WorkerHistory()
+        self.training_remaining = 0
 
     @property
     def contributes(self):
@@ -54,8 +55,8 @@ class Worker(Agent):
 
     def step(self):
 
-        if self.is_free(self.now, self.training_horizon):
-            self.model.trainer.train(self)
+        self.training_remaining -= 1
+        self.training_remaining = max(self.training_remaining, 0)
 
         """Dict can be updated during loop (one other?)"""
         projects = list(self.leads_on.values())
@@ -63,6 +64,9 @@ class Worker(Agent):
         for project in projects:
             if project in self.leads_on.values():
                 project.advance()
+
+        if self.is_free(self.now, self.training_horizon):
+            self.model.trainer.train(self)
 
         self.skills.decay(self)
 

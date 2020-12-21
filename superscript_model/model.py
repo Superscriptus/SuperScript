@@ -17,6 +17,7 @@ from .config import (PROJECT_LENGTH,
                      TRAINING_ON,
                      BUDGET_FUNCTIONALITY_FLAG)
 
+
 # TODO:
 # check that budget interpretation is correct
 # ! message Michael about the Null teams issue
@@ -41,7 +42,7 @@ from .config import (PROJECT_LENGTH,
 # - edit layout of plots?
 # - show only recent edges (but track all?)
 # - display nodes in circle with node size and colour determined by...activity, success?
-#( - add description to model for "About")
+# ( - add description to model for "About")
 
 # - model will only work with a constant number of agents because of Grid (network) constraints.
 
@@ -70,6 +71,8 @@ from .config import (PROJECT_LENGTH,
 # - check why timesteps are 2 behind in data collector compared to success histroy?
 # - refactor: create success history class.
 # - write unit test to confirm that Training is fully blocking.
+# - wrtie test that idle + active + training == 1000
+# - refactor to use Counter or Defaultdict for counting...
 # - change FunctionInterface to abstract base class (plot and print never change)
 # - rename private data members _XX
 # - confirm that skill balance calculations are correct when worker is unable to supply skill due to dept constraint
@@ -102,15 +105,37 @@ def recent_success_rate(model):
 
 
 def number_successful_projects(model):
-    #print(model.inventory.success_history)
+    # print(model.inventory.success_history)
     return model.inventory.success_history.get(
-        model.schedule.steps - 2, 0.0
+        model.schedule.steps - 1, 0.0
     )
 
 
 def number_failed_projects(model):
     return model.inventory.fail_history.get(
-        model.schedule.steps - 2, 0.0
+        model.schedule.steps - 1, 0.0
+    )
+
+
+def training_workers(model):
+    return sum(
+        [1 for worker in model.schedule.agents
+         if worker.training_remaining > 0]
+    )
+
+
+def idle_workers(model):
+    return sum(
+        [1 for worker in model.schedule.agents
+         if worker.is_free(worker.now, 1)]
+    )
+
+
+def active_workers(model):
+    return sum(
+        [1 for worker in model.schedule.agents
+         if ((not worker.is_free(worker.now, 1))
+             and worker.training_remaining == 0)]
     )
 
 
@@ -141,7 +166,7 @@ class SuperScriptModel(Model):
             budget_functionality_flag=self.budget_functionality_flag
         )
         self.training_on = training_on
-        self.trainer = Trainer(self, training_on=self.training_on)
+        self.trainer = Trainer(self)
 
         for di in range(department_count):
             self.departments[di] = Department(di)
@@ -169,12 +194,22 @@ class SuperScriptModel(Model):
                 "ActiveProjects": active_project_count,
                 "RecentSuccessRate": recent_success_rate,
                 "SuccessfulProjects": number_successful_projects,
-                "FailedProjects": number_failed_projects},
-            #agent_reporters={"RecentSuccessRate": recent_success_rate}
+                "FailedProjects": number_failed_projects,
+                "ActiveWorkers": active_workers,
+                "IdleWorkers": idle_workers,
+                "TrainingWorkers": training_workers},
+            # agent_reporters={"RecentSuccessRate": recent_success_rate}
         )
 
     def step(self):
+
+        #print(active_workers(self), idle_workers(self), training_workers(self))
+        #assert (active_workers(self)
+        #        + idle_workers(self)
+        #        + training_workers(self)
+        #        == self.worker_count)
         self.datacollector.collect(self)
+
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)
