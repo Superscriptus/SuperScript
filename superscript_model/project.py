@@ -28,6 +28,7 @@ class ProjectInventory:
                  timeline_flexibility='NoFlexibility',
                  max_timeline_flex=MAXIMUM_TIMELINE_FLEXIBILITY,
                  hard_skills=HARD_SKILLS,
+                 budget_functionality_flag=False,
                  social_network=None,
                  model=None):
 
@@ -39,6 +40,7 @@ class ProjectInventory:
             FunctionFactory.get(timeline_flexibility)
         )
         self.max_timeline_flex = max_timeline_flex
+        self.budget_functionality_flag = budget_functionality_flag
 
         self.success_calculator = SuccessCalculator()
         self.success_history = dict()
@@ -168,7 +170,9 @@ class Project:
         self.progress = 0 - start_time_offset
         self.start_time = start_time + start_time_offset
         self.team = None
-        self.requirements = ProjectRequirements()
+        self.requirements = ProjectRequirements(
+            budget_functionality_flag=self.inventory.budget_functionality_flag
+        )
         self.success_probability = 0.0
 
     def advance(self):
@@ -236,7 +240,8 @@ class ProjectRequirements:
                  max_project_creativity=MAX_PROJECT_CREATIVITY,
                  risk_levels=RISK_LEVELS,
                  p_budget_flexibility=P_BUDGET_FLEXIBILITY,
-                 max_budget_increase=MAX_BUDGET_INCREASE):
+                 max_budget_increase=MAX_BUDGET_INCREASE,
+                 budget_functionality_flag=True):
 
         self.risk = Random.choice(risk_levels)
         self.creativity = Random.randint(min_project_creativity,
@@ -268,6 +273,7 @@ class ProjectRequirements:
                 [s['units'] for s in self.hard_skills.values()
                  if s['level'] is not None]
             )
+        self.budget_functionality_flag = budget_functionality_flag
         self.budget = self.calculate_budget(self.flexible_budget,
                                             max_budget_increase)
 
@@ -313,6 +319,9 @@ class ProjectRequirements:
 
     def calculate_budget(self, flexible_budget_flag,
                          max_budget_increase):
+
+        if not self.budget_functionality_flag:
+            return None
 
         budget = 0
         for skill in self.get_required_skills():
@@ -397,8 +406,8 @@ class SuccessCalculator:
 
     def determine_success(self, project):
 
-        success = Random.uniform() < project.success_probability
-        time = project.inventory.model.steps
+        success = Random.uniform() <= project.success_probability
+        time = project.inventory.model.schedule.steps
         if success:
             if time in project.inventory.success_history.keys():
                 project.inventory.success_history[time] += 1

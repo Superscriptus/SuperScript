@@ -14,17 +14,16 @@ from .config import (PROJECT_LENGTH,
                      NEW_PROJECTS_PER_TIMESTEP,
                      WORKER_COUNT,
                      DEPARTMENT_COUNT,
-                     TRAINING_ON)
+                     TRAINING_ON,
+                     BUDGET_FUNCTIONALITY_FLAG)
 
 # TODO:
 # check that budget interpretation is correct
 # ! message Michael about the Null teams issue
-# 25 minutes - added budget constraint (and emailed Michael)
-# 10 minutes ++ left over from installation
 # **what to do if cannot assign team to project e.g. Cannot select 4 workers from bid_pool of size 0...??
 #       -> notify Michael about this (and that actual average is 0.22)
 
-# add requested tracking functions...(successes and probabilities)
+# add requested tracking functions...
 
 # Implement go_settle - peer assessment
 
@@ -61,13 +60,16 @@ from .config import (PROJECT_LENGTH,
 # - delete old code from inventory.get_starttime_offset once confirmed new version works
 # - add requirements.txt and try installing on different system
 # - add function parameters to config
+# - consider removing budget_functionality_off/flag (or improve switching)
 # - remove historical work contributions from worker.contributes? (to free up memory) + remove department history?
 # - reorder and annotate config.py (and refactor tests to use config variables?)
 # - improve chemistry booster unit test.
 # - improve success calculator unit test
 # - coverage run -m unittest discover && coverage report
 
+# - check why timesteps are 2 behind in data collector compared to success histroy?
 # - refactor: create success history class.
+# - write unit test to confirm that Training is fully blocking.
 # - change FunctionInterface to abstract base class (plot and print never change)
 # - rename private data members _XX
 # - confirm that skill balance calculations are correct when worker is unable to supply skill due to dept constraint
@@ -99,17 +101,32 @@ def recent_success_rate(model):
     ])
 
 
+def number_successful_projects(model):
+    #print(model.inventory.success_history)
+    return model.inventory.success_history.get(
+        model.schedule.steps - 2, 0.0
+    )
+
+
+def number_failed_projects(model):
+    return model.inventory.fail_history.get(
+        model.schedule.steps - 2, 0.0
+    )
+
+
 class SuperScriptModel(Model):
 
     def __init__(self, worker_count=WORKER_COUNT,
                  department_count=DEPARTMENT_COUNT,
                  new_projects_per_timestep=NEW_PROJECTS_PER_TIMESTEP,
                  project_length=PROJECT_LENGTH,
-                 training_on=TRAINING_ON):
+                 training_on=TRAINING_ON,
+                 budget_functionality_flag=BUDGET_FUNCTIONALITY_FLAG):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
         self.project_length = project_length
+        self.budget_functionality_flag = budget_functionality_flag
         self.new_workers = 0
         self.departments = dict()
 
@@ -120,7 +137,8 @@ class SuperScriptModel(Model):
             TeamAllocator(self),
             timeline_flexibility='TimelineFlexibility',
             social_network=self.grid,
-            model=self
+            model=self,
+            budget_functionality_flag=self.budget_functionality_flag
         )
         self.training_on = training_on
         self.trainer = Trainer(self, training_on=self.training_on)
@@ -147,8 +165,11 @@ class SuperScriptModel(Model):
         self.running = True
 
         self.datacollector = DataCollector(
-            model_reporters={"ActiveProjects": active_project_count,
-                             "RecentSuccessRate": recent_success_rate},
+            model_reporters={
+                "ActiveProjects": active_project_count,
+                "RecentSuccessRate": recent_success_rate,
+                "SuccessfulProjects": number_successful_projects,
+                "FailedProjects": number_failed_projects},
             #agent_reporters={"RecentSuccessRate": recent_success_rate}
         )
 

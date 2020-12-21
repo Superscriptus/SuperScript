@@ -187,15 +187,17 @@ class TestAllInStrategy(unittest.TestCase):
         self.assertEqual(strategy.name, 'test')
 
     @patch('superscript_model.model.Model')
-    def test_bid(self, mock_model):
+    @patch('superscript_model.project.ProjectInventory')
+    def test_bid(self, mock_inventory, mock_model):
         worker = Worker(42, mock_model)
         strategy = AllInStrategy('test')
-        self.assertTrue(strategy.bid(Project(42, 5), worker))
+        self.assertTrue(strategy.bid(Project(mock_inventory, 42, 5), worker))
 
-    def test_accept(self):
+    @patch('superscript_model.project.ProjectInventory')
+    def test_accept(self, mock_inventory):
 
         strategy = AllInStrategy('test')
-        self.assertTrue(strategy.accept(Project(42, 5)))
+        self.assertTrue(strategy.accept(Project(mock_inventory, 42, 5)))
 
 
 class TestSkillMatrix(unittest.TestCase):

@@ -92,6 +92,12 @@ model_params = {
         "Training on/off",
         value=True,
         description="Turn training on or off",
+    ),
+    "budget_functionality_flag": UserSettableParameter(
+        "checkbox",
+        "Budget constraint on/off",
+        value=True,
+        description="Turn budget constraint on or off",
     )
 }
 
@@ -106,7 +112,14 @@ chart2 = ChartModule([{"Label": "RecentSuccessRate",
                       "Color": "Blue"}],
                      data_collector_name='datacollector')
 
+chart3 = ChartModule([{"Label": "SuccessfulProjects",
+                      "Color": "Green"},
+                      {"Label": "FailedProjects",
+                       "Color": "Red"}],
+                     data_collector_name='datacollector')
+
 server = ModularServer(
-    SuperScriptModel, [network, chart1, chart2], "SuperScript Model", model_params
+    #SuperScriptModel, [network, chart1, chart2, chart3], "SuperScript Model", model_params
+SuperScriptModel, [chart1, chart2, chart3], "SuperScript Model", model_params
 )
 server.port = 8521

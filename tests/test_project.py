@@ -95,7 +95,7 @@ class TestProjectInventory(unittest.TestCase):
     def test_add_project(self, mock_allocator):
 
         inventory = ProjectInventory(mock_allocator)
-        project = Project(42)
+        project = Project(inventory, 42)
         self.assertEqual(inventory.active_count, 0)
         inventory.add_project(project)
         self.assertEqual(inventory.active_count, 1)
@@ -206,7 +206,7 @@ class TestSuccessCalculator(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     def test_get_component_values(self, mock_allocator):
         inventory = ProjectInventory(mock_allocator)
-        project = Project(42)
+        project = Project(inventory, 42)
         project.team = None
         inventory.success_calculator.get_component_values(project)
         self.assertEqual(inventory.success_calculator.ovr, 0.0)
@@ -215,11 +215,12 @@ class TestSuccessCalculator(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     def test_to_string(self, mock_allocator):
         inventory = ProjectInventory(mock_allocator)
-        project = Project(42)
+        project = Project(inventory, 42)
         self.assertIsInstance(
             inventory.success_calculator.to_string(project),
             str
         )
+
 
 if __name__ == '__main__':
     unittest.main()
