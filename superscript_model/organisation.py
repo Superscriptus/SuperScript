@@ -342,6 +342,10 @@ class Trainer:
                     worker.skills.hard_skills[skill] = new_skill
 
             worker.department.add_training(worker, self.training_length)
+            for t in range(self.training_length):
+                worker.contributions.total_contribution[worker.now + t] = (
+                    worker.contributions.units_per_full_time
+                )
 
 
 class Department:
