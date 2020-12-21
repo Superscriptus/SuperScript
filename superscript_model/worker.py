@@ -80,8 +80,15 @@ class Worker(Agent):
         return self.contributions.is_free_over_period(start, length)
 
     def replace(self):
+
         self.department.number_of_workers -= 1
         self.model.new_workers += 1
+
+        if self.now in self.model.worker_turnover.keys():
+            self.model.worker_turnover[self.now] += 1
+        else:
+            self.model.worker_turnover[self.now] = 1
+
         w = Worker(
             self.model.worker_count + self.model.new_workers,
             self.model, self.department

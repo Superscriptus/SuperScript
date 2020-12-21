@@ -101,6 +101,12 @@ def av_team_ovr(model):
     )
 
 
+def worker_turnover(model):
+    return model.worker_turnover.get(
+        model.schedule.steps - 2, 0.0
+    )
+
+
 class SuperScriptModel(Model):
 
     def __init__(self, worker_count=WORKER_COUNT,
@@ -147,6 +153,7 @@ class SuperScriptModel(Model):
                 assigned_to_di = 0
 
         self.grid.initialise()
+        self.worker_turnover = dict()
         self.time = 0  # replace with schedule.steps
         self.running = True
 
@@ -162,7 +169,8 @@ class SuperScriptModel(Model):
                 "AverageTeamSize": av_team_size,
                 "AverageSuccessProbability": av_success_prob,
                 "AverageWorkerOvr": av_worker_ovr,
-                "AverageTeamOvr": av_team_ovr}
+                "AverageTeamOvr": av_team_ovr,
+                "WorkerTurnover": worker_turnover}
             # agent_reporters={"RecentSuccessRate": recent_success_rate}
         )
 
