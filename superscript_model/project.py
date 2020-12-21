@@ -28,7 +28,6 @@ class ProjectInventory:
                  timeline_flexibility='NoFlexibility',
                  max_timeline_flex=MAXIMUM_TIMELINE_FLEXIBILITY,
                  hard_skills=HARD_SKILLS,
-                 budget_functionality_flag=False,
                  social_network=None,
                  model=None):
 
@@ -40,7 +39,6 @@ class ProjectInventory:
             FunctionFactory.get(timeline_flexibility)
         )
         self.max_timeline_flex = max_timeline_flex
-        self.budget_functionality_flag = budget_functionality_flag
 
         self.success_calculator = SuccessCalculator()
         self.success_history = dict()
@@ -171,7 +169,8 @@ class Project:
         self.start_time = start_time + start_time_offset
         self.team = None
         self.requirements = ProjectRequirements(
-            budget_functionality_flag=self.inventory.budget_functionality_flag
+            budget_functionality_flag
+            =self.inventory.model.budget_functionality_flag
         )
         self.success_probability = 0.0
 

@@ -108,14 +108,14 @@ chart1 = ChartModule([{"Label": "ActiveProjects",
                       "Color": "Black"}],
                     data_collector_name='datacollector')
 
-chart2 = ChartModule([{"Label": "RecentSuccessRate",
-                      "Color": "Blue"}],
-                     data_collector_name='datacollector')
-
-chart3 = ChartModule([{"Label": "SuccessfulProjects",
+chart2 = ChartModule([{"Label": "SuccessfulProjects",
                       "Color": "Green"},
                       {"Label": "FailedProjects",
                        "Color": "Red"}],
+                     data_collector_name='datacollector')
+
+chart3 = ChartModule([{"Label": "AverageSuccessProbability",
+                      "Color": "Blue"}],
                      data_collector_name='datacollector')
 
 chart4 = ChartModule([{"Label": "ActiveWorkers",
@@ -127,9 +127,24 @@ chart4 = ChartModule([{"Label": "ActiveWorkers",
                       ],
                      data_collector_name='datacollector')
 
+chart5 = ChartModule([{"Label": "AverageWorkerOvr",
+                      "Color": "Blue"},
+                      {"Label": "AverageTeamOvr",
+                       "Color": "Green"},
+                      ],
+                     data_collector_name='datacollector')
+
+
+chart6 = ChartModule([{"Label": "AverageTeamSize",
+                      "Color": "Blue"}],
+                     data_collector_name='datacollector')
+
+chart7 = ChartModule([{"Label": "RecentSuccessRate",
+                      "Color": "Blue"}],
+                     data_collector_name='datacollector')
 
 server = ModularServer(
     #SuperScriptModel, [network, chart1, chart2, chart3], "SuperScript Model", model_params
-SuperScriptModel, [chart1, chart2, chart3, chart4], "SuperScript Model", model_params
+    SuperScriptModel, [chart1, chart2, chart3, chart4, chart5, chart6, chart7], "SuperScript Model", model_params
 )
 server.port = 8521

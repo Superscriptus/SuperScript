@@ -60,7 +60,8 @@ class TestWorker(unittest.TestCase):
     def test_step(self, mock_terminate, mock_allocator, mock_model):
 
         worker = Worker(42, mock_model)
-        project = Project(ProjectInventory(mock_allocator),
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
                           project_id=42,
                           project_length=2)
 

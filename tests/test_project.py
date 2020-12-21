@@ -12,17 +12,22 @@ from superscript_model.organisation import Team
 class TestProject(unittest.TestCase):
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_init(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_init(self, mock_model, mock_allocator):
 
-        project = Project(ProjectInventory(mock_allocator), 42, 5)
+        project = Project(
+            ProjectInventory(mock_allocator, model=mock_model), 42, 5
+        )
         self.assertEqual(project.project_id, 42)
         self.assertEqual(project.length, 5)
         self.assertEqual(project.progress, 0)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_advance(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_advance(self, mock_model, mock_allocator):
 
-        project = Project(ProjectInventory(mock_allocator), 42, 5)
+        project = Project(
+            ProjectInventory(mock_allocator, model=mock_model), 42, 5)
         project.advance()
         self.assertEqual(project.progress, 1)
         project.advance()
@@ -85,16 +90,20 @@ class TestProjectInventory(unittest.TestCase):
         self.assertEqual(inventory.active_count, 0)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_create_projects(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_create_projects(self, mock_model, mock_allocator):
 
-        inventory = ProjectInventory(mock_allocator)
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         inventory.create_projects(5, time=0, length=5)
         self.assertEqual(inventory.active_count, 5)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_add_project(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_add_project(self, mock_model, mock_allocator):
 
-        inventory = ProjectInventory(mock_allocator)
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         project = Project(inventory, 42)
         self.assertEqual(inventory.active_count, 0)
         inventory.add_project(project)
@@ -102,9 +111,11 @@ class TestProjectInventory(unittest.TestCase):
         self.assertRaises(KeyError, inventory.add_project, project)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_delete_project(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_delete_project(self, mock_model, mock_allocator):
 
-        inventory = ProjectInventory(mock_allocator)
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         inventory.create_projects(5, time=0, length=5)
         self.assertRaises(KeyError, inventory.delete_project, 42)
         self.assertEqual(inventory.active_count, 5)
@@ -124,9 +135,11 @@ class TestProjectInventory(unittest.TestCase):
         self.assertEqual(inventory.active_count, 0)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_rank_projects(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_rank_projects(self, mock_model, mock_allocator):
 
-        inventory = ProjectInventory(mock_allocator)
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         projects = []
         for i in range(10):
             projects.append(
@@ -204,8 +217,10 @@ class TestSuccessCalculator(unittest.TestCase):
             self.assertTrue(project.success_probability <= 1)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_get_component_values(self, mock_allocator):
-        inventory = ProjectInventory(mock_allocator)
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_get_component_values(self, mock_model, mock_allocator):
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         project = Project(inventory, 42)
         project.team = None
         inventory.success_calculator.get_component_values(project)
@@ -213,8 +228,10 @@ class TestSuccessCalculator(unittest.TestCase):
         self.assertEqual(inventory.success_calculator.risk, 0.0)
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_to_string(self, mock_allocator):
-        inventory = ProjectInventory(mock_allocator)
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_to_string(self, mock_model, mock_allocator):
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         project = Project(inventory, 42)
         self.assertIsInstance(
             inventory.success_calculator.to_string(project),

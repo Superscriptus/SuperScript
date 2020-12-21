@@ -230,10 +230,11 @@ class TestRandomStrategy(unittest.TestCase):
 
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('builtins.print')
-    def test_select_team(self, mock_print, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_select_team(self, mock_model, mock_print, mock_allocator):
 
         strategy = RandomStrategy(SuperScriptModel(100))
-        inventory = ProjectInventory(mock_allocator)
+        inventory = ProjectInventory(mock_allocator, model=mock_model)
         inventory.create_projects(1, time=0, length=5)
         team = strategy.select_team(inventory.projects[0],
                                     bid_pool=None)
