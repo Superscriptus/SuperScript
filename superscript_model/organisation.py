@@ -332,19 +332,22 @@ class Trainer:
 
     def train(self, worker):
 
+        requires_training = False
+
         if self.model.training_on and worker.now >= self.training_commences:
             for skill in self.top_two_demanded_skills():
-
                 if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
+                    requires_training = True
                     new_skill = min(self.skill_quartiles[skill][2], self.max_skill_level)
                     worker.skills.hard_skills[skill] = new_skill
 
-            worker.department.add_training(worker, self.training_length)
-            worker.training_remaining = self.training_length - 1
-            for t in range(self.training_length):
-                worker.contributions.total_contribution[worker.now + t] = (
-                    worker.contributions.units_per_full_time
-                )
+            if requires_training:
+                worker.department.add_training(worker, self.training_length)
+                worker.training_remaining = self.training_length - 1
+                for t in range(self.training_length):
+                    worker.contributions.total_contribution[worker.now + t] = (
+                        worker.contributions.units_per_full_time
+                    )
 
 
 class Department:
