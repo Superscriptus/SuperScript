@@ -113,8 +113,8 @@ class SuperScriptModel(Model):
                  department_count=DEPARTMENT_COUNT,
                  new_projects_per_timestep=NEW_PROJECTS_PER_TIMESTEP,
                  project_length=PROJECT_LENGTH,
-                 training_on=TRAINING_ON,
-                 budget_functionality_flag=BUDGET_FUNCTIONALITY_FLAG):
+                 training_on=True, #TRAINING_ON,
+                 budget_functionality_flag=True): #BUDGET_FUNCTIONALITY_FLAG):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep

@@ -1,15 +1,15 @@
-from mesa.visualization.modules import NetworkModule
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
-from mesa.visualization.modules import ChartModule
+from mesa.visualization.modules import (ChartModule,
+                                        NetworkModule,
+                                        TextElement)
 
 from .model import SuperScriptModel
 from .config import DEPARTMENT_COUNT
 from .utilities import Random
 
-
-r = lambda: Random.randint(0,255)
-colours = {di: '#%02X%02X%02X' % (r(),r(),r())
+r = lambda: Random.randint(0, 255)
+colours = {di: '#%02X%02X%02X' % (r(), r(), r())
            for di in range(DEPARTMENT_COUNT)}
 
 
@@ -22,12 +22,12 @@ def network_portrayal(G):
         )
 
     def edge_color(agent1, agent2):
-        #if State.RESISTANT in (agent1.state, agent2.state):
+        # if State.RESISTANT in (agent1.state, agent2.state):
         #    return "#000000"
         return "#e8e8e8"
 
     def edge_width(agent1, agent2):
-        #if State.RESISTANT in (agent1.state, agent2.state):
+        # if State.RESISTANT in (agent1.state, agent2.state):
         #    return 3
         return G[agent1.worker_id][agent2.worker_id]['weight']
 
@@ -57,6 +57,22 @@ def network_portrayal(G):
     ]
 
     return portrayal
+
+
+class ConfigElement(TextElement):
+
+    def __init__(self, parameter_name,
+                 display_name):
+        self.parameter_name = parameter_name
+        self.display_name = display_name
+        pass
+
+    def render(self, model):
+
+        switch = {True: 'on',
+                  False: 'off'}
+        return (self.display_name + ": "
+                + switch[getattr(model, self.parameter_name)])
 
 
 model_params = {
@@ -101,25 +117,31 @@ model_params = {
     )
 }
 
-
 network = NetworkModule(network_portrayal, 500, 500, library="d3")
 
+training_element = ConfigElement(
+    'training_on', 'Training'
+)
+budget_element = ConfigElement(
+    'budget_functionality_flag', 'Budget constraint'
+)
+
 chart1 = ChartModule([{"Label": "ActiveProjects",
-                      "Color": "Black"}],
-                    data_collector_name='datacollector')
+                       "Color": "Black"}],
+                     data_collector_name='datacollector')
 
 chart2 = ChartModule([{"Label": "SuccessfulProjects",
-                      "Color": "Green"},
+                       "Color": "Green"},
                       {"Label": "FailedProjects",
                        "Color": "Red"}],
                      data_collector_name='datacollector')
 
 chart3 = ChartModule([{"Label": "AverageSuccessProbability",
-                      "Color": "Blue"}],
+                       "Color": "Blue"}],
                      data_collector_name='datacollector')
 
 chart4 = ChartModule([{"Label": "ActiveWorkers",
-                      "Color": "Green"},
+                       "Color": "Green"},
                       {"Label": "IdleWorkers",
                        "Color": "Red"},
                       {"Label": "TrainingWorkers",
@@ -128,28 +150,27 @@ chart4 = ChartModule([{"Label": "ActiveWorkers",
                      data_collector_name='datacollector')
 
 chart5 = ChartModule([{"Label": "AverageWorkerOvr",
-                      "Color": "Blue"},
+                       "Color": "Blue"},
                       {"Label": "AverageTeamOvr",
                        "Color": "Green"},
                       ],
                      data_collector_name='datacollector')
 
-
 chart6 = ChartModule([{"Label": "AverageTeamSize",
-                      "Color": "Blue"}],
+                       "Color": "Blue"}],
                      data_collector_name='datacollector')
 
 chart7 = ChartModule([{"Label": "RecentSuccessRate",
-                      "Color": "Blue"}],
+                       "Color": "Blue"}],
                      data_collector_name='datacollector')
 
 chart8 = ChartModule([{"Label": "WorkerTurnover",
-                      "Color": "Blue"}],
+                       "Color": "Blue"}],
                      data_collector_name='datacollector')
 
-
 server = ModularServer(
-    #SuperScriptModel, [network, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8], "SuperScript Model", model_params
-    SuperScriptModel, [chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8], "SuperScript Model", model_params
+    # SuperScriptModel, [network, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8], "SuperScript Model", model_params
+    SuperScriptModel, [training_element, budget_element, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8],
+    "SuperScript Model", model_params
 )
 server.port = 8521
