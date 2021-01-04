@@ -140,37 +140,48 @@ chart3 = ChartModule([{"Label": "AverageSuccessProbability",
                        "Color": "Blue"}],
                      data_collector_name='datacollector')
 
-chart4 = ChartModule([{"Label": "ActiveWorkers",
+chart4 = ChartModule([{"Label": "WorkersOnProjects",
                        "Color": "Green"},
-                      {"Label": "IdleWorkers",
+                      {"Label": "WorkersWithoutProjects",
                        "Color": "Red"},
-                      {"Label": "TrainingWorkers",
+                      {"Label": "WorkersOnTraining",
                        "Color": "Orange"}
                       ],
                      data_collector_name='datacollector')
 
-chart5 = ChartModule([{"Label": "AverageWorkerOvr",
+chart5 = ChartModule([{"Label": "ProjectLoad",
+                       "Color": "Green"},
+                      {"Label": "TrainingLoad",
+                       "Color": "Orange"},
+                      {"Label": "DeptLoad",
+                       "Color": "Blue"},
+                      {"Label": "Slack",
+                       "Color": "Red"}
+                      ],
+                     data_collector_name='datacollector')
+
+chart6 = ChartModule([{"Label": "AverageWorkerOvr",
                        "Color": "Blue"},
                       {"Label": "AverageTeamOvr",
                        "Color": "Green"},
                       ],
                      data_collector_name='datacollector')
 
-chart6 = ChartModule([{"Label": "AverageTeamSize",
+chart7 = ChartModule([{"Label": "AverageTeamSize",
                        "Color": "Blue"}],
                      data_collector_name='datacollector')
 
-chart7 = ChartModule([{"Label": "RecentSuccessRate",
+chart8 = ChartModule([{"Label": "RecentSuccessRate",
                        "Color": "Blue"}],
                      data_collector_name='datacollector')
 
-chart8 = ChartModule([{"Label": "WorkerTurnover",
+chart9 = ChartModule([{"Label": "WorkerTurnover",
                        "Color": "Blue"}],
                      data_collector_name='datacollector')
 
 server = ModularServer(
     # SuperScriptModel, [network, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8], "SuperScript Model", model_params
-    SuperScriptModel, [training_element, budget_element, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8],
+    SuperScriptModel, [training_element, budget_element, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8, chart9],
     "SuperScript Model", model_params
 )
 server.port = 8521

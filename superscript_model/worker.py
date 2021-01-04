@@ -65,7 +65,8 @@ class Worker(Agent):
             if project in self.leads_on.values():
                 project.advance()
 
-        if self.is_free(self.now, self.training_horizon):  # refactor: conditional to Trainer method
+        if self.is_free(self.now, self.training_horizon,
+                        slack=self.contributions.units_per_full_time):  # refactor: conditional to Trainer method
             self.model.trainer.train(self)
 
         self.skills.decay(self)
@@ -76,8 +77,8 @@ class Worker(Agent):
         else:
             return self.skills.soft_skills[skill]
 
-    def is_free(self, start, length):
-        return self.contributions.is_free_over_period(start, length)
+    def is_free(self, start, length, slack=None):
+        return self.contributions.is_free_over_period(start, length, slack)
 
     def replace(self):
 
@@ -183,12 +184,12 @@ class WorkerContributions:
             )
         return min(remaining_units)
 
-    def is_free_over_period(self, start, length):
+    def is_free_over_period(self, start, length, slack):
         if ((self.get_remaining_units(start, length)
                 == self.units_per_full_time)
             and (self.worker.department
                      .is_workload_satisfied(
-                        start, length))):
+                        start, length, slack))):
             return True
         else:
             return False

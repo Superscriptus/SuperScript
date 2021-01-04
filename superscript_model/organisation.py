@@ -403,8 +403,9 @@ class Department:
             self.units_supplied_to_projects[time]
             ) if time in self.units_supplied_to_projects.keys() else 0
 
-    def is_workload_satisfied(self, start, length):
+    def is_workload_satisfied(self, start, length, tolerance=None):
 
+        tolerance = self.tolerance if tolerance is None else tolerance
         for t in range(length):
 
             time = start + t

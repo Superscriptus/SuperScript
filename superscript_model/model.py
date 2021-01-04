@@ -15,7 +15,9 @@ from .config import (PROJECT_LENGTH,
                      WORKER_COUNT,
                      DEPARTMENT_COUNT,
                      TRAINING_ON,
-                     BUDGET_FUNCTIONALITY_FLAG)
+                     BUDGET_FUNCTIONALITY_FLAG,
+                     UNITS_PER_FTE,
+                     DEPARTMENTAL_WORKLOAD)
 
 
 def safe_mean(x):
@@ -49,26 +51,49 @@ def number_failed_projects(model):
     )
 
 
-def training_workers(model):
+def on_training(model):
     return sum(
         [1 for worker in model.schedule.agents
          if worker.training_remaining > 0]
     )
 
 
-def idle_workers(model):
+def no_projects(model):
     return sum(
         [1 for worker in model.schedule.agents
-         if worker.is_free(worker.now, 1)]
+         if worker.contributions.get_units_contributed(worker.now) == 0]
     )
 
 
-def active_workers(model):
+def on_projects(model):
     return sum(
         [1 for worker in model.schedule.agents
          if ((worker.contributions.get_units_contributed(worker.now) > 0)
              and worker.training_remaining == 0)]
     )
+
+
+def training_load(model):
+    return on_training(model) / model.worker_count
+
+
+def project_load(model):
+
+    project_units = sum([
+        worker.contributions.get_units_contributed(worker.now)
+        for worker in model.schedule.agents
+        if ((worker.contributions.get_units_contributed(worker.now) > 0)
+            and worker.training_remaining == 0)
+    ])
+    return project_units / (model.worker_count * UNITS_PER_FTE)
+
+
+def departmental_load(model):
+    return DEPARTMENTAL_WORKLOAD
+
+
+def slack(model):
+    return 1 - departmental_load(model) - project_load(model) - training_load(model)
 
 
 def av_team_size(model):
@@ -163,32 +188,34 @@ class SuperScriptModel(Model):
                 "RecentSuccessRate": recent_success_rate,
                 "SuccessfulProjects": number_successful_projects,
                 "FailedProjects": number_failed_projects,
-                "ActiveWorkers": active_workers,
-                "IdleWorkers": idle_workers,
-                "TrainingWorkers": training_workers,
+                "WorkersOnProjects": on_projects,
+                "WorkersWithoutProjects": no_projects,
+                "WorkersOnTraining": on_training,
                 "AverageTeamSize": av_team_size,
                 "AverageSuccessProbability": av_success_prob,
                 "AverageWorkerOvr": av_worker_ovr,
                 "AverageTeamOvr": av_team_ovr,
-                "WorkerTurnover": worker_turnover}
-            # agent_reporters={"RecentSuccessRate": recent_success_rate}
+                "WorkerTurnover": worker_turnover,
+                "ProjectLoad": project_load,
+                "TrainingLoad": training_load,
+                "DeptLoad": departmental_load,
+                "Slack": slack}
         )
 
     def step(self):
 
-        #self.datacollector.collect(self)
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)
         self.schedule.step()
         self.inventory.remove_null_projects()
         self.time += 1
+
         self.datacollector.collect(self)
-        print(active_workers(self), idle_workers(self), training_workers(self))
-        # assert (active_workers(self)
-        #        + idle_workers(self)
-        #        + training_workers(self)
-        #        == self.worker_count)
+        assert (on_projects(self)
+                + no_projects(self)
+                + on_training(self)
+                == self.worker_count)
 
     def run_model(self, step_count: int):
         for i in range(step_count):
