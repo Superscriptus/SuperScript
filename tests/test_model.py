@@ -40,8 +40,7 @@ class TestSuperScriptModel(unittest.TestCase):
         self.assertEqual(len(model.inventory.projects), 20)
         model.run_model(1)
         self.assertEqual(model.schedule.get_agent_count(), 1000)
-        self.assertEqual(len(model.inventory.projects), 20) #  because no Teams can be allocated
-                                                            #  -> all spare workers in training
+        self.assertEqual(len(model.inventory.projects), 40)
 
         model = SuperScriptModel(worker_count=1000,
                                  department_count=10)
