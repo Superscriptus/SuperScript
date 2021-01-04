@@ -176,7 +176,7 @@ class WorkerContributions:
         remaining_units = []
         for t in range(length):
 
-            time = start + length
+            time = start + t
             contributes_at_time = self.get_units_contributed(time)
             remaining_units.append(
                 self.units_per_full_time - contributes_at_time
@@ -188,8 +188,7 @@ class WorkerContributions:
                 == self.units_per_full_time)
             and (self.worker.department
                      .is_workload_satisfied(
-                        start, length)
-                )):
+                        start, length))):
             return True
         else:
             return False

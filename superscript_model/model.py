@@ -37,7 +37,7 @@ def recent_success_rate(model):
 
 
 def number_successful_projects(model):
-    # print(model.inventory.success_history)
+
     return model.inventory.success_history.get(
         model.schedule.steps - 1, 0.0
     )
@@ -66,7 +66,7 @@ def idle_workers(model):
 def active_workers(model):
     return sum(
         [1 for worker in model.schedule.agents
-         if ((not worker.is_free(worker.now, 1))
+         if ((worker.contributions.get_units_contributed(worker.now) > 0)
              and worker.training_remaining == 0)]
     )
 
@@ -176,19 +176,19 @@ class SuperScriptModel(Model):
 
     def step(self):
 
-        #print(active_workers(self), idle_workers(self), training_workers(self))
-        #assert (active_workers(self)
-        #        + idle_workers(self)
-        #        + training_workers(self)
-        #        == self.worker_count)
-        self.datacollector.collect(self)
-
+        #self.datacollector.collect(self)
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)
         self.schedule.step()
         self.inventory.remove_null_projects()
         self.time += 1
+        self.datacollector.collect(self)
+        print(active_workers(self), idle_workers(self), training_workers(self))
+        # assert (active_workers(self)
+        #        + idle_workers(self)
+        #        + training_workers(self)
+        #        == self.worker_count)
 
     def run_model(self, step_count: int):
         for i in range(step_count):
