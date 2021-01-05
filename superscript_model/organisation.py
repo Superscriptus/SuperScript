@@ -318,6 +318,7 @@ class Trainer:
         self.max_skill_level = max_skill_level
         self.hard_skills = hard_skills
         self.skill_quartiles = dict(zip(hard_skills, []))
+        self.trainees = dict()
 
     def top_two_demanded_skills(self):
         return self.model.inventory.top_two_skills
@@ -330,25 +331,91 @@ class Trainer:
                 [25, 50, 75]
             )
 
-    def train(self, worker):
+    def train(self):
 
-        requires_training = False
+        if (self.model.training_on
+                and self.model.schedule.steps >= self.training_commences):
 
-        if self.model.training_on and worker.now >= self.training_commences:
-            for skill in self.top_two_demanded_skills():
-                if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
-                    requires_training = True
-                    new_skill = min(self.skill_quartiles[skill][2], self.max_skill_level)
-                    worker.skills.hard_skills[skill] = new_skill
+            self.advance_training()
 
-            if requires_training:
-                worker.department.add_training(worker, self.training_length)
-                worker.training_remaining = self.training_length - 1
-                for t in range(self.training_length):
-                    worker.contributions.total_contribution[worker.now + t] = (
-                        worker.contributions.units_per_full_time
-                    )
+            if self.model.training_mode == 'all':
+                self.add_all_for_training()
+            elif self.model.training_mode == 'slots':
+                self.add_slots_for_training()
+            else:
+                print("Training mode not recognised!")
+                pass
 
+    def advance_training(self):
+
+        worker_ids = list(self.trainees.keys())
+        for worker_id in worker_ids:
+
+            if worker_id in self.trainees.keys():
+                self.trainees[worker_id].training_remaining -= 1
+                # trainee.training_remaining = max(trainee.training_remaining, 0)
+                if self.trainees[worker_id].training_remaining == 0:
+                    del self.trainees[worker_id]
+
+    @staticmethod
+    def worker_free_to_train(worker):
+        return worker.is_free(worker.now, worker.training_horizon,
+                              slack=worker.contributions.units_per_full_time)
+
+    def add_slots_for_training(self):
+        for skill in self.top_two_demanded_skills():
+
+            sorted_workers = {
+                worker.worker_id: worker.get_skill(skill)
+                for worker in self.model.schedule.agents
+                if worker.get_skill(skill) < self.skill_quartiles[skill][1]
+            }
+            sorted_workers = {
+                k: v for k, v in sorted(
+                    sorted_workers.items(),
+                    reverse=False,
+                    key=lambda item: item[1]
+                )
+            }
+            slots = 0
+            for worker_id in sorted_workers.keys():
+                worker = self.model.schedule._agents[worker_id]
+                if self.worker_free_to_train(worker):
+                    self.add_worker(worker)
+                    slots += 1
+                    if slots >= self.model.training_slots:
+                        break
+
+    def add_all_for_training(self):
+
+        for worker in self.model.schedule.agents:
+            requires_training = False
+
+            if self.worker_free_to_train(worker):
+
+                for skill in self.top_two_demanded_skills():
+                    if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
+                        requires_training = True
+
+                if requires_training:
+                    self.add_worker(worker)
+
+    def add_worker(self, worker):
+
+        self.update_worker_skill(worker)
+
+        self.trainees[worker.worker_id] = worker
+        worker.department.add_training(worker, self.training_length)
+        worker.training_remaining = self.training_length - 1
+        for t in range(self.training_length):
+            worker.contributions.total_contribution[worker.now + t] = (
+                worker.contributions.units_per_full_time
+            )
+
+    def update_worker_skill(self, worker):
+        for skill in self.top_two_demanded_skills():
+            new_skill = min(self.skill_quartiles[skill][2], self.max_skill_level)
+            worker.skills.hard_skills[skill] = new_skill
 
 class Department:
 

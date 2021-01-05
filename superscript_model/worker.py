@@ -55,8 +55,8 @@ class Worker(Agent):
 
     def step(self):
 
-        self.training_remaining -= 1  # refactor: self.model.trainer.advance_training()
-        self.training_remaining = max(self.training_remaining, 0)
+        #self.training_remaining -= 1  # refactor: self.model.trainer.advance_training()
+        #self.training_remaining = max(self.training_remaining, 0)
 
         """Dict can be updated during loop (one other?)"""
         projects = list(self.leads_on.values())
@@ -65,9 +65,9 @@ class Worker(Agent):
             if project in self.leads_on.values():
                 project.advance()
 
-        if self.is_free(self.now, self.training_horizon,
-                        slack=self.contributions.units_per_full_time):  # refactor: conditional to Trainer method
-            self.model.trainer.train(self)
+        #if self.is_free(self.now, self.training_horizon,
+        #                slack=self.contributions.units_per_full_time):  # refactor: conditional to Trainer method
+        #    self.model.trainer.train(self)
 
         self.skills.decay(self)
 

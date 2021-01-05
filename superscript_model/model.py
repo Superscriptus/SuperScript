@@ -15,6 +15,8 @@ from .config import (PROJECT_LENGTH,
                      WORKER_COUNT,
                      DEPARTMENT_COUNT,
                      TRAINING_ON,
+                     TRAINING_MODE,
+                     TRAINING_SLOTS,
                      BUDGET_FUNCTIONALITY_FLAG,
                      UNITS_PER_FTE,
                      DEPARTMENTAL_WORKLOAD)
@@ -139,6 +141,8 @@ class SuperScriptModel(Model):
                  new_projects_per_timestep=NEW_PROJECTS_PER_TIMESTEP,
                  project_length=PROJECT_LENGTH,
                  training_on=TRAINING_ON,
+                 training_mode=TRAINING_MODE,
+                 training_slots=TRAINING_SLOTS,
                  budget_functionality_flag=BUDGET_FUNCTIONALITY_FLAG):
 
         self.worker_count = worker_count
@@ -158,6 +162,8 @@ class SuperScriptModel(Model):
             model=self
         )
         self.training_on = training_on
+        self.training_mode = training_mode
+        self.training_slots = training_slots
         self.trainer = Trainer(self)
 
         for di in range(department_count):
@@ -208,6 +214,7 @@ class SuperScriptModel(Model):
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)
         self.schedule.step()
+        self.trainer.train()
         self.inventory.remove_null_projects()
         self.time += 1
 
