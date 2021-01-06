@@ -363,28 +363,37 @@ class Trainer:
                               slack=worker.contributions.units_per_full_time)
 
     def add_slots_for_training(self):
-        for skill in self.top_two_demanded_skills():
+        skillA = self.top_two_demanded_skills()[0]
+        skillB = self.top_two_demanded_skills()[1]
 
-            sorted_workers = {
-                worker.worker_id: worker.get_skill(skill)
-                for worker in self.model.schedule.agents
-                if worker.get_skill(skill) < self.skill_quartiles[skill][1]
-            }
-            sorted_workers = {
-                k: v for k, v in sorted(
-                    sorted_workers.items(),
-                    reverse=False,
-                    key=lambda item: item[1]
-                )
-            }
-            slots = 0
-            for worker_id in sorted_workers.keys():
-                worker = self.model.schedule._agents[worker_id]
-                if self.worker_free_to_train(worker):
-                    self.add_worker(worker)
-                    slots += 1
-                    if slots >= self.model.training_slots:
-                        break
+        sorted_workers = {
+            worker.worker_id: worker.get_skill(skillA)
+            for worker in self.model.schedule.agents
+            if worker.get_skill(skillA) < self.skill_quartiles[skillA][1]
+        }
+        # sorted_workersB = {
+        #     worker.worker_id: worker.get_skill(skillB)
+        #     for worker in self.model.schedule.agents
+        #     if worker.get_skill(skillB) < self.skill_quartiles[skillB][1]
+        # }
+        # sorted_workers = {worker_id: min(sorted_workersA[worker_id],
+        #                                  sorted_workersB[worker_id])
+        #                   for worker_id in sorted_workersA.keys()}
+        sorted_workers = {
+            k: v for k, v in sorted(
+                sorted_workers.items(),
+                reverse=False,
+                key=lambda item: item[1]
+            )
+        }
+        slots = 0
+        for worker_id in sorted_workers.keys():
+            worker = self.model.schedule._agents[worker_id]
+            if self.worker_free_to_train(worker):
+                self.add_worker(worker)
+                slots += 1
+                if slots >= self.model.training_slots:
+                    break
 
     def add_all_for_training(self):
 
@@ -416,6 +425,7 @@ class Trainer:
         for skill in self.top_two_demanded_skills():
             new_skill = min(self.skill_quartiles[skill][2], self.max_skill_level)
             worker.skills.hard_skills[skill] = new_skill
+
 
 class Department:
 
