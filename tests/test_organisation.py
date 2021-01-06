@@ -307,6 +307,7 @@ class TestDepartment(unittest.TestCase):
         dept.add_training(worker, 5)
         #worker.model.trainer.train(worker)
 
+
 class TestTrainer(unittest.TestCase):
 
     @patch('superscript_model.model.Model')

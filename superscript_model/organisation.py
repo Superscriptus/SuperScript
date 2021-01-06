@@ -406,7 +406,7 @@ class Trainer:
 
         self.trainees[worker.worker_id] = worker
         worker.department.add_training(worker, self.training_length)
-        worker.training_remaining = self.training_length - 1
+        worker.training_remaining = self.training_length
         for t in range(self.training_length):
             worker.contributions.total_contribution[worker.now + t] = (
                 worker.contributions.units_per_full_time
