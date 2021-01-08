@@ -16,7 +16,7 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENT_COUNT,
                      TRAINING_ON,
                      TRAINING_MODE,
-                     TRAINING_SLOTS,
+                     TARGET_TRAINING_LOAD,
                      BUDGET_FUNCTIONALITY_FLAG,
                      UNITS_PER_FTE,
                      DEPARTMENTAL_WORKLOAD)
@@ -142,7 +142,7 @@ class SuperScriptModel(Model):
                  project_length=PROJECT_LENGTH,
                  training_on=TRAINING_ON,
                  training_mode=TRAINING_MODE,
-                 training_slots=TRAINING_SLOTS,
+                 target_training_load=TARGET_TRAINING_LOAD,
                  budget_functionality_flag=BUDGET_FUNCTIONALITY_FLAG):
 
         self.worker_count = worker_count
@@ -163,7 +163,7 @@ class SuperScriptModel(Model):
         )
         self.training_on = training_on
         self.training_mode = training_mode
-        self.training_slots = training_slots
+        self.target_training_load = target_training_load
         self.trainer = Trainer(self)
 
         for di in range(department_count):

@@ -109,21 +109,14 @@ model_params = {
         value=True,
         description="Turn training on or off",
     ),
-    "training_mode": UserSettableParameter(
-        "choice",
-        "Training on/off",
-        value='slots',
-        choices=['slots', 'all'],
-        description="Change training mode",
-    ),
-    "training_slots": UserSettableParameter(
+    "target_training_load": UserSettableParameter(
         "slider",
-        "Training slots per step",
-        2,
+        "Target training load",
+        10,
         1,
         100,
-        1,
-        description="Choose number of training slots on each step",
+        5,
+        description="Choose target training load",
     ),
     "budget_functionality_flag": UserSettableParameter(
         "checkbox",

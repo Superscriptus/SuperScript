@@ -111,13 +111,12 @@ class Team:
                 member = self.members[member_id]
                 if (dept_unit_budgets[member.department.dept_id] > 0
                         and member_unit_budgets[member.worker_id] > 0):
-
                     contributions[skill].append(member_id)
                     dept_unit_budgets[member.department.dept_id] -= 1
                     member_unit_budgets[member.worker_id] -= 1
                     unit_count += 1
 
-        self.assign_contributions_to_members(contributions) #  this will be called elsewhere
+        self.assign_contributions_to_members(contributions)  # this will be called elsewhere
 
         return contributions
 
@@ -140,7 +139,7 @@ class Team:
                     units_contributed_by_member += 1
 
             (self.members[member_id]
-             .department.update_supplied_units(
+                .department.update_supplied_units(
                 member_id, units_contributed_by_member, self.project
             ))
 
@@ -161,7 +160,7 @@ class Team:
                 for worker_id in self.contributions[skill]
             ]
             skill_mismatch = (
-                (sum(worker_skills) / required_units) - required_level
+                    (sum(worker_skills) / required_units) - required_level
             ) if required_units > 0 else 0
 
             if skill_mismatch < 0:
@@ -195,9 +194,9 @@ class Team:
             pairs = list(combinations(worker_skills, 2))
             if len(pairs) > 0:
                 creativity_level += (
-                    sum([((p[1] - p[0]) / max_distance) ** 2
-                         for p in pairs])
-                    / len(pairs)
+                        sum([((p[1] - p[0]) / max_distance) ** 2
+                             for p in pairs])
+                        / len(pairs)
                 )
                 number_of_existing_skills += 1
 
@@ -237,7 +236,7 @@ class Team:
 
 class OrganisationStrategyInterface(Interface):
 
-    def invite_bids(self, project:Project) -> list:
+    def invite_bids(self, project: Project) -> list:
         pass
 
     def select_team(self, project: Project,
@@ -271,7 +270,7 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
                     if bid_pool is None else bid_pool)
 
         if size > len(bid_pool):
-            #print("Cannot select %d workers from "
+            # print("Cannot select %d workers from "
             #      "bid_pool of size %d for project %d"
             #      % (size, len(bid_pool), project.project_id))
             workers = {}
@@ -292,7 +291,6 @@ class TeamAllocator:
         self.strategy = RandomStrategy(model)
 
     def allocate_team(self, project: Project):
-
         bid_pool = self.strategy.invite_bids(project)
         team = self.strategy.select_team(
             project, bid_pool=bid_pool
@@ -377,14 +375,6 @@ class Trainer:
             if skill_value < self.skill_quartiles[skill][1]:
                 sorted_workers[worker.worker_id] = (skill, skill_value)
 
-        # sorted_workersB = {
-        #     worker.worker_id: worker.get_skill(skillB)
-        #     for worker in self.model.schedule.agents
-        #     if worker.get_skill(skillB) < self.skill_quartiles[skillB][1]
-        # }
-        # sorted_workers = {worker_id: min(sorted_workersA[worker_id],
-        #                                  sorted_workersB[worker_id])
-        #                   for worker_id in sorted_workersA.keys()}
         sorted_workers = {
             k: v for k, v in sorted(
                 sorted_workers.items(),
@@ -392,14 +382,20 @@ class Trainer:
                 key=lambda item: item[1][1]
             )
         }
+
         slots = 0
+        target_slots = (
+                (self.model.target_training_load
+                 * self.model.worker_count)
+                / (self.training_length * 100)
+        )
         for worker_id in sorted_workers.keys():
             worker = self.model.schedule._agents[worker_id]
 
             if self.worker_free_to_train(worker):
                 self.add_worker(worker, sorted_workers[worker_id][0])
                 slots += 1
-                if slots >= self.model.training_slots:
+                if slots >= target_slots:
                     break
 
     def add_all_for_training(self):
@@ -481,14 +477,14 @@ class Department:
                 self.number_of_workers * self.units_per_full_time
         )
         departmental_workload_units = (
-            total_units_dept_can_supply * self.workload
+                total_units_dept_can_supply * self.workload
         )
         return total_units_dept_can_supply - departmental_workload_units
 
     def units_supplied_to_projects_at_time(self, time):
         return (
             self.units_supplied_to_projects[time]
-            ) if time in self.units_supplied_to_projects.keys() else 0
+        ) if time in self.units_supplied_to_projects.keys() else 0
 
     def is_workload_satisfied(self, start, length, tolerance=None):
 
@@ -522,4 +518,3 @@ class Department:
             'tolerance': self.tolerance
         }
         return json.dumps(output, indent=4)
-
