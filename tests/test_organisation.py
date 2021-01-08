@@ -357,10 +357,11 @@ class TestTrainer(unittest.TestCase):
             workers.append(w)
             mock_model.schedule.add(w)
 
+        mock_model.training_mode = 'all'
         trainer.update_skill_quartiles()
         trainer.training_commences = 0
         for i in range(5):
-            trainer.train(workers[i])
+            trainer.train()
 
         self.assertEqual(workers[0].skills.hard_skills['A'], 4)
         self.assertEqual(workers[0].skills.hard_skills['B'], 4)

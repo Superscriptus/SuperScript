@@ -365,12 +365,18 @@ class Trainer:
     def add_slots_for_training(self):
         skillA = self.top_two_demanded_skills()[0]
         skillB = self.top_two_demanded_skills()[1]
+        sorted_workers = dict()
 
-        sorted_workers = {
-            worker.worker_id: worker.get_skill(skillA)
-            for worker in self.model.schedule.agents
-            if worker.get_skill(skillA) < self.skill_quartiles[skillA][1]
-        }
+        for worker in self.model.schedule.agents:
+            skill = (
+                skillA
+                if worker.get_skill(skillA) < worker.get_skill(skillB)
+                else skillB
+            )
+            skill_value = worker.get_skill(skill)
+            if skill_value < self.skill_quartiles[skill][1]:
+                sorted_workers[worker.worker_id] = (skill, skill_value)
+
         # sorted_workersB = {
         #     worker.worker_id: worker.get_skill(skillB)
         #     for worker in self.model.schedule.agents
@@ -383,14 +389,15 @@ class Trainer:
             k: v for k, v in sorted(
                 sorted_workers.items(),
                 reverse=False,
-                key=lambda item: item[1]
+                key=lambda item: item[1][1]
             )
         }
         slots = 0
         for worker_id in sorted_workers.keys():
             worker = self.model.schedule._agents[worker_id]
+
             if self.worker_free_to_train(worker):
-                self.add_worker(worker)
+                self.add_worker(worker, sorted_workers[worker_id][0])
                 slots += 1
                 if slots >= self.model.training_slots:
                     break
@@ -409,9 +416,9 @@ class Trainer:
                 if requires_training:
                     self.add_worker(worker)
 
-    def add_worker(self, worker):
+    def add_worker(self, worker, skill_to_train):
 
-        self.update_worker_skill(worker)
+        self.update_worker_skill(worker, skill_to_train)
 
         self.trainees[worker.worker_id] = worker
         worker.department.add_training(worker, self.training_length)
@@ -421,10 +428,13 @@ class Trainer:
                 worker.contributions.units_per_full_time
             )
 
-    def update_worker_skill(self, worker):
-        for skill in self.top_two_demanded_skills():
-            new_skill = min(self.skill_quartiles[skill][2], self.max_skill_level)
-            worker.skills.hard_skills[skill] = new_skill
+    def update_worker_skill(self, worker, skill_to_train):
+
+        new_skill = min(
+            self.skill_quartiles[skill_to_train][2],
+            self.max_skill_level
+        )
+        worker.skills.hard_skills[skill_to_train] = new_skill
 
 
 class Department:
