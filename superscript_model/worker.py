@@ -55,19 +55,12 @@ class Worker(Agent):
 
     def step(self):
 
-        #self.training_remaining -= 1  # refactor: self.model.trainer.advance_training()
-        #self.training_remaining = max(self.training_remaining, 0)
-
         """Dict can be updated during loop (one other?)"""
         projects = list(self.leads_on.values())
 
         for project in projects:
             if project in self.leads_on.values():
                 project.advance()
-
-        #if self.is_free(self.now, self.training_horizon,
-        #                slack=self.contributions.units_per_full_time):  # refactor: conditional to Trainer method
-        #    self.model.trainer.train(self)
 
         self.skills.decay(self)
 
@@ -111,6 +104,24 @@ class Worker(Agent):
         chemistry += self.history.momentum()
         chemistry += project.risk >= 0.1 * self.skills.ovr
         return chemistry
+
+    def peer_assessment(self, success, skill):
+
+        if success:
+            mean = self.model.peer_assessment_success_mean
+            stdev = self.model.peer_assessment_success_stdev
+        else:
+            mean = self.model.peer_assessment_fail_mean
+            stdev = self.model.peer_assessment_fail_stdev
+
+        weight = self.model.peer_assessment_weight
+        old_skill = self.get_skill(skill)
+
+        self.skills.hard_skills[skill] = (
+            ((1 - weight) + (weight * Random.normal(mean, stdev)))
+            * old_skill
+        )
+
 
 
 class WorkerContributions:

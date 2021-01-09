@@ -22,3 +22,7 @@ class Random:
     @staticmethod
     def shuffle(x):
         random.shuffle(x)
+
+    @staticmethod
+    def normal(mean, std):
+        return random.normalvariate(mean, std)

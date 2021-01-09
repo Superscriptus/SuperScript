@@ -208,6 +208,12 @@ class Team:
         creativity_level = (creativity_level * max_distance) + 1
         return (self.project.creativity - creativity_level) ** 2
 
+    def skill_update(self, success):
+
+        for skill, workers in self.contributions.items():
+            for worker_id in workers:
+                self.members[worker_id].peer_assessment(success, skill)
+
     def log_project_outcome(self, success):
 
         if success:

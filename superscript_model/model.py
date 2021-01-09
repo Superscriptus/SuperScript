@@ -19,7 +19,12 @@ from .config import (PROJECT_LENGTH,
                      TARGET_TRAINING_LOAD,
                      BUDGET_FUNCTIONALITY_FLAG,
                      UNITS_PER_FTE,
-                     DEPARTMENTAL_WORKLOAD)
+                     DEPARTMENTAL_WORKLOAD,
+                     PEER_ASSESSMENT_SUCCESS_MEAN,
+                     PEER_ASSESSMENT_SUCCESS_STDEV,
+                     PEER_ASSESSMENT_FAIL_MEAN,
+                     PEER_ASSESSMENT_FAIL_STDEV,
+                     PEER_ASSESSMENT_WEIGHT)
 
 
 def safe_mean(x):
@@ -143,7 +148,12 @@ class SuperScriptModel(Model):
                  training_on=TRAINING_ON,
                  training_mode=TRAINING_MODE,
                  target_training_load=TARGET_TRAINING_LOAD,
-                 budget_functionality_flag=BUDGET_FUNCTIONALITY_FLAG):
+                 budget_functionality_flag=BUDGET_FUNCTIONALITY_FLAG,
+                 peer_assessment_success_mean=PEER_ASSESSMENT_SUCCESS_MEAN,
+                 peer_assessment_success_stdev=PEER_ASSESSMENT_SUCCESS_STDEV,
+                 peer_assessment_fail_mean=PEER_ASSESSMENT_FAIL_MEAN,
+                 peer_assessment_fail_stdev=PEER_ASSESSMENT_FAIL_STDEV,
+                 peer_assessment_weight=PEER_ASSESSMENT_WEIGHT):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -165,6 +175,12 @@ class SuperScriptModel(Model):
         self.training_mode = training_mode
         self.target_training_load = target_training_load
         self.trainer = Trainer(self)
+
+        self.peer_assessment_success_mean = peer_assessment_success_mean
+        self.peer_assessment_success_stdev = peer_assessment_success_stdev
+        self.peer_assessment_fail_mean = peer_assessment_fail_mean
+        self.peer_assessment_fail_stdev = peer_assessment_fail_stdev
+        self.peer_assessment_weight = peer_assessment_weight
 
         for di in range(department_count):
             self.departments[di] = Department(di)

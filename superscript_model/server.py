@@ -103,12 +103,6 @@ model_params = {
         1,
         description="Choose number of projects created on each step",
     ),
-    "training_on": UserSettableParameter(
-        "checkbox",
-        "Training on/off",
-        value=True,
-        description="Turn training on or off",
-    ),
     "target_training_load": UserSettableParameter(
         "slider",
         "Target training load",
@@ -123,6 +117,46 @@ model_params = {
         "Budget constraint on/off",
         value=True,
         description="Turn budget constraint on or off",
+    ),
+    "peer_assessment_success_mean": UserSettableParameter(
+        "slider",
+        "Peer assessment success mean",
+        1.05,
+        1,
+        2,
+        0.05
+    ),
+    "peer_assessment_success_stdev": UserSettableParameter(
+        "slider",
+        "Peer assessment success stdev",
+        0.2,
+        0,
+        1,
+        0.1
+    ),
+    "peer_assessment_fail_mean": UserSettableParameter(
+        "slider",
+        "Peer assessment fail mean",
+        0.95,
+        0,
+        1,
+        0.05
+    ),
+    "peer_assessment_fail_stdev": UserSettableParameter(
+        "slider",
+        "Peer assessment fail stdev",
+        0.2,
+        0,
+        1,
+        0.1
+    ),
+    "peer_assessment_weight": UserSettableParameter(
+        "slider",
+        "Peer assessment weight",
+        0.25,
+        0,
+        1,
+        0.05
     )
 }
 

@@ -184,6 +184,7 @@ class Project:
             self.inventory.success_calculator.determine_success(self)
         )
         if self.team is not None:
+            self.team.skill_update(success)
             self.team.log_project_outcome(success)
             self.team.remove_lead(self)
             self.team = None
