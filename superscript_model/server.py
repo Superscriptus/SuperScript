@@ -237,9 +237,14 @@ chart9 = ChartModule([{"Label": "WorkerTurnover",
                        "Color": "Blue"}],
                      data_collector_name='datacollector')
 
+chart10 = ChartModule([{"Label": "ProjectsPerWorker",
+                       "Color": "Blue"}],
+                      data_collector_name='datacollector')
+
+
 server = ModularServer(
     # SuperScriptModel, [network, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8], "SuperScript Model", model_params
-    SuperScriptModel, [training_element, budget_element, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8, chart9],
+    SuperScriptModel, [training_element, budget_element, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8, chart9, chart10],
     "SuperScript Model", model_params
 )
 server.port = 8521

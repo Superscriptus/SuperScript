@@ -456,6 +456,7 @@ class Department:
         self.units_per_full_time = units_per_full_time
         self.tolerance = tolerance
         self.units_supplied_to_projects = dict()
+        self.maximum_project_units = 0
 
     def update_supplied_units(self, worker_id,
                               units_contributed, project):
@@ -467,6 +468,10 @@ class Department:
                 self.units_supplied_to_projects[time] = units_contributed
             else:
                 self.units_supplied_to_projects[time] += units_contributed
+
+    def add_worker(self):
+        self.number_of_workers += 1
+        self.evaluate_maximum_project_units()
 
     def add_training(self, worker, length):
 
@@ -480,16 +485,18 @@ class Department:
             else:
                 self.units_supplied_to_projects[time] += units
 
-    @property
-    def maximum_project_units(self):
-
+    def evaluate_maximum_project_units(self):
+        # Note that this is only called by add_worker()
+        # the assumption that none of the other values change during simulation
         total_units_dept_can_supply = (
                 self.number_of_workers * self.units_per_full_time
         )
         departmental_workload_units = (
                 total_units_dept_can_supply * self.workload
         )
-        return total_units_dept_can_supply - departmental_workload_units
+        self.maximum_project_units = (
+                total_units_dept_can_supply - departmental_workload_units
+        )
 
     def units_supplied_to_projects_at_time(self, time):
         return (

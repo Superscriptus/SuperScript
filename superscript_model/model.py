@@ -102,7 +102,10 @@ def departmental_load(model):
 
 
 def slack(model):
-    return 1 - departmental_load(model) - project_load(model) - training_load(model)
+    return (1
+            - departmental_load(model)
+            - project_load(model)
+            - training_load(model))
 
 
 def av_team_size(model):
@@ -139,6 +142,24 @@ def worker_turnover(model):
     return model.worker_turnover.get(
         model.schedule.steps - 2, 0.0
     )
+
+
+def projects_per_worker(model):
+
+    project_count = 0
+    for worker in model.schedule.agents:
+
+        if worker.now in worker.contributions.per_skill_contributions.keys():
+            project_count += (
+                len(set.union(*[
+                    set(projects)
+                    for projects
+                    in (worker.contributions
+                              .per_skill_contributions[worker.now]
+                              .values())
+                ]))
+            )
+    return project_count / model.worker_count
 
 
 class SuperScriptModel(Model):
@@ -227,7 +248,8 @@ class SuperScriptModel(Model):
                 "ProjectLoad": project_load,
                 "TrainingLoad": training_load,
                 "DeptLoad": departmental_load,
-                "Slack": slack}
+                "Slack": slack,
+                "ProjectsPerWorker": projects_per_worker}
         )
 
     def step(self):

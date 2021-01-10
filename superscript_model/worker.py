@@ -27,7 +27,7 @@ class Worker(Agent):
         self.worker_id = worker_id
         self.skills = SkillMatrix()
         self.department = department
-        self.department.number_of_workers += 1
+        self.department.add_worker()
 
         self.strategy = AllInStrategy('All-In')
         self.leads_on = dict()
