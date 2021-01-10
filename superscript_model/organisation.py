@@ -16,9 +16,7 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      WORKLOAD_SATISFIED_TOLERANCE,
                      UNITS_PER_FTE,
                      TRAINING_LENGTH,
-                     TRAINING_COMMENCES,
-                     HARD_SKILLS,
-                     TRAINING_ON)
+                     HARD_SKILLS)
 
 
 class Team:
@@ -208,11 +206,18 @@ class Team:
         creativity_level = (creativity_level * max_distance) + 1
         return (self.project.creativity - creativity_level) ** 2
 
-    def skill_update(self, success):
+    def skill_update(self, success, skill_update_func):
+
+        if success:
+            modifier = skill_update_func.get_values(self.project.risk)
+        else:
+            modifier = skill_update_func.get_values(-15)
 
         for skill, workers in self.contributions.items():
             for worker_id in workers:
-                self.members[worker_id].peer_assessment(success, skill)
+                self.members[worker_id].peer_assessment(
+                    success, skill, modifier
+                )
 
     def log_project_outcome(self, success):
 
@@ -312,13 +317,11 @@ class Trainer:
 
     def __init__(self, model,
                  training_length=TRAINING_LENGTH,
-                 training_commences=TRAINING_COMMENCES,
                  max_skill_level=MAX_SKILL_LEVEL,
                  hard_skills=HARD_SKILLS):
 
         self.model = model
         self.training_length = training_length
-        self.training_commences = training_commences
         self.max_skill_level = max_skill_level
         self.hard_skills = hard_skills
         self.skill_quartiles = dict(zip(hard_skills, []))
@@ -338,7 +341,8 @@ class Trainer:
     def train(self):
 
         if (self.model.training_on
-                and self.model.schedule.steps >= self.training_commences):
+                and self.model.schedule.steps
+                >= self.model.training_commences):
 
             self.advance_training()
 

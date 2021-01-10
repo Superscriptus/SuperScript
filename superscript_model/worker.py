@@ -105,7 +105,7 @@ class Worker(Agent):
         chemistry += project.risk >= 0.1 * self.skills.ovr
         return chemistry
 
-    def peer_assessment(self, success, skill):
+    def peer_assessment(self, success, skill, modifier):
 
         if success:
             mean = self.model.peer_assessment_success_mean
@@ -121,6 +121,8 @@ class Worker(Agent):
             ((1 - weight) + (weight * Random.normal(mean, stdev)))
             * old_skill
         )
+
+        self.skills.hard_skills[skill] *= modifier
 
 
 

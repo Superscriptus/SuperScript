@@ -8,7 +8,9 @@ from .config import (SUCCESS_PROBABILITY_OVR_GRADIENT,
                      SUCCESS_PROBABILITY_CREATIVITY_MATCH_INTERCEPT,
                      SUCCESS_PROBABILITY_RISK_GRADIENT,
                      SUCCESS_PROBABILITY_RISK_INTERCEPT,
-                     SUCCESS_PROBABILITY_CHEMISTRY_GRADIENT)
+                     SUCCESS_PROBABILITY_CHEMISTRY_GRADIENT,
+                     SKILL_UPDATE_BY_RISK_GRADIENT,
+                     SKILL_UPDATE_BY_RISK_INTERCEPT)
 
 
 class FunctionFactory:
@@ -43,7 +45,18 @@ class FunctionFactory:
                 name='SuccessProbabilityChemistry',
                 gradient=SUCCESS_PROBABILITY_CHEMISTRY_GRADIENT
             )
-
+        elif function_name == 'SkillUpdateByRisk':
+            return LinearFunction(
+                name='SkillUpdateByRisk',
+                gradient=SKILL_UPDATE_BY_RISK_GRADIENT,
+                intercept=SKILL_UPDATE_BY_RISK_INTERCEPT
+            )
+        elif function_name == 'IdentityFunction':
+            return LinearFunction(
+                name='IdentityFunction',
+                gradient=0.0,
+                intercept=1.0
+            )
 
 class FunctionInterface(Interface):
 

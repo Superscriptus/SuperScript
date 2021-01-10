@@ -49,6 +49,10 @@ class ProjectInventory:
         ))
         self.social_network = social_network
         self.model = model
+        self.skill_update_func = (FunctionFactory.get(
+            'SkillUpdateByRisk'
+        ) if self.model.update_skill_by_risk_flag
+          else FunctionFactory.get('IdentityFunction'))
 
     @property
     def active_count(self):
@@ -184,7 +188,9 @@ class Project:
             self.inventory.success_calculator.determine_success(self)
         )
         if self.team is not None:
-            self.team.skill_update(success)
+            self.team.skill_update(
+                success, self.inventory.skill_update_func
+            )
             self.team.log_project_outcome(success)
             self.team.remove_lead(self)
             self.team = None

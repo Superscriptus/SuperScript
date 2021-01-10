@@ -112,6 +112,15 @@ model_params = {
         5,
         description="Choose target training load",
     ),
+    "training_commences": UserSettableParameter(
+        "slider",
+        "Training commences on step",
+        10,
+        0,
+        10,
+        1,
+        description="Training commences on step",
+    ),
     "budget_functionality_flag": UserSettableParameter(
         "checkbox",
         "Budget constraint on/off",
@@ -157,6 +166,12 @@ model_params = {
         0,
         1,
         0.05
+    ),
+    "update_skill_by_risk_flag": UserSettableParameter(
+        "checkbox",
+        "Update skill by risk on/off",
+        value=True,
+        description="Update skill by risk on/off",
     )
 }
 

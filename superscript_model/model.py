@@ -17,6 +17,7 @@ from .config import (PROJECT_LENGTH,
                      TRAINING_ON,
                      TRAINING_MODE,
                      TARGET_TRAINING_LOAD,
+                     TRAINING_COMMENCES,
                      BUDGET_FUNCTIONALITY_FLAG,
                      UNITS_PER_FTE,
                      DEPARTMENTAL_WORKLOAD,
@@ -24,7 +25,8 @@ from .config import (PROJECT_LENGTH,
                      PEER_ASSESSMENT_SUCCESS_STDEV,
                      PEER_ASSESSMENT_FAIL_MEAN,
                      PEER_ASSESSMENT_FAIL_STDEV,
-                     PEER_ASSESSMENT_WEIGHT)
+                     PEER_ASSESSMENT_WEIGHT,
+                     UPDATE_SKILL_BY_RISK_FLAG)
 
 
 def safe_mean(x):
@@ -148,12 +150,14 @@ class SuperScriptModel(Model):
                  training_on=TRAINING_ON,
                  training_mode=TRAINING_MODE,
                  target_training_load=TARGET_TRAINING_LOAD,
+                 training_commences=TRAINING_COMMENCES,
                  budget_functionality_flag=BUDGET_FUNCTIONALITY_FLAG,
                  peer_assessment_success_mean=PEER_ASSESSMENT_SUCCESS_MEAN,
                  peer_assessment_success_stdev=PEER_ASSESSMENT_SUCCESS_STDEV,
                  peer_assessment_fail_mean=PEER_ASSESSMENT_FAIL_MEAN,
                  peer_assessment_fail_stdev=PEER_ASSESSMENT_FAIL_STDEV,
-                 peer_assessment_weight=PEER_ASSESSMENT_WEIGHT):
+                 peer_assessment_weight=PEER_ASSESSMENT_WEIGHT,
+                 update_skill_by_risk_flag=UPDATE_SKILL_BY_RISK_FLAG):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -161,6 +165,13 @@ class SuperScriptModel(Model):
         self.budget_functionality_flag = budget_functionality_flag
         self.new_workers = 0
         self.departments = dict()
+
+        self.peer_assessment_success_mean = peer_assessment_success_mean
+        self.peer_assessment_success_stdev = peer_assessment_success_stdev
+        self.peer_assessment_fail_mean = peer_assessment_fail_mean
+        self.peer_assessment_fail_stdev = peer_assessment_fail_stdev
+        self.peer_assessment_weight = peer_assessment_weight
+        self.update_skill_by_risk_flag = update_skill_by_risk_flag
 
         self.G = nx.Graph()
         self.grid = SocialNetwork(self, self.G)
@@ -174,13 +185,8 @@ class SuperScriptModel(Model):
         self.training_on = training_on
         self.training_mode = training_mode
         self.target_training_load = target_training_load
+        self.training_commences = training_commences
         self.trainer = Trainer(self)
-
-        self.peer_assessment_success_mean = peer_assessment_success_mean
-        self.peer_assessment_success_stdev = peer_assessment_success_stdev
-        self.peer_assessment_fail_mean = peer_assessment_fail_mean
-        self.peer_assessment_fail_stdev = peer_assessment_fail_stdev
-        self.peer_assessment_weight = peer_assessment_weight
 
         for di in range(department_count):
             self.departments[di] = Department(di)
