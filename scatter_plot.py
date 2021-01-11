@@ -12,8 +12,20 @@ abm.run_model(20)
 projects = abm.datacollector.get_table_dataframe("Projects")
 
 #projects.dropna(subset=['budget'], inplace=True)
-projects = projects.loc[projects.null==False]
-print(projects)
+null_projects = projects.loc[projects.null]
+projects = projects.loc[~projects.null]
+print(null_projects)
 
-#plt.scatter(projects.prob * projects.risk, projects.budget)
-#plt.show()
+# plt.scatter(projects.budget, projects.prob * projects.risk, label='projects that ran')
+# plt.scatter(null_projects.budget,
+#             null_projects.prob * null_projects.risk,
+#             label='null project', color='orange')
+
+#plt.scatter(projects.prob, projects.risk, label='projects that ran')
+plt.scatter(null_projects.prob, null_projects.risk,
+            label='null project', color='orange')
+
+plt.xlabel("project budget")
+plt.ylabel("expected value (prob * risk)")
+plt.legend()
+plt.show()

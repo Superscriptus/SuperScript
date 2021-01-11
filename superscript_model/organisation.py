@@ -206,7 +206,7 @@ class Team:
         if success:
             modifier = skill_update_func.get_values(self.project.risk)
         else:
-            modifier = skill_update_func.get_values(-15)
+            modifier = skill_update_func.get_values(0)
 
         for skill, workers in self.contributions.items():
             for worker_id in workers:
