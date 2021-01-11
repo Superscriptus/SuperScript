@@ -243,7 +243,7 @@ class Project:
 
     @property
     def budget(self):
-        self.requirements.budget
+        return self.requirements.budget
 
     def get_skill_requirement(self, skill):
         return self.requirements.hard_skills[skill]
@@ -353,6 +353,7 @@ class ProjectRequirements:
 
         if flexible_budget_flag:
             budget *= max_budget_increase
+
         return budget
 
     def to_string(self):

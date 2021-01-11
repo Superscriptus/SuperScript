@@ -308,6 +308,7 @@ class TeamAllocator:
         )
 
         if team is not None and project.budget is not None:
+            team.remove_lead(project)
             team = None if team.team_ovr > project.budget else team
 
         project.team = team
