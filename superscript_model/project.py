@@ -413,6 +413,7 @@ class SuccessCalculator:
 
         success = Random.uniform() <= project.success_probability
         time = project.inventory.model.schedule.steps
+
         if success:
             if time in project.inventory.success_history.keys():
                 project.inventory.success_history[time] += 1

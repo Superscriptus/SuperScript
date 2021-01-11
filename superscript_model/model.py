@@ -249,7 +249,13 @@ class SuperScriptModel(Model):
                 "TrainingLoad": training_load,
                 "DeptLoad": departmental_load,
                 "Slack": slack,
-                "ProjectsPerWorker": projects_per_worker}
+                "ProjectsPerWorker": projects_per_worker},
+            tables={"Projects": {"project_id": [],
+                                 "prob": [],
+                                 "risk": [],
+                                 "budget": [],
+                                 "null": [],
+                                 "success": []}}
         )
 
     def step(self):
