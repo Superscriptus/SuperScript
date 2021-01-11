@@ -138,7 +138,6 @@ class ProjectInventory:
 
         if project.team is None or project.team.lead is None:
             self.null_projects[project.project_id] = project
-            #print('Project %d fils because no team' % project.project_id)
 
         if project.project_id not in self.projects.keys():
             self.projects[project.project_id] = project

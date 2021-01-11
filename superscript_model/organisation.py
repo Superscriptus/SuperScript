@@ -289,6 +289,7 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
             #      % (size, len(bid_pool), project.project_id))
             workers = {}
             lead = None
+
         else:
             workers = {worker.worker_id: worker
                        for worker in
