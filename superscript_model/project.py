@@ -65,8 +65,13 @@ class ProjectInventory:
         return list(self.total_skill_requirement.keys())[:2]
 
     def remove_null_projects(self):
+
         nulls = list(self.null_projects.keys())
+
         for project_id in nulls:
+            self.log_project_data_collector(
+                self.null_projects[project_id], null=True, success=False
+            )
             self.delete_project(project_id)
             del self.null_projects[project_id]
 
@@ -154,6 +159,19 @@ class ProjectInventory:
         for pid in project_ids:
             if pid in self.projects.keys():
                 self.projects[pid].advance()
+
+    def log_project_data_collector(self, project, null, success):
+
+        next_row = {"project_id": project.project_id,
+                    "prob": project.success_probability,
+                    "risk": project.risk,
+                    "budget": project.budget,
+                    "null": null,
+                    "success": success}
+
+        self.model.datacollector.add_table_row(
+            "Projects", next_row, ignore_missing=False
+        )
 
 
 class Project:
@@ -424,6 +442,10 @@ class SuccessCalculator:
                 project.inventory.fail_history[time] += 1
             else:
                 project.inventory.fail_history[time] = 1
+
+        project.inventory.log_project_data_collector(
+            project, null=False, success=success
+        )
 
         return success
 

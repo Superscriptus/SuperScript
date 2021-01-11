@@ -316,7 +316,6 @@ class TestTrainer(unittest.TestCase):
         self.assertEqual(trainer.hard_skills, HARD_SKILLS)
         self.assertEqual(trainer.max_skill_level, MAX_SKILL_LEVEL)
         self.assertEqual(trainer.training_length, TRAINING_LENGTH)
-        self.assertEqual(trainer.training_commences, TRAINING_COMMENCES)
         self.assertIsInstance(trainer.skill_quartiles, dict)
 
     @patch('superscript_model.model.Model')
@@ -341,7 +340,8 @@ class TestTrainer(unittest.TestCase):
     def test_train(self, mock_allocator, mock_model):
 
         mock_model.schedule = RandomActivation(mock_model)
-        mock_model.inventory = ProjectInventory(mock_allocator)
+        mock_model.inventory = ProjectInventory(mock_allocator,
+                                                model=mock_model)
         mock_model.inventory.total_skill_requirement = {
             'A': 10, 'B': 9
         }
@@ -358,8 +358,9 @@ class TestTrainer(unittest.TestCase):
             mock_model.schedule.add(w)
 
         mock_model.training_mode = 'all'
+
         trainer.update_skill_quartiles()
-        trainer.training_commences = 0
+        mock_model.training_commences = 0
         for i in range(5):
             trainer.train()
 

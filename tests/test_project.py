@@ -84,9 +84,11 @@ class TestProject(unittest.TestCase):
 class TestProjectInventory(unittest.TestCase):
 
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_init(self, mock_allocator):
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_init(self, mock_model, mock_allocator):
 
-        inventory = ProjectInventory(mock_allocator)
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
         self.assertEqual(inventory.active_count, 0)
 
     @patch('superscript_model.organisation.TeamAllocator')

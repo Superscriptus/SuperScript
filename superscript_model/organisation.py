@@ -371,6 +371,7 @@ class Trainer:
                               slack=worker.contributions.units_per_full_time)
 
     def add_slots_for_training(self):
+
         skillA = self.top_two_demanded_skills()[0]
         skillB = self.top_two_demanded_skills()[1]
         sorted_workers = dict()
@@ -418,9 +419,10 @@ class Trainer:
                 for skill in self.top_two_demanded_skills():
                     if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
                         requires_training = True
+                        skill_to_train = skill
 
                 if requires_training:
-                    self.add_worker(worker)
+                    self.add_worker(worker, skill_to_train)
 
     def add_worker(self, worker, skill_to_train):
 
