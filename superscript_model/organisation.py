@@ -114,23 +114,18 @@ class Team:
                     member_unit_budgets[member.worker_id] -= 1
                     unit_count += 1
 
-        self.assign_contributions_to_members(contributions)  # this will be called elsewhere
+        #self.assign_contributions_to_members(contributions)  # this will be called elsewhere
 
         return contributions
 
-    def assign_contributions_to_members(self, contributions):
+    def assign_contributions_to_members(self):
 
-        # for skill in contributions.keys():
-        #     for member_id in contributions[skill]:
-        #         self.members[member_id].add_contribution(
-        #             self.project, skill
-        #         )
         for member_id in self.members.keys():
 
             units_contributed_by_member = 0
-            for skill in contributions.keys():
+            for skill in self.contributions.keys():
 
-                if member_id in contributions[skill]:
+                if member_id in self.contributions[skill]:
                     self.members[member_id].contributions.add_contribution(
                         self.project, skill
                     )
@@ -138,7 +133,7 @@ class Team:
 
             (self.members[member_id]
                 .department.update_supplied_units(
-                member_id, units_contributed_by_member, self.project
+                units_contributed_by_member, self.project
             ))
 
     def compute_skill_balance(self):
@@ -226,6 +221,14 @@ class Team:
         for member in self.members.values():
             member.history.record(success)
 
+    def within_budget(self):
+        if self.project.budget is None:
+            return True
+        elif self.team_ovr <= self.project.budget:
+            return True
+        else:
+            return False
+
     def to_string(self):
 
         output = {
@@ -307,9 +310,18 @@ class TeamAllocator:
             project, bid_pool=bid_pool
         )
 
-        if team is not None and project.budget is not None:
-            team.remove_lead(project)
-            team = None if team.team_ovr > project.budget else team
+        # if team is not None and project.budget is not None:
+        #     if team.team_ovr > project.budget:
+        #         team.remove_lead(project)
+        #         team = None
+        #     else:
+        #         team.assign_contributions_to_members()
+        if team is not None:
+            if team.within_budget():
+                team.assign_contributions_to_members()
+            else:
+                team.remove_lead(project)
+                team = None
 
         project.team = team
 
@@ -461,8 +473,7 @@ class Department:
         self.units_supplied_to_projects = dict()
         self.maximum_project_units = 0
 
-    def update_supplied_units(self, worker_id,
-                              units_contributed, project):
+    def update_supplied_units(self, units_contributed, project):
 
         for time_offset in range(project.length):
             time = project.start_time + time_offset

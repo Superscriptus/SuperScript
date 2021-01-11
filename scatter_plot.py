@@ -12,6 +12,7 @@ abm.run_model(20)
 projects = abm.datacollector.get_table_dataframe("Projects")
 
 #projects.dropna(subset=['budget'], inplace=True)
+projects = projects.loc[projects.null==False]
 print(projects)
 
 #plt.scatter(projects.prob * projects.risk, projects.budget)
