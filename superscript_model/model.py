@@ -60,6 +60,10 @@ def number_failed_projects(model):
     )
 
 
+def number_null_projects(model):
+    return model.inventory.null_count
+
+
 def on_training(model):
     return sum(
         [1 for worker in model.schedule.agents
@@ -237,6 +241,7 @@ class SuperScriptModel(Model):
                 "RecentSuccessRate": recent_success_rate,
                 "SuccessfulProjects": number_successful_projects,
                 "FailedProjects": number_failed_projects,
+                "NullProjects": number_null_projects,
                 "WorkersOnProjects": on_projects,
                 "WorkersWithoutProjects": no_projects,
                 "WorkersOnTraining": on_training,

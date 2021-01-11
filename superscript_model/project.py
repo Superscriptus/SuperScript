@@ -33,6 +33,7 @@ class ProjectInventory:
 
         self.projects = dict()
         self.null_projects = dict()
+        self.null_count = 0
         self.index_total = 0
         self.team_allocator = team_allocator
         self.timeline_flexibility_func = (
@@ -67,6 +68,7 @@ class ProjectInventory:
     def remove_null_projects(self):
 
         nulls = list(self.null_projects.keys())
+        self.null_count = len(nulls)
 
         for project_id in nulls:
             self.log_project_data_collector(

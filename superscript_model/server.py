@@ -191,7 +191,10 @@ chart1 = ChartModule([{"Label": "ActiveProjects",
 chart2 = ChartModule([{"Label": "SuccessfulProjects",
                        "Color": "Green"},
                       {"Label": "FailedProjects",
-                       "Color": "Red"}],
+                       "Color": "Red"},
+                      {"Label": "NullProjects",
+                       "Color": "Orange"}
+                      ],
                      data_collector_name='datacollector')
 
 chart3 = ChartModule([{"Label": "AverageSuccessProbability",
