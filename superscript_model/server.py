@@ -117,6 +117,15 @@ model_params = {
         1,
         description="Choose number of projects created on each step",
     ),
+    "replace_after_inactive_steps": UserSettableParameter(
+        "slider",
+        "Replace worker after inactive steps",
+        10,
+        1,
+        20,
+        1,
+        description="Replace worker after inactive steps",
+    ),
     "target_training_load": UserSettableParameter(
         "slider",
         "Target training load",
