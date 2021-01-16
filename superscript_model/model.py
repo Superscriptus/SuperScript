@@ -27,7 +27,9 @@ from .config import (PROJECT_LENGTH,
                      PEER_ASSESSMENT_FAIL_STDEV,
                      PEER_ASSESSMENT_WEIGHT,
                      UPDATE_SKILL_BY_RISK_FLAG,
-                     REPLACE_AFTER_INACTIVE_STEPS)
+                     REPLACE_AFTER_INACTIVE_STEPS,
+                     ORGANISATION_STRATEGY,
+                     WORKER_STRATEGY)
 
 
 def safe_mean(x):
@@ -184,7 +186,9 @@ class SuperScriptModel(Model):
                  peer_assessment_fail_stdev=PEER_ASSESSMENT_FAIL_STDEV,
                  peer_assessment_weight=PEER_ASSESSMENT_WEIGHT,
                  update_skill_by_risk_flag=UPDATE_SKILL_BY_RISK_FLAG,
-                 replace_after_inactive_steps=REPLACE_AFTER_INACTIVE_STEPS):
+                 replace_after_inactive_steps=REPLACE_AFTER_INACTIVE_STEPS,
+                 organisation_strategy=ORGANISATION_STRATEGY,
+                 worker_strategy=WORKER_STRATEGY):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -200,6 +204,8 @@ class SuperScriptModel(Model):
         self.peer_assessment_weight = peer_assessment_weight
         self.update_skill_by_risk_flag = update_skill_by_risk_flag
         self.replace_after_inactive_steps = replace_after_inactive_steps
+        self.organisation_strategy = organisation_strategy
+        self.worker_strategy = worker_strategy
 
         self.G = nx.Graph()
         self.grid = SocialNetwork(self, self.G)

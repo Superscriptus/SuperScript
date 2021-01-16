@@ -76,6 +76,20 @@ class ConfigElement(TextElement):
 
 
 model_params = {
+    "organisation_strategy": UserSettableParameter(
+        "choice",
+        "Team allocation strategy",
+        value="Random",
+        choices=["Random", "Basic"],
+        description="Organisation strategy",
+    ),
+    "worker_strategy": UserSettableParameter(
+        "choice",
+        "Worker bidding strategy",
+        value="AllIn",
+        choices=["AllIn", "Stake"],
+        description="Organisation strategy",
+    ),
     "worker_count": UserSettableParameter(
         "slider",
         "Number of workers",

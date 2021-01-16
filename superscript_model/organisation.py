@@ -348,28 +348,28 @@ class BasicStrategy(implements(OrganisationStrategyInterface)):
         return ranked_bids
 
     def select_top_n(self, bid_pool, project):
+        worker_dict = {worker.worker_id: worker
+                       for worker in bid_pool}
         ranked_bids = self.rank_bids(bid_pool, project)
 
         team_size = 0
         workers = {}
         team = Team(project, {}, None)
         for worker_id in ranked_bids.keys():
-            workers[worker_id] = (
-                list(filter(lambda x: x.worker_id == worker_id, bid_pool))[0]
-            )
+            workers[worker_id] = worker_dict[worker_id]
             test_team = Team(project, workers, workers[worker_id])
             if test_team.within_budget():
                 team = test_team
                 team_size += 1
+            else:
+                del workers[worker_id]
+
             if team_size >= self.max_team_size:
                 break
 
         if team_size <= self.min_team_size:
             team = Team(project, {}, None)
 
-        print(project.project_id)
-        print(team.to_string())
-        print(project.requirements.to_string())
         return team
 
 
@@ -377,8 +377,9 @@ class TeamAllocator:
 
     def __init__(self, model):
         self.model = model
-        self.strategy = RandomStrategy(model)
-        #self.strategy = BasicStrategy(model)
+        self.strategy = (RandomStrategy(model)
+                         if self.model.organisation_strategy == "Random"
+                         else BasicStrategy(model))
 
     def allocate_team(self, project: Project):
         bid_pool = self.strategy.invite_bids(project)

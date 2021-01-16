@@ -29,7 +29,9 @@ class Worker(Agent):
         self.department = department
         self.department.add_worker()
 
-        self.strategy = AllInStrategy('All-In')
+        self.strategy = (AllInStrategy("AllIn")
+                         if self.model.worker_strategy == "AllIn"
+                         else StakeStrategy("Stake"))
         self.leads_on = dict()
         self.contributions = WorkerContributions(self)
         self.history = WorkerHistory()
@@ -267,6 +269,28 @@ class AllInStrategy(implements(WorkerStrategyInterface)):
             and
             worker.contributions.contributes_less_than_full_time(
                 project.start_time, project.length)):
+            return True
+        else:
+            return False
+
+    def accept(self, project: Project) -> bool:
+        return True
+
+
+class StakeStrategy(implements(WorkerStrategyInterface)):
+
+    def __init__(self, name: str):
+        self.name = name
+
+    def bid(self, project: Project, worker: Worker) -> bool:
+
+        if (worker.department.is_workload_satisfied(
+                project.start_time, project.length)
+            and
+            worker.contributions.contributes_less_than_full_time(
+                project.start_time, project.length)
+            and
+                project.risk <= 0.5 * worker.skills.ovr):
             return True
         else:
             return False
