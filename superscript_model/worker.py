@@ -34,6 +34,7 @@ class Worker(Agent):
         self.contributions = WorkerContributions(self)
         self.history = WorkerHistory()
         self.training_remaining = 0
+        self.timesteps_inactive = 0
 
     @property
     def contributes(self):
@@ -63,6 +64,7 @@ class Worker(Agent):
                 project.advance()
 
         self.skills.decay(self)
+        self.check_activity()
 
     def get_skill(self, skill, hard_skill=True):
         if hard_skill:
@@ -72,6 +74,19 @@ class Worker(Agent):
 
     def is_free(self, start, length, slack=None):
         return self.contributions.is_free_over_period(start, length, slack)
+
+    def check_activity(self):
+
+        if (self.contributions.get_units_contributed(self.now) > 0
+                and self.training_remaining == 0):
+
+            self.timesteps_inactive = 0
+        else:
+            self.timesteps_inactive += 1
+
+        if (self.timesteps_inactive
+                >= self.model.replace_after_inactive_steps):
+            self.replace()
 
     def replace(self):
 
@@ -123,7 +138,6 @@ class Worker(Agent):
         )
 
         self.skills.hard_skills[skill] *= modifier
-
 
 
 class WorkerContributions:

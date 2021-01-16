@@ -26,7 +26,8 @@ from .config import (PROJECT_LENGTH,
                      PEER_ASSESSMENT_FAIL_MEAN,
                      PEER_ASSESSMENT_FAIL_STDEV,
                      PEER_ASSESSMENT_WEIGHT,
-                     UPDATE_SKILL_BY_RISK_FLAG)
+                     UPDATE_SKILL_BY_RISK_FLAG,
+                     REPLACE_AFTER_INACTIVE_STEPS)
 
 
 def safe_mean(x):
@@ -144,7 +145,7 @@ def av_team_ovr(model):
 
 def worker_turnover(model):
     return model.worker_turnover.get(
-        model.schedule.steps - 2, 0.0
+        model.schedule.steps - 1, 0.0
     )
 
 
@@ -182,7 +183,8 @@ class SuperScriptModel(Model):
                  peer_assessment_fail_mean=PEER_ASSESSMENT_FAIL_MEAN,
                  peer_assessment_fail_stdev=PEER_ASSESSMENT_FAIL_STDEV,
                  peer_assessment_weight=PEER_ASSESSMENT_WEIGHT,
-                 update_skill_by_risk_flag=UPDATE_SKILL_BY_RISK_FLAG):
+                 update_skill_by_risk_flag=UPDATE_SKILL_BY_RISK_FLAG,
+                 replace_after_inactive_steps=REPLACE_AFTER_INACTIVE_STEPS):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -197,6 +199,7 @@ class SuperScriptModel(Model):
         self.peer_assessment_fail_stdev = peer_assessment_fail_stdev
         self.peer_assessment_weight = peer_assessment_weight
         self.update_skill_by_risk_flag = update_skill_by_risk_flag
+        self.replace_after_inactive_steps = replace_after_inactive_steps
 
         self.G = nx.Graph()
         self.grid = SocialNetwork(self, self.G)
