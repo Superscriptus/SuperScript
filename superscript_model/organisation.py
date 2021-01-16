@@ -27,7 +27,7 @@ class Team:
         self.project = project
         self.members = members
         self.lead = lead
-        self.assign_lead(self.project)
+        #self.assign_lead(self.project)
         self.round_to = round_to
         self.soft_skills = soft_skills  # used by compute_creativity_match()
         # currently this is automatic, but could be handled by TeamAllocator:
@@ -234,7 +234,9 @@ class Team:
         output = {
             'project': self.project.project_id,
             'members': list(self.members.keys()),
-            'lead': self.lead.worker_id,
+            'lead': (self.lead.worker_id
+                     if self.lead is not None
+                     else None),
             'success_probability': round(
                 self.project.success_probability, self.round_to
             ),
@@ -299,11 +301,84 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
         return Team(project, workers, lead)
 
 
+class BasicStrategy(implements(OrganisationStrategyInterface)):
+
+    def __init__(self, model,
+                 min_team_size=MIN_TEAM_SIZE,
+                 max_team_size=MAX_TEAM_SIZE):
+        self.model = model
+        self.min_team_size = min_team_size
+        self.max_team_size = max_team_size
+
+    def invite_bids(self, project: Project) -> list:
+
+        bid_pool = [
+            worker for worker in self.model.schedule.agents
+            if worker.bid(project)
+        ]
+        return bid_pool
+
+    def select_team(self, project: Project,
+                    bid_pool=None) -> Team:
+
+        bid_pool = (self.model.schedule.agents
+                    if bid_pool is None else bid_pool)
+
+        if len(bid_pool) < self.min_team_size:
+            return Team(project, {}, None)
+        else:
+            return self.select_top_n(bid_pool, project)
+
+    def rank_bids(self, bid_pool, project):
+
+        ranked_bids = {}
+        for worker in bid_pool:
+            ranked_bids[worker.worker_id] = sum([
+                worker.get_skill(skill)
+                for skill in project.required_skills
+            ])
+
+        ranked_bids = {
+            k: v for k, v in sorted(
+                ranked_bids.items(),
+                reverse=True,
+                key=lambda item: item[1]
+            )
+        }
+        return ranked_bids
+
+    def select_top_n(self, bid_pool, project):
+        ranked_bids = self.rank_bids(bid_pool, project)
+
+        team_size = 0
+        workers = {}
+        team = Team(project, {}, None)
+        for worker_id in ranked_bids.keys():
+            workers[worker_id] = (
+                list(filter(lambda x: x.worker_id == worker_id, bid_pool))[0]
+            )
+            test_team = Team(project, workers, workers[worker_id])
+            if test_team.within_budget():
+                team = test_team
+                team_size += 1
+            if team_size >= self.max_team_size:
+                break
+
+        if team_size <= self.min_team_size:
+            team = Team(project, {}, None)
+
+        print(project.project_id)
+        print(team.to_string())
+        print(project.requirements.to_string())
+        return team
+
+
 class TeamAllocator:
 
     def __init__(self, model):
         self.model = model
         self.strategy = RandomStrategy(model)
+        #self.strategy = BasicStrategy(model)
 
     def allocate_team(self, project: Project):
         bid_pool = self.strategy.invite_bids(project)
@@ -317,11 +392,11 @@ class TeamAllocator:
         #         team = None
         #     else:
         #         team.assign_contributions_to_members()
-        if team is not None:
+        if team is not None and team.lead is not None:
             if team.within_budget():
                 team.assign_contributions_to_members()
+                team.assign_lead(project)
             else:
-                team.remove_lead(project)
                 team = None
 
         project.team = team
