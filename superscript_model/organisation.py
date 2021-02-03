@@ -23,15 +23,21 @@ class Team:
 
     def __init__(self, project, members,
                  lead, round_to=PRINT_DECIMALS_TO,
-                 soft_skills=SOFT_SKILLS):
+                 soft_skills=SOFT_SKILLS,
+                 contributions=None):
         self.project = project
         self.members = members
         self.lead = lead
         #self.assign_lead(self.project)
         self.round_to = round_to
         self.soft_skills = soft_skills  # used by compute_creativity_match()
-        # currently this is automatic, but could be handled by TeamAllocator:
-        self.contributions = self.determine_member_contributions()
+
+        if contributions is None:
+            # currently this is automatic, but could be handled by TeamAllocator:
+            self.contributions = self.determine_member_contributions()
+        else:
+            self.contributions = contributions
+
         self.team_ovr = self.compute_ovr()
         self.skill_balance = self.compute_skill_balance()
         self.creativity_match = self.compute_creativity_match()
