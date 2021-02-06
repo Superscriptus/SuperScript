@@ -56,18 +56,28 @@ class Team:
             self.lead = None
 
     def compute_ovr(self, multiplier=TEAM_OVR_MULTIPLIER):
-
-        skill_count = 0
+        # Updated to only include the number of units actually required
+        # (taking highest available skills by level)
+        # And to use total number of required units as denominator
         ovr = 0
         for skill in self.project.required_skills:
-
+            required_units = (
+                self.project.get_skill_requirement(skill)['units']
+            )
             workers = self.contributions[skill]
-            for worker_id in workers:
-                ovr += self.members[worker_id].get_skill(skill)
-                skill_count += 1
+            skill_levels = [
+                self.members[worker_id].get_skill(skill)
+                for worker_id in workers
+            ]
+            skill_levels.sort(reverse=True)
+            ovr += sum(skill_levels[0:required_units])
 
-        if skill_count > 0:
-            return multiplier * ovr / skill_count
+        total_required_units = sum(
+            [self.project.get_skill_requirement(skill)['units']
+             for skill in self.project.required_skills]
+        )
+        if total_required_units > 0:
+            return multiplier * ovr / total_required_units
         else:
             return 0.0
 
