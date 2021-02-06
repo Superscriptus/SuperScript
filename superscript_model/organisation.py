@@ -153,7 +153,8 @@ class Team:
             ))
 
     def compute_skill_balance(self):
-
+        # Updated to only include the number of units actually required
+        # (taking highest available skills by level)
         skill_balance = 0
         number_with_negative_differences = 0
         for skill in self.project.required_skills:
@@ -168,8 +169,10 @@ class Team:
                 self.members[worker_id].get_skill(skill)
                 for worker_id in self.contributions[skill]
             ]
+            worker_skills.sort(reverse=True)
             skill_mismatch = (
-                    (sum(worker_skills) / required_units) - required_level
+                (sum(worker_skills[0:required_units])
+                 / required_units) - required_level
             ) if required_units > 0 else 0
 
             if skill_mismatch < 0:
