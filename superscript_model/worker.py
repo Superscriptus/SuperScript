@@ -140,6 +140,10 @@ class Worker(Agent):
         )
 
         self.skills.hard_skills[skill] *= modifier
+        self.skills.hard_skills[skill] = min(
+            self.skills.hard_skills[skill],
+            self.skills.max_skill
+        )
 
 
 class WorkerContributions:
