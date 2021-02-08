@@ -39,6 +39,7 @@ class Team:
             self.contributions = contributions
 
         self.team_ovr = self.compute_ovr()
+        self.team_budget = self.compute_team_budget()
         self.skill_balance = self.compute_skill_balance()
         self.creativity_match = self.compute_creativity_match()
 
@@ -59,7 +60,19 @@ class Team:
         # Updated to only include the number of units actually required
         # (taking highest available skills by level)
         # And to use total number of required units as denominator
-        ovr = 0
+        ovr = self.compute_team_budget()
+
+        total_required_units = sum(
+            [self.project.get_skill_requirement(skill)['units']
+             for skill in self.project.required_skills]
+        )
+        if total_required_units > 0:
+            return multiplier * ovr / total_required_units
+        else:
+            return 0.0
+
+    def compute_team_budget(self):
+        skill_sum = 0
         for skill in self.project.required_skills:
             required_units = (
                 self.project.get_skill_requirement(skill)['units']
@@ -70,16 +83,9 @@ class Team:
                 for worker_id in workers
             ]
             skill_levels.sort(reverse=True)
-            ovr += sum(skill_levels[0:required_units])
+            skill_sum += sum(skill_levels[0:required_units])
 
-        total_required_units = sum(
-            [self.project.get_skill_requirement(skill)['units']
-             for skill in self.project.required_skills]
-        )
-        if total_required_units > 0:
-            return multiplier * ovr / total_required_units
-        else:
-            return 0.0
+        return skill_sum
 
     def rank_members_by_skill(self, skill):
 
@@ -243,7 +249,8 @@ class Team:
     def within_budget(self):
         if self.project.budget is None:
             return True
-        elif self.team_ovr <= self.project.budget:
+        #elif self.team_ovr <= self.project.budget:
+        elif self.team_budget <= self.project.budget:
             return True
         else:
             return False
