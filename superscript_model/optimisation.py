@@ -3,7 +3,9 @@ from .utilities import Random
 from .config import MAX_TEAM_SIZE, MIN_TEAM_SIZE
 
 from scipy.optimize import minimize, NonlinearConstraint, basinhopping
+from scipy.spatial import minkowski_distance
 import numpy as np
+import pandas as pd
 import time
 import pickle
 
@@ -247,6 +249,40 @@ class Optimiser:
                 )
 
         return elapsed_time, ret
+
+    def compute_distances_from_requirements(self, project=None,
+                                            workers=None, p=2):
+
+        if project is None:
+            project = self.project
+        if workers is None:
+            workers = self.bid_pool
+
+        worker_table = pd.DataFrame()
+        worker_dict = {m.worker_id: m
+                       for m in workers}
+        worker_table['id'] = worker_dict.keys()
+
+        for skill in project.required_skills:
+            worker_table[skill] = [m.get_skill(skill) for m in workers]
+
+        required_levels = [
+            project.requirements.hard_skills[skill]['level']
+            for skill in project.required_skills
+        ]
+
+        worker_table['distance'] = [
+            minkowski_distance(row[project.required_skills],
+                               required_levels, p)
+            for ri, row in worker_table.iterrows()
+        ]
+        worker_table['prob'] = 1 / worker_table.distance
+        worker_table['prob'] /= sum(worker_table['prob'])
+
+        worker_table.sort_values('prob', ascending=False, inplace=True)
+
+        return dict(zip(worker_table.id, worker_table.prob))
+
 
 
 class MyConstraints(object):
