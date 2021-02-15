@@ -284,7 +284,6 @@ class Optimiser:
         return dict(zip(worker_table.id, worker_table.prob))
 
 
-
 class MyConstraints(object):
 
     def __init__(self, optimiser):
@@ -388,7 +387,10 @@ class MyTakeStep(object):
         inverted = self.bid_pool[::-1]
         choose_from = [bid for bid in self.bid_pool
                        if bid not in new_team_members]
-        to_add = Random.weighted_choice(choose_from, number_to_add, p=None) ## Add p
+        p = self.optimiser.compute_distances_from_requirements(
+            workers=choose_from
+        )
+        to_add = Random.weighted_choice(choose_from, number_to_add, p=p)
 
         for a in to_add:
             new_team_members.append(a)
