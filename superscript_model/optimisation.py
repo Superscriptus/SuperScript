@@ -2,7 +2,7 @@ from .organisation import Team
 from .utilities import Random
 from .config import MAX_TEAM_SIZE, MIN_TEAM_SIZE
 
-from scipy.optimize import minimize, NonlinearConstraint, basinhopping
+from scipy.optimize import basinhopping
 from scipy.spatial import minkowski_distance
 import numpy as np
 import pandas as pd
@@ -10,11 +10,20 @@ import time
 import pickle
 
 ## TODO:
-# - remove 'inverted'
+# - remove save functionality (and results_Dir) (and exp_number)
+# - move imports of MIN and MAX_TEAM_SIZE to main.py (pass via factory)
 # - clean up constraints
 # - write unit tests
 # - comment on use of Paths in docs (use of non-pickleable lambda functions and class methods)
 # - it is possible for the new takestep to remove members that have just been added. Prevent this?
+
+
+class OptimiserFactory:
+
+    @staticmethod
+    def get(optimiser_name, project, bid_pool, model):
+        if optimiser_name == "ParallelBasinhopping":
+            return Optimiser(project, bid_pool, model, 0)
 
 
 class Optimiser:
@@ -276,12 +285,69 @@ class Optimiser:
                                required_levels, p)
             for ri, row in worker_table.iterrows()
         ]
-        worker_table['prob'] = 1 / worker_table.distance
-        worker_table['prob'] /= sum(worker_table['prob'])
+        worker_table['prob'] = [(1 / d) if d > 0 else 0
+                                for d in worker_table.distance]
+        #1 / worker_table.distance
+        if sum(worker_table['prob']) > 0:
+            worker_table['prob'] /= sum(worker_table['prob'])
 
         worker_table.sort_values('prob', ascending=False, inplace=True)
 
         return dict(zip(worker_table.id, worker_table.prob))
+
+    def smart_guess(self, p=2):
+
+        x = np.zeros(5 * len(self.bid_pool))
+
+        worker_table = pd.DataFrame()
+        worker_dict = {m.worker_id: m
+                       for m in self.bid_pool}
+        worker_table['id'] = worker_dict.keys()
+
+        for skill in self.project.required_skills:
+            worker_table[skill] = [
+                m.get_skill(skill) for m in self.bid_pool
+            ]
+
+        required_levels = [
+            self.project.requirements.hard_skills[skill]['level']
+            for skill in self.project.required_skills
+        ]
+
+        worker_table['distance'] = [
+            minkowski_distance(row[self.project.required_skills],
+                               required_levels, p)
+            for ri, row in worker_table.iterrows()
+        ]
+        worker_table['prob'] = [(1 / d) if d > 0 else 0
+                                for d in worker_table.distance]
+        if sum(worker_table['prob']) > 0:
+            worker_table['prob'] /= sum(worker_table['prob'])
+
+        worker_table.sort_values('prob', ascending=False, inplace=True)
+
+        size = np.random.randint(self.min_team_size, self.max_team_size + 1)
+        members = np.random.choice(
+            worker_table.id, size=size, replace=False, p=worker_table.prob
+        )
+        members = [worker_dict[wid] for wid in members]
+
+        for m in members:
+            start = self.bid_pool.index(m) * 5
+
+            required_skill_count = len(self.project.required_skills)
+            add_skills = Random.choices(
+                self.project.required_skills,
+                min(required_skill_count,
+                    m.contributions.get_remaining_units(
+                        self.project.start_time, self.project.length)
+                    )
+            )
+            for skill in add_skills:
+                si = self.skills.index(skill)
+                x[start + si] = 1
+
+        return x
 
 
 class MyConstraints(object):
@@ -314,7 +380,7 @@ class MyTakeStep(object):
         )
         self.min_team_size = max(self.min_team_size, min_team_size)
 
-    def __call__(self, x):
+    def __oldcall__(self, x):
 
         # determine how many workers to add and remove to team:
         number_to_add = min(Random.randint(0, MAX_TEAM_SIZE),
@@ -364,7 +430,7 @@ class MyTakeStep(object):
 
         return x
 
-    def __newcall__(self, x):
+    def __call__(self, x):
 
         # determine how many workers to add and remove to team:
         number_to_add = min(Random.randint(0, MAX_TEAM_SIZE),
@@ -379,17 +445,17 @@ class MyTakeStep(object):
             number_to_remove = Random.randint(min_remove, max_remove)
 
         # choose members to add:
-        assert len(self.bid_pool) >= number_to_add + number_to_remove
+        #assert len(self.bid_pool) >= number_to_add + number_to_remove
+        assert len(self.bid_pool) >= number_to_add + self.optimiser.team_size(x)
         current_team = self.optimiser.get_team(x)
 
         to_add = []
         new_team_members = list(current_team.members.values())
-        inverted = self.bid_pool[::-1]
         choose_from = [bid for bid in self.bid_pool
                        if bid not in new_team_members]
-        p = self.optimiser.compute_distances_from_requirements(
+        p = list(self.optimiser.compute_distances_from_requirements(
             workers=choose_from
-        )
+        ).values())
         to_add = Random.weighted_choice(choose_from, number_to_add, p=p)
 
         for a in to_add:
@@ -406,7 +472,7 @@ class MyTakeStep(object):
                 si = self.skills.index(skill)
                 x[start + si] = 1
 
-        # now select and remove required numer of workers:
+        # now select and remove required number of workers:
         to_remove = Random.choices(new_team_members, number_to_remove)
         for r in to_remove:
             start = self.bid_pool.index(r) * 5

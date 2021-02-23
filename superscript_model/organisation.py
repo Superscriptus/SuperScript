@@ -1,6 +1,7 @@
+from pathos.multiprocessing import ProcessingPool as Pool
 from interface import Interface, implements
 from itertools import combinations
-from numpy import percentile
+from numpy import percentile, argmax, zeros
 import json
 
 from .project import Project
@@ -16,7 +17,9 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      WORKLOAD_SATISFIED_TOLERANCE,
                      UNITS_PER_FTE,
                      TRAINING_LENGTH,
-                     HARD_SKILLS)
+                     HARD_SKILLS,
+                     NUMBER_OF_PROCESSORS,
+                     NUMBER_OF_BASIN_HOPS)
 
 
 class Team:
@@ -157,6 +160,9 @@ class Team:
                 .department.update_supplied_units(
                 units_contributed_by_member, self.project
             ))
+            # print(member_id, self.members[member_id].contributions.per_skill_contributions)
+            # print(self.members[member_id].contributions.get_units_contributed(self.members[member_id].now))
+            # print(self.members[member_id].training_remaining)
 
     def compute_skill_balance(self):
         # Updated to only include the number of units actually required
@@ -399,13 +405,77 @@ class BasicStrategy(implements(OrganisationStrategyInterface)):
         return team
 
 
+class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
+
+    def __init__(self, model, optimiser_factory,
+                 min_team_size=MIN_TEAM_SIZE,
+                 max_team_size=MAX_TEAM_SIZE,
+                 num_proc=NUMBER_OF_PROCESSORS,
+                 niter=NUMBER_OF_BASIN_HOPS):
+
+        self.model = model
+        self.optimiser_factory = optimiser_factory
+        self.min_team_size = min_team_size
+        self.max_team_size = max_team_size
+        self.num_proc = num_proc
+        self.niter = niter
+
+    def invite_bids(self, project: Project) -> list:
+
+        bid_pool = [
+            worker for worker in self.model.schedule.agents
+            if worker.bid(project)
+        ]
+        return bid_pool
+
+    def select_team(self, project: Project,
+                    bid_pool=None) -> Team:
+
+        bid_pool = (self.model.schedule.agents
+                    if bid_pool is None else bid_pool)
+
+        if len(bid_pool) < self.min_team_size:
+            return Team(project, {}, None)
+        else:
+            ## Refactor this logic into the optimisation class:
+            p = Pool(processes=self.num_proc)
+            opti = self.optimiser_factory.get(
+                "ParallelBasinhopping", project, bid_pool, self.model
+            )
+            #x0 = [0 for i in range(5 * len(bid_pool))]
+            x0 = opti.smart_guess()
+            batch_results = p.map(opti.solve,
+                                  [x0 for i in range(self.num_proc)],
+                                  [self.niter for i in range(self.num_proc)],
+                                  range(self.num_proc))
+
+            p.close()
+            p.join()
+            p.clear()
+
+            probs = [-r[1].fun for r in batch_results]
+            team_x = [r[1].x for r in batch_results]
+            best_team = opti.get_team(team_x[argmax(probs)])
+
+            return best_team
+
+
+## Add smart_guess to the above (instead of x0)
+## If optimisation fails - use smart_guess?
+## Ensure that contributions have been assigned to workers...
+
+
 class TeamAllocator:
 
-    def __init__(self, model):
+    def __init__(self, model, optimiser_factory):
         self.model = model
-        self.strategy = (RandomStrategy(model)
-                         if self.model.organisation_strategy == "Random"
-                         else BasicStrategy(model))
+
+        if self.model.organisation_strategy == "Random":
+            self.strategy = RandomStrategy(model)
+        elif self.model.organisation_strategy == "Basic":
+            self.strategy = BasicStrategy(model)
+        elif self.model.organisation_strategy == "Basin":
+            self.strategy = ParallelBasinhopping(model, optimiser_factory)
 
     def allocate_team(self, project: Project):
         bid_pool = self.strategy.invite_bids(project)
@@ -419,6 +489,7 @@ class TeamAllocator:
         #         team = None
         #     else:
         #         team.assign_contributions_to_members()
+
         if team is not None and team.lead is not None:
             if team.within_budget():
                 team.assign_contributions_to_members()

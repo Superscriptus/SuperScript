@@ -7,6 +7,7 @@ import numpy as np
 from .worker import Worker
 from .project import ProjectInventory
 from .network import SocialNetwork
+from .optimisation import OptimiserFactory
 from .organisation import (TeamAllocator,
                            Department,
                            Trainer)
@@ -211,7 +212,7 @@ class SuperScriptModel(Model):
         self.grid = SocialNetwork(self, self.G)
         self.schedule = RandomActivation(self)
         self.inventory = ProjectInventory(
-            TeamAllocator(self),
+            TeamAllocator(self, OptimiserFactory()),
             timeline_flexibility='TimelineFlexibility',
             social_network=self.grid,
             model=self

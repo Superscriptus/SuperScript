@@ -58,6 +58,7 @@ class FunctionFactory:
                 intercept=1.0
             )
 
+
 class FunctionInterface(Interface):
 
     def get_values(self, x: np.ndarray) -> np.ndarray:

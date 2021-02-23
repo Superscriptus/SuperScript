@@ -5,7 +5,11 @@ from mesa.visualization.modules import (ChartModule,
                                         TextElement)
 
 from .model import SuperScriptModel
-from .config import DEPARTMENT_COUNT
+from .config import (WORKER_COUNT,
+                     DEPARTMENT_COUNT,
+                     WORKER_STRATEGY,
+                     ORGANISATION_STRATEGY,
+                     NEW_PROJECTS_PER_TIMESTEP)
 from .utilities import Random
 
 r = lambda: Random.randint(0, 255)
@@ -79,21 +83,21 @@ model_params = {
     "organisation_strategy": UserSettableParameter(
         "choice",
         "Team allocation strategy",
-        value="Random",
-        choices=["Random", "Basic"],
+        value=ORGANISATION_STRATEGY,
+        choices=["Random", "Basic", "Basin"],
         description="Organisation strategy",
     ),
     "worker_strategy": UserSettableParameter(
         "choice",
         "Worker bidding strategy",
-        value="AllIn",
+        value=WORKER_STRATEGY,
         choices=["AllIn", "Stake"],
         description="Organisation strategy",
     ),
     "worker_count": UserSettableParameter(
         "slider",
         "Number of workers",
-        100,
+        int(WORKER_COUNT),
         10,
         1000,
         10,
@@ -111,7 +115,7 @@ model_params = {
     "new_projects_per_timestep": UserSettableParameter(
         "slider",
         "Projects per step",
-        20,
+        int(NEW_PROJECTS_PER_TIMESTEP),
         1,
         50,
         1,

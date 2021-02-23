@@ -13,7 +13,7 @@ class Random:
 
     @staticmethod
     def weighted_choice(iterable, k, replace=False, p=None):
-        return random.np.choice(iterable, size=k,
+        return np.random.choice(iterable, size=k,
                                 replace=replace, p=p)
 
     @staticmethod

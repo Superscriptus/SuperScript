@@ -1,0 +1,16 @@
+TODO list for future development of SuperScript model.
+
+Priority:
+- add parallel timeline flexibility search
+- remove print statements from org.py (lines 163-5) and check get_units_contributed:is it one teimstep out?
+- refactor TeamAllocator constructor (implement a strategy factory)
+- refactor strategy classes to use ABC pattern rather than Interface. This will remove code duplication (e.g. in the constructors).
+- update server.py to take all default gui values from config.py
+- move use of np.random.choice to Random class (e.g. in optimisation.py) - this was added later because it allows weighted selection without replacement
+- remove code duplication in optimisation.py - smart_guess and MyTakeStep.__call__
+
+Longer-term:
+- test parallel batchrunner alongside (on top of) parallel basinhopping: processes within prcoesses?
+    Note that there are issues with copying objects back and forwards between subprocesses. e.g. workers are copied not same instance when doing parallel team allocation.
+    See line: best_team = opti.get_team(team_x[argmax(probs)])
+
