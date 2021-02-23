@@ -111,13 +111,19 @@ class ProjectInventory:
     def create_projects(self, new_projects_count,
                         time, length):
 
+        auto_offset = (
+            False if self.model.organisation_strategy == 'Basin'
+            else True
+        )
+
         new_projects = []
         for i in range(new_projects_count):
             p = Project(
                 self, self.index_total + i,
                 project_length=length,
                 start_time_offset=self.get_start_time_offset(),
-                start_time=time
+                start_time=time,
+                auto_offset=auto_offset
             )
             new_projects.append(p)
 

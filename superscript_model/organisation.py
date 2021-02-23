@@ -437,25 +437,36 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         if len(bid_pool) < self.min_team_size:
             return Team(project, {}, None)
         else:
+            base_start_time = project.start_time
+            probabilities = []
+            teams = []
             ## Refactor this logic into the optimisation class:
-            p = Pool(processes=self.num_proc)
-            opti = self.optimiser_factory.get(
-                "ParallelBasinhopping", project, bid_pool, self.model
-            )
-            #x0 = [0 for i in range(5 * len(bid_pool))]
-            x0 = opti.smart_guess()
-            batch_results = p.map(opti.solve,
-                                  [x0 for i in range(self.num_proc)],
-                                  [self.niter for i in range(self.num_proc)],
-                                  range(self.num_proc))
+            for offset in range(project.start_time_offset + 1):
 
-            p.close()
-            p.join()
-            p.clear()
+                project.start_time = base_start_time + offset
+                p = Pool(processes=self.num_proc)
+                opti = self.optimiser_factory.get(
+                    "ParallelBasinhopping", project, bid_pool, self.model
+                )
+                #x0 = [0 for i in range(5 * len(bid_pool))]
+                x0 = opti.smart_guess()
+                batch_results = p.map(opti.solve,
+                                      [x0 for i in range(self.num_proc)],
+                                      [self.niter for i in range(self.num_proc)],
+                                      range(self.num_proc))
 
-            probs = [-r[1].fun for r in batch_results]
-            team_x = [r[1].x for r in batch_results]
-            best_team = opti.get_team(team_x[argmax(probs)])
+                p.close()
+                p.join()
+                p.clear()
+
+                probs = [-r[1].fun for r in batch_results]
+                team_x = [r[1].x for r in batch_results]
+                teams.append(opti.get_team(team_x[argmax(probs)]))
+                probabilities.append(max(probs))
+
+            offset = argmax(probabilities)
+            best_team = teams[argmax(probabilities)]
+            project.start_time = base_start_time + offset
 
             return best_team
 
