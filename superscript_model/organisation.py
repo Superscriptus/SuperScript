@@ -422,38 +422,54 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
     def invite_bids(self, project: Project) -> list:
 
-        bid_pool = [
-            worker for worker in self.model.schedule.agents
-            if worker.bid(project)
-        ]
+        base_start_time = project.start_time
+        bid_pool = {}
+        for offset in range(project.start_time_offset + 1):
+            project.start_time = base_start_time + offset
+            bid_pool[offset] = [
+                worker for worker in self.model.schedule.agents
+                if worker.bid(project)
+            ]
         return bid_pool
 
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:
 
-        bid_pool = (self.model.schedule.agents
-                    if bid_pool is None else bid_pool)
+        bid_pool = (
+            {
+             offset: self.model.schedule.agents
+             for offset in range(project.start_time_offset + 1)
+            }
+            if bid_pool is None else bid_pool
+        )
 
-        if len(bid_pool) < self.min_team_size:
-            return Team(project, {}, None)
-        else:
-            base_start_time = project.start_time
-            probabilities = []
-            teams = []
-            ## Refactor this logic into the optimisation class:
-            for offset in range(project.start_time_offset + 1):
+        base_start_time = project.start_time
+        probabilities = []
+        teams = []
+        ## Refactor this logic into the optimisation class:
+        for offset in range(project.start_time_offset + 1):
 
-                project.start_time = base_start_time + offset
-                p = Pool(processes=self.num_proc)
-                opti = self.optimiser_factory.get(
-                    "ParallelBasinhopping", project, bid_pool, self.model
-                )
+            project.start_time = base_start_time + offset
+            p = Pool(processes=self.num_proc)
+            opti = self.optimiser_factory.get(
+                "ParallelBasinhopping", project, bid_pool[offset], self.model
+            )
+            if len(bid_pool[offset]) < self.min_team_size:
+                teams.append(Team(project, {}, None))
+                probabilities.append(0.0)
+            elif self.niter == 0:
+                x = opti.smart_guess()
+                teams.append(opti.get_team(x))
+                probabilities.append(-opti.objective_func(x))
+            else:
                 #x0 = [0 for i in range(5 * len(bid_pool))]
-                x0 = opti.smart_guess()
-                batch_results = p.map(opti.solve,
-                                      [x0 for i in range(self.num_proc)],
-                                      [self.niter for i in range(self.num_proc)],
-                                      range(self.num_proc))
+                #x0 = opti.smart_guess()
+                batch_results = p.map(
+                    opti.solve,
+                    [opti.smart_guess() for i in range(self.num_proc)],
+                    [self.niter for i in range(self.num_proc)],
+                    range(self.num_proc)
+                )
 
                 p.close()
                 p.join()
@@ -464,11 +480,11 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
                 teams.append(opti.get_team(team_x[argmax(probs)]))
                 probabilities.append(max(probs))
 
-            offset = argmax(probabilities)
-            best_team = teams[argmax(probabilities)]
-            project.start_time = base_start_time + offset
+        offset = argmax(probabilities)
+        best_team = teams[argmax(probabilities)]
+        project.start_time = base_start_time + offset
 
-            return best_team
+        return best_team
 
 
 ## Add smart_guess to the above (instead of x0)
