@@ -182,13 +182,16 @@ class Project:
                  project_id=42,
                  project_length=PROJECT_LENGTH,
                  start_time_offset=DEFAULT_START_OFFSET,
-                 start_time=DEFAULT_START_TIME):
+                 start_time=DEFAULT_START_TIME,
+                 auto_offset=True):
 
         self.inventory = inventory
         self.project_id = project_id
         self.length = project_length
         self.progress = 0 - start_time_offset
-        self.start_time = start_time + start_time_offset
+        self.start_time_offset = start_time_offset
+        self.start_time = (start_time + start_time_offset
+                           if auto_offset else start_time)
         self.team = None
         self.requirements = ProjectRequirements(
             budget_functionality_flag
