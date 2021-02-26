@@ -2,7 +2,8 @@ TODO list for future development of SuperScript model.
 
 Priority:
 - test parallel timeline flexibility search
-- add niter selection to GUI
+- add niter selection to GUI.
+- Add parallel niter=0 guesses: poor performance!
 - remove print statements from org.py (lines 163-5) and check get_units_contributed:is it one teimstep out?
 - refactor TeamAllocator constructor (implement a strategy factory)
 - refactor strategy classes to use ABC pattern rather than Interface. This will remove code duplication (e.g. in the constructors).
