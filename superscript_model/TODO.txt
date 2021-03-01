@@ -1,6 +1,7 @@
 TODO list for future development of SuperScript model.
 
 Priority:
+- write script to produce requirements and script to install (with pip + conda)
 - test parallel timeline flexibility search
 - add niter selection to GUI.
 - Add parallel niter=0 guesses: poor performance!

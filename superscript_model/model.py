@@ -30,7 +30,8 @@ from .config import (PROJECT_LENGTH,
                      UPDATE_SKILL_BY_RISK_FLAG,
                      REPLACE_AFTER_INACTIVE_STEPS,
                      ORGANISATION_STRATEGY,
-                     WORKER_STRATEGY)
+                     WORKER_STRATEGY,
+                     SAVE_PROJECTS)
 
 
 def safe_mean(x):
@@ -215,7 +216,8 @@ class SuperScriptModel(Model):
             TeamAllocator(self, OptimiserFactory()),
             timeline_flexibility='TimelineFlexibility',
             social_network=self.grid,
-            model=self
+            model=self,
+            save_flag=SAVE_PROJECTS
         )
         self.training_on = training_on
         self.training_mode = training_mode
@@ -292,3 +294,5 @@ class SuperScriptModel(Model):
     def run_model(self, step_count: int):
         for i in range(step_count):
             self.step()
+
+        self.inventory.save_projects()

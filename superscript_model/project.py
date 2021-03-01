@@ -1,5 +1,6 @@
 import numpy as np
 import json
+import pickle
 
 from .function import FunctionFactory
 from .utilities import Random
@@ -29,7 +30,8 @@ class ProjectInventory:
                  max_timeline_flex=MAXIMUM_TIMELINE_FLEXIBILITY,
                  hard_skills=HARD_SKILLS,
                  social_network=None,
-                 model=None):
+                 model=None,
+                 save_flag=False):
 
         self.projects = dict()
         self.null_projects = dict()
@@ -54,6 +56,10 @@ class ProjectInventory:
             'SkillUpdateByRisk'
         ) if self.model.update_skill_by_risk_flag
           else FunctionFactory.get('IdentityFunction'))
+
+        self.save_flag = save_flag
+        if self.save_flag:
+            self.all_projects = {}
 
     @property
     def active_count(self):
@@ -130,10 +136,18 @@ class ProjectInventory:
         self.determine_total_skill_requirements(new_projects)
         new_projects = self.rank_projects(new_projects)
 
+        if self.save_flag:
+            self.all_projects[time] = new_projects
+
         for p in new_projects:
             self.team_allocator.allocate_team(p)
             self.success_calculator.calculate_success_probability(p)
             self.add_project(p)
+
+    def save_projects(self):
+        if self.save_flag:
+            with pickle.open('project_file.pickle', 'wb') as ofile:
+                pickle.dump(self.all_projects, ofile)
 
     @staticmethod
     def rank_projects(project_list):

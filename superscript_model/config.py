@@ -13,6 +13,7 @@ UNITS_PER_FTE = 10  # number of units equal to full-time equivalent
 # worker (and project):
 HARD_SKILLS = ['A', 'B', 'C', 'D', 'E']
 SOFT_SKILLS = ['F', 'G', 'H', 'I', 'J']
+
 # worker:
 MAX_SKILL_LEVEL = 5
 MIN_SOFT_SKILL_LEVEL = 1
@@ -37,6 +38,7 @@ MAXIMUM_TIMELINE_FLEXIBILITY = 4
 PROJECT_LENGTH = 5
 DEFAULT_START_OFFSET = 0
 DEFAULT_START_TIME = 0
+SAVE_PROJECTS = False
 
 # project requirements
 P_HARD_SKILL_PROJECT = 0.8
