@@ -32,7 +32,8 @@ class ProjectInventory:
                  social_network=None,
                  model=None,
                  save_flag=False,
-                 load_flag=False):
+                 load_flag=False,
+                 io_dir='./'):
 
         self.projects = dict()
         self.null_projects = dict()
@@ -58,6 +59,7 @@ class ProjectInventory:
         ) if self.model.update_skill_by_risk_flag
           else FunctionFactory.get('IdentityFunction'))
 
+        self.io_dir = io_dir
         self.save_flag = save_flag
         if self.save_flag:
             self.all_projects = {}
@@ -67,7 +69,7 @@ class ProjectInventory:
 
         if self.load_flag:
             try:
-                with open('project_file.pickle', 'rb') as ifile:
+                with open(io_dir + '/project_file.pickle', 'rb') as ifile:
                     self.all_projects = pickle.load(ifile)
             except FileNotFoundError:
                 print(
@@ -164,7 +166,7 @@ class ProjectInventory:
 
     def save_projects(self):
         if self.save_flag:
-            with pickle.open('project_file.pickle', 'wb') as ofile:
+            with open(self.io_dir + '/project_file.pickle', 'wb') as ofile:
                 pickle.dump(self.all_projects, ofile)
 
     @staticmethod

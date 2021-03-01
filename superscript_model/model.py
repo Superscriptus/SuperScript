@@ -32,7 +32,8 @@ from .config import (PROJECT_LENGTH,
                      ORGANISATION_STRATEGY,
                      WORKER_STRATEGY,
                      SAVE_PROJECTS,
-                     LOAD_PROJECTS)
+                     LOAD_PROJECTS,
+                     IO_DIR)
 
 
 def safe_mean(x):
@@ -191,7 +192,8 @@ class SuperScriptModel(Model):
                  update_skill_by_risk_flag=UPDATE_SKILL_BY_RISK_FLAG,
                  replace_after_inactive_steps=REPLACE_AFTER_INACTIVE_STEPS,
                  organisation_strategy=ORGANISATION_STRATEGY,
-                 worker_strategy=WORKER_STRATEGY):
+                 worker_strategy=WORKER_STRATEGY,
+                 io_dir=IO_DIR):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -219,7 +221,8 @@ class SuperScriptModel(Model):
             social_network=self.grid,
             model=self,
             save_flag=SAVE_PROJECTS,
-            load_flag=LOAD_PROJECTS
+            load_flag=LOAD_PROJECTS,
+            io_dir=io_dir
         )
         self.training_on = training_on
         self.training_mode = training_mode
