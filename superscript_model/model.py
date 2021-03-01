@@ -31,7 +31,8 @@ from .config import (PROJECT_LENGTH,
                      REPLACE_AFTER_INACTIVE_STEPS,
                      ORGANISATION_STRATEGY,
                      WORKER_STRATEGY,
-                     SAVE_PROJECTS)
+                     SAVE_PROJECTS,
+                     LOAD_PROJECTS)
 
 
 def safe_mean(x):
@@ -217,7 +218,8 @@ class SuperScriptModel(Model):
             timeline_flexibility='TimelineFlexibility',
             social_network=self.grid,
             model=self,
-            save_flag=SAVE_PROJECTS
+            save_flag=SAVE_PROJECTS,
+            load_flag=LOAD_PROJECTS
         )
         self.training_on = training_on
         self.training_mode = training_mode

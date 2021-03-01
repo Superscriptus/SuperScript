@@ -31,7 +31,8 @@ class ProjectInventory:
                  hard_skills=HARD_SKILLS,
                  social_network=None,
                  model=None,
-                 save_flag=False):
+                 save_flag=False,
+                 load_flag=False):
 
         self.projects = dict()
         self.null_projects = dict()
@@ -60,6 +61,20 @@ class ProjectInventory:
         self.save_flag = save_flag
         if self.save_flag:
             self.all_projects = {}
+
+        self.load_flag = load_flag
+        assert not self.save_flag & self.load_flag
+
+        if self.load_flag:
+            try:
+                with open('project_file.pickle', 'rb') as ifile:
+                    self.all_projects = pickle.load(ifile)
+            except FileNotFoundError:
+                print(
+                    'Cannot load predefined projects: '
+                    'project_file.pickle not found.'
+                )
+                self.load_flag = False
 
     @property
     def active_count(self):
@@ -122,19 +137,22 @@ class ProjectInventory:
             else True
         )
 
-        new_projects = []
-        for i in range(new_projects_count):
-            p = Project(
-                self, self.index_total + i,
-                project_length=length,
-                start_time_offset=self.get_start_time_offset(),
-                start_time=time,
-                auto_offset=auto_offset
-            )
-            new_projects.append(p)
+        if self.load_flag:
+            new_projects = self.all_projects.get(time, [])
+        else:
+            new_projects = []
+            for i in range(new_projects_count):
+                p = Project(
+                    self, self.index_total + i,
+                    project_length=length,
+                    start_time_offset=self.get_start_time_offset(),
+                    start_time=time,
+                    auto_offset=auto_offset
+                )
+                new_projects.append(p)
 
-        self.determine_total_skill_requirements(new_projects)
-        new_projects = self.rank_projects(new_projects)
+            self.determine_total_skill_requirements(new_projects)
+            new_projects = self.rank_projects(new_projects)
 
         if self.save_flag:
             self.all_projects[time] = new_projects
