@@ -78,11 +78,16 @@ class Worker(Agent):
         return self.contributions.is_free_over_period(start, length, slack)
 
     def check_activity(self):
-
+        '''Added new clause to check that worker has not been assigned to a project starting within the planning horizon.
+        If so, they survive replacement.'''
         if (self.contributions.get_units_contributed(self.now) > 0
                 and self.training_remaining == 0):
-
             self.timesteps_inactive = 0
+
+        elif sum([self.contributions.get_units_contributed(self.now + t) > 0
+                  for t in range(self.model.inventory.max_timeline_flex)]):
+            self.timesteps_inactive = 0
+
         else:
             self.timesteps_inactive += 1
 
@@ -91,6 +96,10 @@ class Worker(Agent):
             self.replace()
 
     def replace(self):
+
+        if len(self.leads_on) > 0:
+            print("warning: replacing worker %d, leads on projects: " % self.worker_id,
+                  self.leads_on.keys())
 
         self.department.number_of_workers -= 1
         self.model.new_workers += 1

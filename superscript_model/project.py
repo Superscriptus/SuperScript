@@ -1,3 +1,4 @@
+from copy import deepcopy
 import numpy as np
 import json
 import pickle
@@ -140,7 +141,16 @@ class ProjectInventory:
         )
 
         if self.load_flag:
-            new_projects = self.all_projects.get(time, [])
+            predefined_projects = self.all_projects.get(time, [])
+            new_projects = [deepcopy(p) for p in predefined_projects]
+            for project in new_projects:
+                project.inventory = self
+                project.team = None
+                project.progress = 0 - project.max_start_time_offset
+                project.start_time = (
+                    time + project.max_start_time_offset
+                    if auto_offset else time
+                )
         else:
             new_projects = []
             for i in range(new_projects_count):
@@ -216,7 +226,7 @@ class ProjectInventory:
 
 
 class Project:
-
+# progress and team are good examples of why objects should be imutable.
     def __init__(self,
                  inventory: ProjectInventory,
                  project_id=42,
@@ -229,7 +239,7 @@ class Project:
         self.project_id = project_id
         self.length = project_length
         self.progress = 0 - start_time_offset
-        self.start_time_offset = start_time_offset
+        self.max_start_time_offset = start_time_offset
         self.start_time = (start_time + start_time_offset
                            if auto_offset else start_time)
         self.team = None

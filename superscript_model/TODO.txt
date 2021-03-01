@@ -4,6 +4,7 @@ Priority:
 - write script to produce requirements and script to install (with pip + conda)
 - test parallel timeline flexibility search
 - add niter selection to GUI.
+- write a better copy method for saving/loading project, rather than pickling whole project and then re-setting the mutable data memebers
 - Add parallel niter=0 guesses: poor performance!
 - remove print statements from org.py (lines 163-5) and check get_units_contributed:is it one teimstep out?
 - refactor TeamAllocator constructor (implement a strategy factory)

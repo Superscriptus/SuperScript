@@ -3,6 +3,7 @@ import pickle
 import sys, os
 
 ## TODO: ADD save project level tracked data (see scatter_plot.py)
+## Usage: python aws_run_simulation.py ./simulation_io 100 100 2
 
 if __name__ == "__main__":
 
@@ -34,6 +35,7 @@ if __name__ == "__main__":
 
     tracked = abm.datacollector.get_model_vars_dataframe()
     print(tracked)
+    print(abm.inventory.all_projects[99])
 
     with open(SAVE_DIR
               + '/tracked_model_vars_wc_%d_np_%d_ts_%d.pickle'

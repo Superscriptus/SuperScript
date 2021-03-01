@@ -41,6 +41,15 @@ class Team:
         else:
             self.contributions = contributions
 
+        # check that team leader actually contributes to project:
+        # (otherwise worker may be replaced while still leading project)
+        if self.count_units_contributed_by_member(self.lead.worker_id) == 0:
+            contributing_members = [
+                m for m in self.members.values()
+                if self.count_units_contributed_by_member(m.worker_id) > 0
+            ]
+            self.lead = Random.choice(contributing_members)
+
         self.team_ovr = self.compute_ovr()
         self.team_budget = self.compute_team_budget()
         self.skill_balance = self.compute_skill_balance()
@@ -143,6 +152,15 @@ class Team:
 
         return contributions
 
+    def count_units_contributed_by_member(self, member_id):
+
+        units_contributed_by_member = 0
+        for skill in self.contributions.keys():
+            if member_id in self.contributions[skill]:
+                units_contributed_by_member += 1
+
+        return units_contributed_by_member
+
     def assign_contributions_to_members(self):
 
         for member_id in self.members.keys():
@@ -160,9 +178,6 @@ class Team:
                 .department.update_supplied_units(
                 units_contributed_by_member, self.project
             ))
-            # print(member_id, self.members[member_id].contributions.per_skill_contributions)
-            # print(self.members[member_id].contributions.get_units_contributed(self.members[member_id].now))
-            # print(self.members[member_id].training_remaining)
 
     def compute_skill_balance(self):
         # Updated to only include the number of units actually required
@@ -424,7 +439,7 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
         base_start_time = project.start_time
         bid_pool = {}
-        for offset in range(project.start_time_offset + 1):
+        for offset in range(project.max_start_time_offset + 1):
             project.start_time = base_start_time + offset
             bid_pool[offset] = [
                 worker for worker in self.model.schedule.agents
@@ -438,7 +453,7 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         bid_pool = (
             {
              offset: self.model.schedule.agents
-             for offset in range(project.start_time_offset + 1)
+             for offset in range(project.max_start_time_offset + 1)
             }
             if bid_pool is None else bid_pool
         )
@@ -447,7 +462,7 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         probabilities = []
         teams = []
         ## Refactor this logic into the optimisation class:
-        for offset in range(project.start_time_offset + 1):
+        for offset in range(project.max_start_time_offset + 1):
 
             project.start_time = base_start_time + offset
             p = Pool(processes=self.num_proc)
@@ -482,7 +497,9 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
         offset = argmax(probabilities)
         best_team = teams[argmax(probabilities)]
+        # this could be refactored (see also project load).:
         project.start_time = base_start_time + offset
+        project.progress = 0 - offset
 
         return best_team
 
