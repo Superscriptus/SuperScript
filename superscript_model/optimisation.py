@@ -234,10 +234,15 @@ class Optimiser:
                            take_step=my_takestep)
                            #callback=print_fun,)
 
+        if ret.fun >= 0.0:
+            ret.x = guess
+            ret.fun = self.objective_func(ret.x)
+
         elapsed_time = time.time() - start_time
         if self.verbose:
             print("%d iterations took %.2f seconds" % (niter, elapsed_time))
 
+# Can be removed!
         best_team = self.get_team(ret.x)
         self.project.team = best_team
         self.model.inventory.success_calculator.calculate_success_probability(

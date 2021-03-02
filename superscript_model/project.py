@@ -218,7 +218,19 @@ class ProjectInventory:
                     "risk": project.risk,
                     "budget": project.budget,
                     "null": null,
-                    "success": success}
+                    "success": success,
+                    "maximum_offset": project.max_start_time_offset,
+                    "realised_offset": project.realised_offset,
+                    "start_time": project.start_time}
+
+        if not null:
+            next_row["team_budget"] = project.team.team_budget
+            next_row["team_ovr"] = project.team.team_ovr
+            next_row["team_creativity_match"] = project.team.creativity_match
+        else:
+            next_row["team_budget"] = None
+            next_row["team_ovr"] = None
+            next_row["team_creativity_match"] = None
 
         self.model.datacollector.add_table_row(
             "Projects", next_row, ignore_missing=False
@@ -240,6 +252,8 @@ class Project:
         self.length = project_length
         self.progress = 0 - start_time_offset
         self.max_start_time_offset = start_time_offset
+        self.realised_offset = (start_time_offset
+                                if auto_offset else None)
         self.start_time = (start_time + start_time_offset
                            if auto_offset else start_time)
         self.team = None

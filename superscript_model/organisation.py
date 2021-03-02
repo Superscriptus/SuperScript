@@ -500,6 +500,7 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         # this could be refactored (see also project load).:
         project.start_time = base_start_time + offset
         project.progress = 0 - offset
+        project.realised_offset = offset
 
         return best_team
 
