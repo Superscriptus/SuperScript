@@ -234,6 +234,8 @@ class Optimiser:
                            take_step=my_takestep)
                            #callback=print_fun,)
 
+        assert self.test_constraints(ret.x)
+
         if ret.fun >= 0.0:
             ret.x = guess
             ret.fun = self.objective_func(ret.x)
