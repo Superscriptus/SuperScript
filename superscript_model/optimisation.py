@@ -27,6 +27,12 @@ class OptimiserFactory:
             return Optimiser(project, bid_pool, model, 0)
 
 
+class DummyReturn:
+    def __init__(self):
+        self.fun = 0.0
+        self.x = None
+
+
 class Optimiser:
 
     def __init__(self, project, bid_pool, model, exp_number,
@@ -223,11 +229,7 @@ class Optimiser:
               maxiter = 100, catol = 0.0, rhobeg = 0.6):
 
         if guess is None:
-            class Ret:
-                def __init__(self):
-                    self.fun = 0.0
-                    self.x = None
-            return Ret()
+            return 0.0, DummyReturn()
 
         minimizer_kwargs = {"method": 'COBYLA',
                             'constraints': self.constraints,
@@ -245,12 +247,14 @@ class Optimiser:
                            take_step=my_takestep)
                            #callback=print_fun,)
 
-        #assert self.test_constraints(ret.x)
+        if (ret.fun >= 0.0
+                or sum(ret.x) == 0
+                or not self.test_constraints(ret.x)):
 
-        if ret.fun >= 0.0:
             ret.x = guess
             ret.fun = self.objective_func(ret.x)
 
+        assert self.test_constraints(ret.x)
         elapsed_time = time.time() - start_time
         if self.verbose:
             print("%d iterations took %.2f seconds" % (niter, elapsed_time))
