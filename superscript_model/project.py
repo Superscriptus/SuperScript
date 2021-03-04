@@ -151,6 +151,12 @@ class ProjectInventory:
                     time + project.max_start_time_offset
                     if auto_offset else time
                 )
+                project.requirements.budget_functionality_flag = (
+                    self.model.budget_functionality_flag
+                )
+                project.requirements.budget = (
+                    project.requirements.calculate_budget()
+                )
         else:
             new_projects = []
             for i in range(new_projects_count):
@@ -365,8 +371,8 @@ class ProjectRequirements:
                  if s['level'] is not None]
             )
         self.budget_functionality_flag = budget_functionality_flag
-        self.budget = self.calculate_budget(self.flexible_budget,
-                                            max_budget_increase)
+        self.max_budget_increase = max_budget_increase
+        self.budget = self.calculate_budget()
 
     def select_non_zero_skills(self):
 
@@ -408,8 +414,14 @@ class ProjectRequirements:
                 in self.hard_skills.keys()
                 if self.hard_skills[skill]['level'] is not None]
 
-    def calculate_budget(self, flexible_budget_flag,
-                         max_budget_increase):
+    def calculate_budget(self,
+                         flexible_budget_flag=None,
+                         max_budget_increase=None):
+
+        if flexible_budget_flag is None:
+            flexible_budget_flag = self.flexible_budget
+        if max_budget_increase is None:
+            max_budget_increase = self.max_budget_increase
 
         if not self.budget_functionality_flag:
             return None

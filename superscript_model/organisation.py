@@ -535,11 +535,17 @@ class TeamAllocator:
         #     else:
         #         team.assign_contributions_to_members()
 
+        if team is None or team.lead is None:
+            print("Project %d null because select_team output:" % project.project_id,
+                  team,
+                  team.lead)
+
         if team is not None and team.lead is not None:
             if team.within_budget():
                 team.assign_contributions_to_members()
                 team.assign_lead(project)
             else:
+                print("Project %d null because team exceeds budget." % project.project_id)
                 team = None
 
         project.team = team
