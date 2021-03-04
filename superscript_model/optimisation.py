@@ -13,6 +13,7 @@ import pickle
 # - remove save functionality (and results_Dir) (and exp_number)
 # - move imports of MIN and MAX_TEAM_SIZE to main.py (pass via factory)
 # - clean up constraints
+# - set smart_guess and smart_step time limits
 # - write unit tests
 # - comment on use of Paths in docs (use of non-pickleable lambda functions and class methods)
 # - it is possible for the new takestep to remove members that have just been added. Prevent this?
@@ -59,6 +60,9 @@ class Optimiser:
                 pickle.dump(self.bid_pool, ofile)
 
     def get_team(self, x):
+
+        if x is None:
+            return None
 
         contributions = dict()
         # for skill in project.required_skills:
@@ -218,6 +222,13 @@ class Optimiser:
     def solve(self, guess, niter, repeat,
               maxiter = 100, catol = 0.0, rhobeg = 0.6):
 
+        if guess is None:
+            class Ret:
+                def __init__(self):
+                    self.fun = 0.0
+                    self.x = None
+            return Ret()
+
         minimizer_kwargs = {"method": 'COBYLA',
                             'constraints': self.constraints,
                             'options': {'maxiter': maxiter, 'disp': False,
@@ -234,7 +245,7 @@ class Optimiser:
                            take_step=my_takestep)
                            #callback=print_fun,)
 
-        assert self.test_constraints(ret.x)
+        #assert self.test_constraints(ret.x)
 
         if ret.fun >= 0.0:
             ret.x = guess
@@ -302,57 +313,67 @@ class Optimiser:
 
         return dict(zip(worker_table.id, worker_table.prob))
 
-    def smart_guess(self, p=2):
+    def smart_guess(self, p=2, time_limit=1):
 
-        x = np.zeros(5 * len(self.bid_pool))
+        constraints_met = False
+        timeout = time.time() + time_limit
 
-        worker_table = pd.DataFrame()
-        worker_dict = {m.worker_id: m
-                       for m in self.bid_pool}
-        worker_table['id'] = worker_dict.keys()
+        while not constraints_met:
 
-        for skill in self.project.required_skills:
-            worker_table[skill] = [
-                m.get_skill(skill) for m in self.bid_pool
+            x = np.zeros(5 * len(self.bid_pool))
+
+            worker_table = pd.DataFrame()
+            worker_dict = {m.worker_id: m
+                           for m in self.bid_pool}
+            worker_table['id'] = worker_dict.keys()
+
+            for skill in self.project.required_skills:
+                worker_table[skill] = [
+                    m.get_skill(skill) for m in self.bid_pool
+                ]
+
+            required_levels = [
+                self.project.requirements.hard_skills[skill]['level']
+                for skill in self.project.required_skills
             ]
 
-        required_levels = [
-            self.project.requirements.hard_skills[skill]['level']
-            for skill in self.project.required_skills
-        ]
+            worker_table['distance'] = [
+                minkowski_distance(row[self.project.required_skills],
+                                   required_levels, p)
+                for ri, row in worker_table.iterrows()
+            ]
+            worker_table['prob'] = [(1 / d) if d > 0 else 0
+                                    for d in worker_table.distance]
+            if sum(worker_table['prob']) > 0:
+                worker_table['prob'] /= sum(worker_table['prob'])
 
-        worker_table['distance'] = [
-            minkowski_distance(row[self.project.required_skills],
-                               required_levels, p)
-            for ri, row in worker_table.iterrows()
-        ]
-        worker_table['prob'] = [(1 / d) if d > 0 else 0
-                                for d in worker_table.distance]
-        if sum(worker_table['prob']) > 0:
-            worker_table['prob'] /= sum(worker_table['prob'])
+            worker_table.sort_values('prob', ascending=False, inplace=True)
 
-        worker_table.sort_values('prob', ascending=False, inplace=True)
-
-        size = np.random.randint(self.min_team_size, self.max_team_size + 1)
-        members = np.random.choice(
-            worker_table.id, size=size, replace=False, p=worker_table.prob
-        )
-        members = [worker_dict[wid] for wid in members]
-
-        for m in members:
-            start = self.bid_pool.index(m) * 5
-
-            required_skill_count = len(self.project.required_skills)
-            add_skills = Random.choices(
-                self.project.required_skills,
-                min(required_skill_count,
-                    m.contributions.get_remaining_units(
-                        self.project.start_time, self.project.length)
-                    )
+            size = np.random.randint(self.min_team_size, self.max_team_size + 1)
+            members = np.random.choice(
+                worker_table.id, size=size, replace=False, p=worker_table.prob
             )
-            for skill in add_skills:
-                si = self.skills.index(skill)
-                x[start + si] = 1
+            members = [worker_dict[wid] for wid in members]
+
+            for m in members:
+                start = self.bid_pool.index(m) * 5
+
+                required_skill_count = len(self.project.required_skills)
+                add_skills = Random.choices(
+                    self.project.required_skills,
+                    min(required_skill_count,
+                        m.contributions.get_remaining_units(
+                            self.project.start_time, self.project.length)
+                        )
+                )
+                for skill in add_skills:
+                    si = self.skills.index(skill)
+                    x[start + si] = 1
+
+            constraints_met = self.test_constraints(x)
+            if time.time() > timeout:
+                x = None
+                break
 
         return x
 
