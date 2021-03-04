@@ -392,7 +392,8 @@ class MyTakeStep(object):
 
     def __init__(self, optimiser,
                  max_team_size=MAX_TEAM_SIZE,
-                 min_team_size=MIN_TEAM_SIZE):
+                 min_team_size=MIN_TEAM_SIZE,
+                 time_limit=1):
 
         self.optimiser = optimiser
         self.bid_pool = optimiser.bid_pool
@@ -407,7 +408,9 @@ class MyTakeStep(object):
              for skill in self.project.required_skills]
         )
         self.min_team_size = max(self.min_team_size, min_team_size)
+        self.time_limit = time_limit
 
+# remove!
     def __oldcall__(self, x):
 
         # determine how many workers to add and remove to team:
@@ -460,51 +463,61 @@ class MyTakeStep(object):
 
     def __call__(self, x):
 
-        # determine how many workers to add and remove to team:
-        number_to_add = min(Random.randint(0, MAX_TEAM_SIZE),
-                            len(self.bid_pool) - self.optimiser.team_size(x))
+        constraints_met = False
+        old_x = x
+        timeout = time.time() + self.time_limit
 
-        new_size = self.optimiser.team_size(x) + number_to_add
-        min_remove = max(0, new_size - MAX_TEAM_SIZE)
-        max_remove = new_size - MIN_TEAM_SIZE
-        if max_remove < min_remove:
-            number_to_remove = 0
-        else:
-            number_to_remove = Random.randint(min_remove, max_remove)
+        while not constraints_met:
 
-        # choose members to add:
-        #assert len(self.bid_pool) >= number_to_add + number_to_remove
-        assert len(self.bid_pool) >= number_to_add + self.optimiser.team_size(x)
-        current_team = self.optimiser.get_team(x)
+            # determine how many workers to add and remove to team:
+            number_to_add = min(Random.randint(0, MAX_TEAM_SIZE),
+                                len(self.bid_pool) - self.optimiser.team_size(x))
 
-        to_add = []
-        new_team_members = list(current_team.members.values())
-        choose_from = [bid for bid in self.bid_pool
-                       if bid not in new_team_members]
-        p = list(self.optimiser.compute_distances_from_requirements(
-            workers=choose_from
-        ).values())
-        to_add = Random.weighted_choice(choose_from, number_to_add, p=p)
+            new_size = self.optimiser.team_size(x) + number_to_add
+            min_remove = max(0, new_size - MAX_TEAM_SIZE)
+            max_remove = new_size - MIN_TEAM_SIZE
+            if max_remove < min_remove:
+                number_to_remove = 0
+            else:
+                number_to_remove = Random.randint(min_remove, max_remove)
 
-        for a in to_add:
-            new_team_members.append(a)
-            start = self.bid_pool.index(a) * 5
+            # choose members to add:
+            #assert len(self.bid_pool) >= number_to_add + number_to_remove
+            assert len(self.bid_pool) >= number_to_add + self.optimiser.team_size(x)
+            current_team = self.optimiser.get_team(x)
 
-            required_skill_count = len(self.project.required_skills)
-            add_skills = Random.choices(
-                self.project.required_skills,
-                min(required_skill_count,
-                    self.worker_unit_budgets[a.worker_id])
-            )
-            for skill in add_skills:
-                si = self.skills.index(skill)
-                x[start + si] = 1
+            to_add = []
+            new_team_members = list(current_team.members.values())
+            choose_from = [bid for bid in self.bid_pool
+                           if bid not in new_team_members]
+            p = list(self.optimiser.compute_distances_from_requirements(
+                workers=choose_from
+            ).values())
+            to_add = Random.weighted_choice(choose_from, number_to_add, p=p)
 
-        # now select and remove required number of workers:
-        to_remove = Random.choices(new_team_members, number_to_remove)
-        for r in to_remove:
-            start = self.bid_pool.index(r) * 5
-            for i in range(5):
-                x[start + i] = 0
+            for a in to_add:
+                new_team_members.append(a)
+                start = self.bid_pool.index(a) * 5
 
+                required_skill_count = len(self.project.required_skills)
+                add_skills = Random.choices(
+                    self.project.required_skills,
+                    min(required_skill_count,
+                        self.worker_unit_budgets[a.worker_id])
+                )
+                for skill in add_skills:
+                    si = self.skills.index(skill)
+                    x[start + si] = 1
+
+            # now select and remove required number of workers:
+            to_remove = Random.choices(new_team_members, number_to_remove)
+            for r in to_remove:
+                start = self.bid_pool.index(r) * 5
+                for i in range(5):
+                    x[start + i] = 0
+
+            constraints_met = self.optimiser.test_constraints(x)
+            if time.time() > timeout:
+                x = old_x
+                break
         return x
