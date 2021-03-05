@@ -277,7 +277,14 @@ class SuperScriptModel(Model):
                                  "risk": [],
                                  "budget": [],
                                  "null": [],
-                                 "success": []}}
+                                 "success": [],
+                                 "maximum_offset": [],
+                                 "realised_offset": [],
+                                 "start_time": [],
+                                 "team_budget": [],
+                                 "team_ovr": [],
+                                 "team_creativity_match": []
+                                 }}
         )
 
     def step(self):
