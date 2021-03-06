@@ -288,7 +288,7 @@ class SuperScriptModel(Model):
         )
 
     def step(self):
-
+        print('time: ', self.time)
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)

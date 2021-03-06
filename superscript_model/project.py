@@ -146,6 +146,8 @@ class ProjectInventory:
             for project in new_projects:
                 project.inventory = self
                 project.team = None
+                if self.max_timeline_flex == 0:
+                    project.max_start_time_offset = 0
                 project.progress = 0 - project.max_start_time_offset
                 project.start_time = (
                     time + project.max_start_time_offset
