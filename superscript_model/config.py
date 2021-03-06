@@ -2,8 +2,8 @@
 TEAM_OVR_MULTIPLIER = 20
 MIN_TEAM_SIZE = 3
 MAX_TEAM_SIZE = 7
-ORGANISATION_STRATEGY = "Basin" #"Random"
-WORKER_STRATEGY = "Stake" #"AllIn"
+ORGANISATION_STRATEGY = "Random" #"Basin" #"Random"
+WORKER_STRATEGY = "AllIn" #"Stake" #"AllIn"
 
 # department:
 DEPARTMENTAL_WORKLOAD = 0.1
