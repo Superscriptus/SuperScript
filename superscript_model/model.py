@@ -33,7 +33,9 @@ from .config import (PROJECT_LENGTH,
                      WORKER_STRATEGY,
                      SAVE_PROJECTS,
                      LOAD_PROJECTS,
-                     IO_DIR)
+                     IO_DIR,
+                     SAVE_NETWORK,
+                     SAVE_NETWORK_FREQUENCY)
 
 
 def safe_mean(x):
@@ -193,7 +195,9 @@ class SuperScriptModel(Model):
                  replace_after_inactive_steps=REPLACE_AFTER_INACTIVE_STEPS,
                  organisation_strategy=ORGANISATION_STRATEGY,
                  worker_strategy=WORKER_STRATEGY,
-                 io_dir=IO_DIR):
+                 io_dir=IO_DIR,
+                 save_network=SAVE_NETWORK,
+                 save_network_freq=SAVE_NETWORK_FREQUENCY):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -214,7 +218,11 @@ class SuperScriptModel(Model):
 
         self.G = nx.Graph()
         self.grid = SocialNetwork(self, self.G)
+        self.save_network_flag = save_network
+        self.save_network_freq = save_network_freq
+
         self.schedule = RandomActivation(self)
+        self.io_dir = io_dir
         self.inventory = ProjectInventory(
             TeamAllocator(self, OptimiserFactory()),
             timeline_flexibility='TimelineFlexibility',
@@ -222,7 +230,7 @@ class SuperScriptModel(Model):
             model=self,
             save_flag=SAVE_PROJECTS,
             load_flag=LOAD_PROJECTS,
-            io_dir=io_dir
+            io_dir=self.io_dir
         )
         self.training_on = training_on
         self.training_mode = training_mode
@@ -288,7 +296,6 @@ class SuperScriptModel(Model):
         )
 
     def step(self):
-        print('time: ', self.time)
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)
@@ -296,6 +303,10 @@ class SuperScriptModel(Model):
         self.trainer.train()
         self.inventory.remove_null_projects()
         self.time += 1
+
+        if (self.save_network_flag
+                and self.time % self.save_network_freq == 0):
+            self.grid.save()
 
         self.datacollector.collect(self)
         assert (on_projects(self)

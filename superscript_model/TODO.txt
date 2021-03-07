@@ -6,6 +6,7 @@ Priority:
 - add niter selection to GUI.
 - write a better copy method for saving/loading project, rather than pickling whole project and then re-setting the mutable data memebers
 - Add parallel niter=0 guesses: poor performance!
+- make log project and worker variables optional (set in config)
 - remove print statements from org.py (lines 163-5) and check get_units_contributed:is it one teimstep out?
 - refactor TeamAllocator constructor (implement a strategy factory)
 - refactor strategy classes to use ABC pattern rather than Interface. This will remove code duplication (e.g. in the constructors).

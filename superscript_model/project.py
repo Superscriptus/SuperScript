@@ -109,10 +109,11 @@ class ProjectInventory:
         )
 
         r = Random.uniform()
-        for i in np.flip(np.arange(1, self.max_timeline_flex)):
-            if r <= p_vector[i]:
+        lb = 0
+        for i in range(self.max_timeline_flex + 1):
+            if r < p_vector[i] + lb:
                 return i
-        return 0
+            lb += p_vector[i]
 
     def determine_total_skill_requirements(self, projects):
 

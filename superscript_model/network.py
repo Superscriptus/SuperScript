@@ -1,3 +1,4 @@
+import pickle
 import networkx as nx
 from itertools import combinations
 from mesa.space import NetworkGrid
@@ -69,3 +70,9 @@ class SocialNetwork(NetworkGrid):
         else:
             return False
 
+    def save(self):
+        nx.write_gpickle(
+            self.G,
+            self.model.io_dir
+            + 'network_timestep_%d.gpickle' % self.model.time
+        )
