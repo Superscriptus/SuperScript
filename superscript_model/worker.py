@@ -58,6 +58,7 @@ class Worker(Agent):
 
     def step(self):
 
+        self.skills.reset_trackers()
         """Dict can be updated during loop (one other?)"""
         projects = list(self.leads_on.values())
 
@@ -152,6 +153,9 @@ class Worker(Agent):
         self.skills.hard_skills[skill] = min(
             self.skills.hard_skills[skill],
             self.skills.max_skill
+        )
+        self.skills.peer_assessment_tracker[skill] = (
+            self.skills.hard_skills[skill] - old_skill
         )
 
 
@@ -341,6 +345,16 @@ class SkillMatrix:
         while sum(self.hard_skills.values()) == 0.0:
             self.assign_hard_skills()
 
+        self.peer_assessment_tracker = {
+            skill: 0 for skill in self.hard_skills
+        }
+        self.skill_decay_tracker = {
+            skill: 0 for skill in self.hard_skills
+        }
+        self.training_tracker = {
+            skill: 0 for skill in self.hard_skills
+        }
+
     @property
     def ovr(self):
 
@@ -378,7 +392,17 @@ class SkillMatrix:
                       .get_skill_units_contributed(worker.now, skill)
             )
             if units == 0:
+                old_skill = self.hard_skills[skill]
                 self.hard_skills[skill] *= self.skill_decay_factor
+                self.skill_decay_tracker[skill] = (
+                    self.hard_skills[skill] - old_skill
+                )
+
+    def reset_trackers(self):
+        for skill in self.hard_skills:
+            self.peer_assessment_tracker[skill] = 0
+            self.skill_decay_tracker[skill] = 0
+            self.training_tracker[skill] = 0
 
     def to_string(self):
 

@@ -540,7 +540,6 @@ class TeamAllocator:
                 team.assign_contributions_to_members()
                 team.assign_lead(project)
             else:
-                print("Project %d null because team exceeds budget." % project.project_id)
                 team = None
 
         project.team = team
@@ -671,11 +670,15 @@ class Trainer:
 
     def update_worker_skill(self, worker, skill_to_train):
 
+        old_skill = worker.skills.hard_skills[skill_to_train]
         new_skill = min(
             self.skill_quartiles[skill_to_train][2],
             self.max_skill_level
         )
         worker.skills.hard_skills[skill_to_train] = new_skill
+        worker.skills.training_tracker[skill_to_train] = (
+            worker.skills.hard_skills[skill_to_train] - old_skill
+        )
 
 
 class Department:

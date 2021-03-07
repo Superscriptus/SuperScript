@@ -49,3 +49,13 @@ if __name__ == "__main__":
               % (WORKER_COUNT, NEW_PROJECTS, STEPS), 'wb') as ofile:
 
         pickle.dump(projects, ofile)
+
+    agents = abm.datacollector.get_agent_vars_dataframe()
+    print(agents)
+
+    with open(SAVE_DIR
+              + '/tracked_agents_wc_%d_np_%d_ts_%d.pickle'
+              % (WORKER_COUNT, NEW_PROJECTS, STEPS), 'wb') as ofile:
+
+        pickle.dump(agents, ofile)
+

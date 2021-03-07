@@ -175,6 +175,26 @@ def projects_per_worker(model):
     return project_count / model.worker_count
 
 
+def worker_ovr(worker):
+    return worker.skills.ovr
+
+
+def worker_hard_skills(worker):
+    return worker.skills.hard_skills
+
+
+def worker_training_tracker(worker):
+    return worker.skills.training_tracker
+
+
+def worker_skill_decay_tracker(worker):
+    return worker.skills.skill_decay_tracker
+
+
+def worker_peer_assessment_tracker(worker):
+    return worker.skills.peer_assessment_tracker
+
+
 class SuperScriptModel(Model):
 
     def __init__(self, worker_count=WORKER_COUNT,
@@ -279,7 +299,17 @@ class SuperScriptModel(Model):
                 "TrainingLoad": training_load,
                 "DeptLoad": departmental_load,
                 "Slack": slack,
-                "ProjectsPerWorker": projects_per_worker},
+                "ProjectsPerWorker": projects_per_worker
+            },
+            agent_reporters={
+                "now": "now",
+                "contributes": "contributes",
+                "ovr": worker_ovr,
+                "hard_skills": worker_hard_skills,
+                "training": worker_training_tracker,
+                "skill_decay": worker_skill_decay_tracker,
+                "peer_assessment": worker_peer_assessment_tracker
+            },
             tables={"Projects": {"project_id": [],
                                  "prob": [],
                                  "risk": [],
@@ -302,6 +332,7 @@ class SuperScriptModel(Model):
         )
 
     def step(self):
+
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)

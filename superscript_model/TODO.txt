@@ -14,6 +14,12 @@ Priority:
 - move use of np.random.choice to Random class (e.g. in optimisation.py) - this was added later because it allows weighted selection without replacement
 - remove code duplication in optimisation.py - smart_guess and MyTakeStep.__call__
 
+Contribute to Mesa:
+- Correct docstring 'for _new_agent_reporter':  Args:
+            name: Name of the agent-level variable to collect.
+            reporter: Attribute string, or function object that returns the
+                      variable when given a model instance.
+
 Longer-term:
 - test parallel batchrunner alongside (on top of) parallel basinhopping: processes within prcoesses?
     Note that there are issues with copying objects back and forwards between subprocesses. e.g. workers are copied not same instance when doing parallel team allocation.
