@@ -223,24 +223,56 @@ class ProjectInventory:
 
     def log_project_data_collector(self, project, null, success):
 
-        next_row = {"project_id": project.project_id,
-                    "prob": project.success_probability,
-                    "risk": project.risk,
-                    "budget": project.budget,
-                    "null": null,
-                    "success": success,
-                    "maximum_offset": project.max_start_time_offset,
-                    "realised_offset": project.realised_offset,
-                    "start_time": project.start_time}
+        success_calculator = project.inventory.success_calculator
+        success_calculator.get_component_values(project)
+
+        next_row = {
+            "project_id": project.project_id,
+            "prob": project.success_probability,
+            "risk": project.risk,
+            "budget": project.budget,
+            "null": null,
+            "success": success,
+            "maximum_offset": project.max_start_time_offset,
+            "realised_offset": project.realised_offset,
+            "start_time": project.start_time,
+            "ovr_prob_cpt": (
+                success_calculator
+                .probability_ovr
+                .get_values(success_calculator.ovr)
+            ),
+            "skill_balance_prob_cpt": (
+                success_calculator
+                .probability_skill_balance
+                .get_values(success_calculator.skill_balance)
+            ),
+            "creativity_match_prob_cpt": (
+                success_calculator
+                .probability_creativity_match
+                .get_values(success_calculator.creativity_match)
+            ),
+            "risk_prob_cpt": (
+                success_calculator
+                .probability_risk
+                .get_values(success_calculator.risk)
+            ),
+            "chemistry_prob_cpt": (
+                success_calculator
+                .probability_chemistry
+                .get_values(success_calculator.chemistry)
+            )
+        }
 
         if not null:
             next_row["team_budget"] = project.team.team_budget
             next_row["team_ovr"] = project.team.team_ovr
             next_row["team_creativity_match"] = project.team.creativity_match
+            next_row["team_size"] = len(project.team.members)
         else:
             next_row["team_budget"] = None
             next_row["team_ovr"] = None
             next_row["team_creativity_match"] = None
+            next_row["team_size"] = None
 
         self.model.datacollector.add_table_row(
             "Projects", next_row, ignore_missing=False

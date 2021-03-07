@@ -289,9 +289,15 @@ class SuperScriptModel(Model):
                                  "maximum_offset": [],
                                  "realised_offset": [],
                                  "start_time": [],
+                                 "ovr_prob_cpt": [],
+                                 "skill_balance_prob_cpt": [],
+                                 "creativity_match_prob_cpt": [],
+                                 "risk_prob_cpt": [],
+                                 "chemistry_prob_cpt": [],
                                  "team_budget": [],
                                  "team_ovr": [],
-                                 "team_creativity_match": []
+                                 "team_creativity_match": [],
+                                 "team_size": []
                                  }}
         )
 
