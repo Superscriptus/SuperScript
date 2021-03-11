@@ -1,5 +1,6 @@
 """
 SuperScript data collection module.
+===================================
 
 Methods and objects used to for data collection during simulation.
 

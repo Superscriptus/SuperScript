@@ -1,3 +1,12 @@
+"""
+SuperScript worker module
+===========
+
+Worker class and associated classes.
+
+Worker is a subclass of mesa.Agent
+
+"""
 from mesa import Agent
 from interface import Interface, implements
 import json
@@ -19,19 +28,62 @@ from .config import (HARD_SKILLS,
 
 
 class Worker(Agent):
+    """Subclass of mesa.Agent
+
+    This class stores the skills of the worker, their contributions to
+    projects, and their history. It also handles worker replacement due
+    to inactivity.
+
+    The step() method is called by the Mesa scheduler.
+
+    ...
+
+    Attributes
+    ----------
+    worker_id: int
+        unique identifier for the worker
+    skills: SkillMatrix
+        handles worker skills
+    department: organisation.Department
+        department that this worker belongs to
+    strategy: WorkerStrategyInterface
+        Selected in config.py. Determines how worker bids for projects
+    leads_on: dict
+        records which projects this worker leads on. Project leads
+        advance their projects on step().
+    contributions: WorkerContributions
+        tracks which projects the worker contributes to and when
+    history: WorkerHistory
+        tracks recent project success rate (for calculation of
+        'momentum')
+    training_remaining: int
+        how many timesteps is this worker going to be on training.
+        <= 0 if not on training.
+    timesteps_inactive: int
+        how many timesteps since worker last contributed to a project.
+        Worker is replaced if this exceeds threshold
+        (REPLACE_AFTER_INACTIVE_STEPS). Set to zero if worker is booked
+        to work on future project, to ensure that worker is not
+        replaced before this project starts.
+    """
 
     def __init__(self, worker_id: int,
                  model, department=Department(0)):
-
+        """
+        Create new worker in specified department and call base class
+        constructor to add worker(agent) to scheduler.
+        """
         super().__init__(worker_id, model)
         self.worker_id = worker_id
         self.skills = SkillMatrix()
         self.department = department
         self.department.add_worker()
 
-        self.strategy = (AllInStrategy("AllIn")
-                         if self.model.worker_strategy == "AllIn"
-                         else StakeStrategy("Stake"))
+        self.strategy = (
+            AllInStrategy("AllIn")
+            if self.model.worker_strategy == "AllIn"
+            else StakeStrategy("Stake")
+        )
         self.leads_on = dict()
         self.contributions = WorkerContributions(self)
         self.history = WorkerHistory()
@@ -78,9 +130,11 @@ class Worker(Agent):
     def is_free(self, start, length, slack=None):
         return self.contributions.is_free_over_period(start, length, slack)
 
+    # Added new clause to check that worker has not been assigned to a
+        # project starting within the planning horizon. If so, they
+        # survive replacement.
     def check_activity(self):
-        '''Added new clause to check that worker has not been assigned to a project starting within the planning horizon.
-        If so, they survive replacement.'''
+
         if (self.contributions.get_units_contributed(self.now) > 0
                 and self.training_remaining == 0):
             self.timesteps_inactive = 0
@@ -99,7 +153,8 @@ class Worker(Agent):
     def replace(self):
 
         if len(self.leads_on) > 0:
-            print("warning: replacing worker %d, leads on projects: " % self.worker_id,
+            print("warning: replacing worker %d, leads on projects: "
+                  % self.worker_id,
                   self.leads_on.keys())
 
         self.department.number_of_workers -= 1
