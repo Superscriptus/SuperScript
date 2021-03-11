@@ -1,6 +1,5 @@
 from mesa import Model
 from mesa.time import RandomActivation
-from mesa.datacollection import DataCollector
 import networkx as nx
 
 from .worker import Worker
@@ -10,7 +9,10 @@ from .optimisation import OptimiserFactory
 from .organisation import (TeamAllocator,
                            Department,
                            Trainer)
-from .tracking import *
+from .tracking import (SSDataCollector,
+                       on_projects,
+                       no_projects,
+                       on_training)
 from .config import (PROJECT_LENGTH,
                      NEW_PROJECTS_PER_TIMESTEP,
                      WORKER_COUNT,
@@ -118,59 +120,10 @@ class SuperScriptModel(Model):
 
         self.grid.initialise()
         self.worker_turnover = dict()
-        self.time = 0  # replace with schedule.steps
+        self.time = 0
         self.running = True
 
-        self.datacollector = DataCollector(
-            model_reporters={
-                "ActiveProjects": active_project_count,
-                "RecentSuccessRate": recent_success_rate,
-                "SuccessfulProjects": number_successful_projects,
-                "FailedProjects": number_failed_projects,
-                "NullProjects": number_null_projects,
-                "WorkersOnProjects": on_projects,
-                "WorkersWithoutProjects": no_projects,
-                "WorkersOnTraining": on_training,
-                "AverageTeamSize": av_team_size,
-                "AverageSuccessProbability": av_success_prob,
-                "AverageWorkerOvr": av_worker_ovr,
-                "AverageTeamOvr": av_team_ovr,
-                "WorkerTurnover": worker_turnover,
-                "ProjectLoad": project_load,
-                "TrainingLoad": training_load,
-                "DeptLoad": departmental_load,
-                "Slack": slack,
-                "ProjectsPerWorker": projects_per_worker
-            },
-            agent_reporters={
-                "now": "now",
-                "contributes": "contributes",
-                "ovr": worker_ovr,
-                "hard_skills": worker_hard_skills,
-                "training": worker_training_tracker,
-                "skill_decay": worker_skill_decay_tracker,
-                "peer_assessment": worker_peer_assessment_tracker
-            },
-            tables={"Projects": {"project_id": [],
-                                 "prob": [],
-                                 "risk": [],
-                                 "budget": [],
-                                 "null": [],
-                                 "success": [],
-                                 "maximum_offset": [],
-                                 "realised_offset": [],
-                                 "start_time": [],
-                                 "ovr_prob_cpt": [],
-                                 "skill_balance_prob_cpt": [],
-                                 "creativity_match_prob_cpt": [],
-                                 "risk_prob_cpt": [],
-                                 "chemistry_prob_cpt": [],
-                                 "team_budget": [],
-                                 "team_ovr": [],
-                                 "team_creativity_match": [],
-                                 "team_size": []
-                                 }}
-        )
+        self.datacollector = SSDataCollector()
 
     def step(self):
 
