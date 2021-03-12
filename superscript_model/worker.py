@@ -38,33 +38,32 @@ class Worker(Agent):
 
     ...
 
-    Attributes
-    ----------
-    worker_id: int
-        unique identifier for the worker
-    skills: SkillMatrix
-        handles worker skills
-    department: organisation.Department
-        department that this worker belongs to
-    strategy: WorkerStrategyInterface
-        Selected in config.py. Determines how worker bids for projects
-    leads_on: dict
-        records which projects this worker leads on. Project leads
-        advance their projects on step().
-    contributions: WorkerContributions
-        tracks which projects the worker contributes to and when
-    history: WorkerHistory
-        tracks recent project success rate (for calculation of
-        'momentum')
-    training_remaining: int
-        how many timesteps is this worker going to be on training.
-        <= 0 if not on training.
-    timesteps_inactive: int
-        how many timesteps since worker last contributed to a project.
-        Worker is replaced if this exceeds threshold
-        (REPLACE_AFTER_INACTIVE_STEPS). Set to zero if worker is booked
-        to work on future project, to ensure that worker is not
-        replaced before this project starts.
+    Attributes:
+        worker_id: int
+            unique identifier for the worker
+        skills: SkillMatrix
+            handles worker skills
+        department: organisation.Department
+            department that this worker belongs to
+        strategy: WorkerStrategyInterface
+            Selected in config.py. Determines how worker bids for projects
+        leads_on: dict
+            records which projects this worker leads on. Project leads
+            advance their projects on step().
+        contributions: WorkerContributions
+            tracks which projects the worker contributes to and when
+        history: WorkerHistory
+            tracks recent project success rate (for calculation of
+            'momentum')
+        training_remaining: int
+            how many timesteps is this worker going to be on training.
+            <= 0 if not on training.
+        timesteps_inactive: int
+            how many timesteps since worker last contributed to a project.
+            Worker is replaced if this exceeds threshold
+            (REPLACE_AFTER_INACTIVE_STEPS). Set to zero if worker is booked
+            to work on future project, to ensure that worker is not
+            replaced before this project starts.
     """
 
     def __init__(self, worker_id: int,
@@ -92,26 +91,45 @@ class Worker(Agent):
 
     @property
     def contributes(self):
+        """
+        dict: returns dictionary of worker contributions by skill
+            at each timestep.
+        """
         return self.contributions.get_contributions()
 
     @property
     def now(self):
+        """int: current simulation step (from scheduler)"""
         return self.model.schedule.steps
 
     @property
     def training_horizon(self):
+        """int: length of training (defined in config)"""
         return self.model.trainer.training_length
 
     def assign_as_lead(self, project):
+        """Assigns this worker as project lead.
+
+        Args:
+            project: instance of project.Project
+        """
         self.leads_on[project.project_id] = project
 
     def remove_as_lead(self, project):
+        """Removes this worker as project lead."""
         del self.leads_on[project.project_id]
 
     def step(self):
+        """Worker step method, called by Mesa scheduler on each
+        simulation timestep.
+        First the worker advances all projects that they lead on,
+        then any unused skills are subject to decay, then their
+        recent activity is checked (for worker replacement).
 
-        self.skills.reset_trackers()
-        """Dict can be updated during loop (one other?)"""
+        Note:
+            Projects stored as list before loop, because leads_on
+            dict can change size during loop (if project terminates).
+        """
         projects = list(self.leads_on.values())
 
         for project in projects:
@@ -122,18 +140,52 @@ class Worker(Agent):
         self.check_activity()
 
     def get_skill(self, skill, hard_skill=True):
+        """Get worker level for a specified skill.
+
+        Args:
+            skill: str
+                Takes value from ['A', 'B, ..., 'J']
+            hard_skill: bool, optional
+                Indicates if the requested skill is a hard of soft
+                skill
+
+        Returns:
+            float: skill level
+
+        """
         if hard_skill:
             return self.skills.hard_skills[skill]
         else:
             return self.skills.soft_skills[skill]
 
     def is_free(self, start, length, slack=None):
+        """Checks if worker is free over specified time period (i.e. is
+        currently committed at 0% FTE and departmental workload is
+        satisfied).
+
+        Args:
+            start: int
+                Beginning of period to check
+            length: int
+                Length of period to check
+            slack: int, optional
+                A buffer added to departmental workload baseline
+
+        Returns:
+            Ture if free, False otherwise
+        """
         return self.contributions.is_free_over_period(start, length, slack)
 
-    # Added new clause to check that worker has not been assigned to a
-        # project starting within the planning horizon. If so, they
-        # survive replacement.
     def check_activity(self):
+        """Replaces worker if they have been inactive for more than
+        self.model.replace_after_inactive_steps timesteps.
+
+        Note:
+            Added new clause to check that worker has not been
+            assigned to a project starting within the planning
+            horizon. If so, they survive replacement.
+
+        """
 
         if (self.contributions.get_units_contributed(self.now) > 0
                 and self.training_remaining == 0):
@@ -151,7 +203,12 @@ class Worker(Agent):
             self.replace()
 
     def replace(self):
+        """Replaces worker with a new worker in the same department.
 
+            Tracks number of new workers that have been added during
+            simulation, to ensure that new worker has a unique
+            worker_id.
+        """
         if len(self.leads_on) > 0:
             print("warning: replacing worker %d, leads on projects: "
                   % self.worker_id,
@@ -174,9 +231,23 @@ class Worker(Agent):
         self.model.schedule.remove(self)
 
     def bid(self, project):
+        """Worker decides whether to bid for project, using the
+            allocated strategy.
+
+        Args:
+              project: project.Project
+        """
         return self.strategy.bid(project, self)
 
     def individual_chemistry(self, project):
+        """Computes chemistry at the individual worker level, which
+        contributes to calculation of project success probability
+        (i.e. chemistry booster).
+
+        Args:
+            project: project.Project
+
+        """
         chemistry = 0
 
         if (len(set(self.skills.top_two)
@@ -188,7 +259,19 @@ class Worker(Agent):
         return chemistry
 
     def peer_assessment(self, success, skill, modifier):
+        """Models peer_assessment to update a hard skill at end of a
+        project (called by Team.skill_update)
 
+        Args:
+            success: bool
+                Was project success or failure
+            skill: str
+                Hard skill to update, takes value in ['A',...,'E']
+            modifier: float
+                A multiplier that depends on project success and risk,
+                provided by 'SkillUpdateByRisk' function.
+
+        """
         if success:
             mean = self.model.peer_assessment_success_mean
             stdev = self.model.peer_assessment_success_stdev
@@ -215,7 +298,21 @@ class Worker(Agent):
 
 
 class WorkerContributions:
-    """Class that logs current and future contributions to projects."""
+    """Class that logs current and future contributions to projects.
+
+    Attributes:
+        per_skill_contributions: dict
+            logs contributions of each skill to specific project at
+            each timestep
+        total_contribution: dict
+            logs total number of units contributed to project at each
+            timestep
+        worker: worker.Worker
+            the worker these contributions relate to
+            (used to access skills)
+        units_per_full_time: int
+            Number of units equivalent ot 100% FTE, defined in config
+    """
     def __init__(self, worker, units_per_full_time=UNITS_PER_FTE):
         self.per_skill_contributions = dict()
         self.total_contribution = dict()
@@ -223,6 +320,17 @@ class WorkerContributions:
         self.units_per_full_time = units_per_full_time
 
     def get_contributions(self, time=None):
+        """Returns log of which skill is contributed to which project,
+        either at all times or at specific time.
+
+        Args:
+            time: int, optional
+            Specific time for which to return skill contributions,
+            otherwise returns full dict (all times)
+
+        Returns:
+            dictionary of contributions
+        """
         if time is None:
             return self.per_skill_contributions
         elif time in self.per_skill_contributions.keys():
@@ -231,6 +339,19 @@ class WorkerContributions:
             return {}
 
     def get_skill_units_contributed(self, time, skill):
+        """Return number of units of a specific skill that worker
+        contributes at a given time.
+
+        Args:
+            time: int
+                Timestep at which to count contributions
+            skill: str
+                Hard skill to return contributions for, takes value in
+                ['A',...,'E']
+
+        Returns:
+            integer count of number of units contributed
+        """
         contributions = self.get_contributions(time)
 
         if skill in contributions.keys():
@@ -239,7 +360,15 @@ class WorkerContributions:
             return 0
 
     def add_contribution(self, project, skill):
+        """Log that worker contributes one unit of this skill to the
+         project.
 
+        Args:
+            project: project.Project
+                Project to which worker contributes this skill
+            skill: str
+                Hard skill contributed, takes value in ['A',...,'E']
+        """
         for time_offset in range(project.length):
             time = project.start_time + time_offset
 
@@ -257,13 +386,27 @@ class WorkerContributions:
                 self.total_contribution[time] += 1
 
     def get_units_contributed(self, time):
+        """Return total units contributed at this timestep
+
+        Args:
+            time: int
+                timestep for which to return contributions
+        """
         if time not in self.total_contribution.keys():
             return 0
         else:
             return self.total_contribution[time]
 
     def contributes_less_than_full_time(self, start, length):
+        """Determine if worker contributes less than full time over
+        this time period.
 
+        Args:
+            start: int
+                Start of time period
+            length: int
+                Length of time period
+        """
         for t in range(length):
 
             time = start + t
@@ -274,7 +417,20 @@ class WorkerContributions:
         return True
 
     def get_remaining_units(self, start, length):
+        """Count the number of remaining units that this worker is
+        able to contribute over this time period.
 
+        Args:
+            start: int
+                Start of time period
+            length: int
+                Length of time period
+
+        Note:
+            Number of remaining units may be different at each timestep
+            in this period. This method returns the minimum, because is
+            the constraint on how much project work they can do.
+        """
         remaining_units = []
         for t in range(length):
 
@@ -286,6 +442,23 @@ class WorkerContributions:
         return min(remaining_units)
 
     def is_free_over_period(self, start, length, slack):
+        """Determines if worker is 'free' over this time period.
+
+        'Free' is defined as not working on projects and departmental
+        workload is satisfied.
+
+        Note:
+            'slack' can be used to add a buffer above the required
+             departmental workload
+
+        Args:
+            start: int
+                Start of time period
+            length: int
+                Length of time period
+            slack: int
+                buffer to add to departmental workload
+        """
         if ((self.get_remaining_units(start, length)
                 == self.units_per_full_time)
             and (self.worker.department
@@ -297,7 +470,22 @@ class WorkerContributions:
 
 
 class WorkerHistory:
-    """Class to track recent worker's success rate."""
+    """Class to track recent worker's success rate.
+
+    This is used to determine 'momentum' which is a component of
+    individual chemistry.
+
+    Attributes:
+        success_history_length: int
+            Number of timesteps to track (beyond this value entries
+            are removed from the history)
+        success_history_threshold: float
+            Ratio of successful project in history list that are
+            required to produce momentum
+        success_history: list
+            List of bools that record recent project successes and
+            failures
+    """
     def __init__(self, success_history_length=WORKER_SUCCESS_HISTORY_LENGTH,
                  success_history_threshold=WORKER_SUCCESS_HISTORY_THRESHOLD):
 
@@ -306,31 +494,51 @@ class WorkerHistory:
         self.success_history = []
 
     def record(self, success):
+        """Log a success (or failure) and remove the first element in
+        the history list if it is too long.
+
+        Args:
+            success: bool
+                Was the project successful
+            """
         self.success_history.append(success)
         if len(self.success_history) > self.success_history_length:
             self.success_history.pop(0)
 
     def get_success_rate(self):
+        """Compute recent success rate"""
         if len(self.success_history) == 0:
             return 0
         else:
             return sum(self.success_history) / len(self.success_history)
 
     def momentum(self):
+        """Determine is recent success rate is greater than required
+        threshold"""
         return self.get_success_rate() >= self.success_history_threshold
 
 
 class WorkerStrategyInterface(Interface):
+    """Interface class for worker strategies.
 
+    Worker strategies decide if workers will bid for a project.
+
+    In a future version they may also decide if a worker accepts an
+    invitation to work on a project. (Currently not in use)
+    """
     def bid(self, project: Project, worker: Worker) -> bool:
         pass
 
     def accept(self, project: Project) -> bool:
+        """Currently not in use."""
         pass
 
 
 class AllInStrategy(implements(WorkerStrategyInterface)):
+    """AllIn strategy means that worker will bid for any project.
 
+    Note: this does not respect the staking requirement.
+    """
     def __init__(self, name: str):
         self.name = name
 
@@ -350,7 +558,12 @@ class AllInStrategy(implements(WorkerStrategyInterface)):
 
 
 class StakeStrategy(implements(WorkerStrategyInterface)):
-
+    """Stake strategy - a worker will only bid for a project if:
+        1. their departmental workload is satified
+        2. they are currently working at less than full time for the
+        project duration
+        3. the project risk is less than or equal to half their OVR
+    """
     def __init__(self, name: str):
         self.name = name
 
@@ -372,7 +585,34 @@ class StakeStrategy(implements(WorkerStrategyInterface)):
 
 
 class SkillMatrix:
+    """Class that handles the skills of a worker.
 
+    Attributes:
+        hard_skills: dict
+            Records skill level for each hard skill  ['A',..,'E']
+        soft_skills: dict
+            Records skill level for each soft skill ['F',..,'J']
+        max_skill: int
+            Maximum possible skill level
+        hard_skill_probability: int
+            Probability that each hard skill is non-zero on creation
+        ovr_multiplier: int
+            Multiplier for calculating worker OVR
+        skill_decay_factor: float
+            Multiplier for decay of unused skills
+        round_to: int
+            number of decimal places for printing
+        peer_assessment_tracker: dict
+            Records how much each skill changes due to peer assessment
+        skill_decay_tracker: dict
+            Records how much each skill changes due to decay
+        training_tracker: dict
+            Records how much each skill changes due to training
+
+        Note:
+            The trackers are reset to zero at the beginning of each
+            simulation timestep
+    """
     def __init__(self,
                  hard_skills=HARD_SKILLS,
                  soft_skills=SOFT_SKILLS,
@@ -412,7 +652,7 @@ class SkillMatrix:
 
     @property
     def ovr(self):
-
+        """Calculates worker OVR from hard skills"""
         return (sum([s for s in
                      self.hard_skills.values()
                      if s > 0.0])
@@ -423,6 +663,7 @@ class SkillMatrix:
 
     @property
     def top_two(self):
+        """Returns this workers top two skills (by level)"""
         ranked_skills = {
             k: v for k, v in sorted(
             self.hard_skills.items(),
@@ -432,14 +673,14 @@ class SkillMatrix:
         return list(ranked_skills.keys())[:2]
 
     def assign_hard_skills(self):
-
+        """Randomly allocates hard skills to worker"""
         for key in self.hard_skills.keys():
             if Random.uniform() <= self.hard_skill_probability:
                 self.hard_skills[key] = Random.uniform(
                     0.0, self.max_skill)
 
     def decay(self, worker):
-
+        """Decays unused skills by predefined factor"""
         for skill in self.hard_skills.keys():
 
             units = (
@@ -453,14 +694,19 @@ class SkillMatrix:
                     self.hard_skills[skill] - old_skill
                 )
 
-    def reset_trackers(self):
+    def reset_skill_change_trackers(self):
+        """Resets trackers to zero. Called at beginning of each
+        simulation timestep
+        """
         for skill in self.hard_skills:
             self.peer_assessment_tracker[skill] = 0
             self.skill_decay_tracker[skill] = 0
             self.training_tracker[skill] = 0
 
     def to_string(self):
-
+        """Returns worker skills in json formatted string for printing
+         or saving
+         """
         output = {
             "Worker OVR":
                 round(self.ovr, self.round_to),

@@ -127,6 +127,9 @@ class SuperScriptModel(Model):
 
     def step(self):
 
+        for agent in self.schedule.agents:
+            agent.skills.reset_skill_change_trackers()
+
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)

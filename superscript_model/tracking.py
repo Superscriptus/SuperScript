@@ -173,18 +173,18 @@ def worker_peer_assessment_tracker(worker):
 
 
 class SSDataCollector(DataCollector):
+    """Data collection class.
 
+    Uses functions defined above to track model-level,
+    agent-level and table data.
+
+    Tables are used to track project and team specific data.
+
+    Functions for model and agent reporters take model and agents
+    instances respectively.
+    """
     def __init__(self):
-        """Data collection class.
 
-        Uses functions defined above to track model-level,
-        agent-level and table data.
-
-        Tables are used to track project and team specific data.
-
-        Functions for model and agent reporters take model and agents
-        instances respectively.
-        """
         model_reporters = {
             "ActiveProjects": active_project_count,
             "RecentSuccessRate": recent_success_rate,
