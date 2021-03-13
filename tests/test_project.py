@@ -122,11 +122,11 @@ class TestProjectInventory(unittest.TestCase):
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         inventory.create_projects(5, time=0, length=5)
-        self.assertRaises(KeyError, inventory.delete_project, 42)
+        self.assertRaises(KeyError, inventory.delete_project, 43)
         self.assertEqual(inventory.active_count, 5)
         inventory.delete_project(0)
-        inventory.delete_project(2)
-        self.assertEqual(inventory.active_count, 3)
+    #     inventory.delete_project(2)
+    #     self.assertEqual(inventory.active_count, 3)
 
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')

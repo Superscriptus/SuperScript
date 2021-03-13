@@ -208,7 +208,7 @@ class TestTeam(unittest.TestCase):
         w2.skills.soft_skills = dict(zip(soft_skills,
                                          [5.0, 5.0, 5.0, 5.0, 5.0]))
         project = Project(mock_inventory,
-                          project_id=42,
+                          project_id=43,
                           project_length=5)
         project.requirements.creativity = 5
         team = Team(project,

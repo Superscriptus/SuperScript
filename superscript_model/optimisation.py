@@ -22,9 +22,14 @@ import pickle
 class OptimiserFactory:
 
     @staticmethod
-    def get(optimiser_name, project, bid_pool, model):
+    def get(optimiser_name, project, bid_pool, model,
+            save_flag=False, results_dir=None):
+
         if optimiser_name == "ParallelBasinhopping":
-            return Optimiser(project, bid_pool, model, 0)
+            return Optimiser(project, bid_pool,
+                             model, 0,
+                             save_flag=save_flag,
+                             results_dir=results_dir)
 
 
 class DummyReturn:
@@ -414,57 +419,6 @@ class MyTakeStep(object):
         self.min_team_size = max(self.min_team_size, min_team_size)
         self.time_limit = time_limit
 
-# remove!
-    def __oldcall__(self, x):
-
-        # determine how many workers to add and remove to team:
-        number_to_add = min(Random.randint(0, MAX_TEAM_SIZE),
-                            len(self.bid_pool) - self.optimiser.team_size(x))
-
-        new_size = self.optimiser.team_size(x) + number_to_add
-        min_remove = max(0, new_size - MAX_TEAM_SIZE)
-        max_remove = new_size - MIN_TEAM_SIZE
-        if max_remove < min_remove:
-            number_to_remove = 0
-        else:
-            number_to_remove = Random.randint(min_remove, max_remove)
-
-        # choose members to add:
-        assert len(self.bid_pool) >= number_to_add + number_to_remove
-        current_team = self.optimiser.get_team(x)
-
-        to_add = []
-        new_team_members = list(current_team.members.values())
-        inverted = self.bid_pool[::-1]
-        for i in range(number_to_add):
-            chosen = Random.choice(inverted)
-            while chosen in new_team_members:
-                chosen = Random.choice(inverted)
-            new_team_members.append(chosen)
-            to_add.append(chosen)
-
-        for a in to_add:
-            start = self.bid_pool.index(a) * 5
-
-            required_skill_count = len(self.project.required_skills)
-            add_skills = Random.choices(
-                self.project.required_skills,
-                min(required_skill_count,
-                    self.worker_unit_budgets[a.worker_id])
-            )
-            for skill in add_skills:
-                si = self.skills.index(skill)
-                x[start + si] = 1
-
-        # now select and remove required numer of workers:
-        to_remove = Random.choices(new_team_members, number_to_remove)
-        for r in to_remove:
-            start = self.bid_pool.index(r) * 5
-            for i in range(5):
-                x[start + i] = 0
-
-        return x
-
     def __call__(self, x):
 
         constraints_met = False
@@ -474,20 +428,25 @@ class MyTakeStep(object):
         while not constraints_met:
 
             # determine how many workers to add and remove to team:
-            number_to_add = min(Random.randint(0, MAX_TEAM_SIZE),
-                                len(self.bid_pool) - self.optimiser.team_size(x))
+            number_to_add = min(
+                Random.randint(0, self.max_team_size),
+                len(self.bid_pool) - self.optimiser.team_size(x)
+            )
 
             new_size = self.optimiser.team_size(x) + number_to_add
-            min_remove = max(0, new_size - MAX_TEAM_SIZE)
-            max_remove = new_size - MIN_TEAM_SIZE
+            min_remove = max(0, new_size - self.min_team_size)
+            max_remove = new_size - self.min_team_size
             if max_remove < min_remove:
                 number_to_remove = 0
             else:
-                number_to_remove = Random.randint(min_remove, max_remove)
+                number_to_remove = Random.randint(
+                    min_remove, max_remove
+                )
 
             # choose members to add:
             #assert len(self.bid_pool) >= number_to_add + number_to_remove
-            assert len(self.bid_pool) >= number_to_add + self.optimiser.team_size(x)
+            assert (len(self.bid_pool)
+                    >= number_to_add + self.optimiser.team_size(x))
             current_team = self.optimiser.get_team(x)
 
             to_add = []

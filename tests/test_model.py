@@ -4,7 +4,9 @@ from unittest.mock import patch
 from mesa import Model
 from mesa.time import BaseScheduler
 from superscript_model.model import SuperScriptModel
-from superscript_model.config import (NEW_PROJECTS_PER_TIMESTEP)
+from superscript_model.config import (NEW_PROJECTS_PER_TIMESTEP,
+                                      MIN_TEAM_SIZE,
+                                      MAX_TEAM_SIZE)
 
 
 class TestSuperScriptModel(unittest.TestCase):
@@ -66,7 +68,15 @@ class TestSuperScriptModel(unittest.TestCase):
             len(model.inventory.projects),
             2 * NEW_PROJECTS_PER_TIMESTEP
         )
-        self.assertTrue(model.inventory.projects[20].team.size > 0)
+
+        for project in model.inventory.projects.values():
+            if project.team.lead is not None:
+                self.assertTrue(
+                    project.team.size >= MIN_TEAM_SIZE
+                )
+                self.assertTrue(
+                    project.team.size <= MAX_TEAM_SIZE
+                )
 
 
 if __name__ == '__main__':
