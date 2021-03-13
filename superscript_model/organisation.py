@@ -43,7 +43,12 @@ class Team:
 
         # check that team leader actually contributes to project:
         # (otherwise worker may be replaced while still leading project)
-        if self.count_units_contributed_by_member(self.lead.worker_id) == 0:
+        if (
+                self.lead is not None
+                and self.count_units_contributed_by_member(
+                  self.lead.worker_id) == 0
+        ):
+
             contributing_members = [
                 m for m in self.members.values()
                 if self.count_units_contributed_by_member(m.worker_id) > 0
@@ -270,7 +275,6 @@ class Team:
     def within_budget(self):
         if self.project.budget is None:
             return True
-        #elif self.team_ovr <= self.project.budget:
         elif self.team_budget <= self.project.budget:
             return True
         else:

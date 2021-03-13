@@ -61,11 +61,14 @@ class TestProject(unittest.TestCase):
         self.assertEqual(inventory.active_count, 0)
         self.assertEqual(project.success_probability, 0.0)
 
-    @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_chemistry(self, mock_inventory, mock_model):
+    def test_chemistry(self):
 
-        model = SuperScriptModel(10)
+        model = SuperScriptModel(
+            worker_count=10,
+            worker_strategy='AllIn',
+            organisation_strategy='Random',
+            budget_functionality_flag=False
+        )
         model.inventory.create_projects(1, 0, 5)
         project = model.inventory.projects[0]
         project.team.log_project_outcome(success=False)

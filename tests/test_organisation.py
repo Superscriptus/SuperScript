@@ -5,7 +5,7 @@ from .test_worker import implements_interface
 from mesa import Model
 from mesa.time import RandomActivation
 from superscript_model.model import SuperScriptModel
-from superscript_model.worker import Worker
+from superscript_model.worker import Worker, SkillMatrix
 from superscript_model.optimisation import OptimiserFactory
 from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import (Team,
@@ -26,28 +26,49 @@ from superscript_model.config import (DEPARTMENTAL_WORKLOAD,
 
 class TestTeam(unittest.TestCase):
 
-    @patch('superscript_model.project.Project')
-    @patch('superscript_model.worker.Worker')
-    def test_init(self, mock_worker, mock_project):
+    def setUp(self):
 
-        team = Team(mock_project,
-                    members={mock_worker.worker_id: mock_worker},
-                    lead=mock_worker)
-        self.assertEqual(team.team_ovr, 0.0)
-        self.assertEqual(len(team.members), 1)
+        self.model = SuperScriptModel(
+            worker_count=100,
+            worker_strategy='AllIn',
+            organisation_strategy='Random',
+            budget_functionality_flag=False
+        )
+
+        self.project = Project(
+            self.model.inventory,
+            project_id=0,
+            project_length=5,
+            start_time=0)
+
+        self.allocator = TeamAllocator(
+            self.model,
+            OptimiserFactory()
+        )
+
+    def test_init(self):
+
+        workers = list(self.model.schedule.agents)[0:4]
+        team = Team(
+            self.project,
+            members={
+                agent.worker_id: agent
+                for agent in workers
+            },
+            lead=workers[0]
+        )
+
+        self.assertEqual(len(team.members), 4)
         self.assertIsInstance(team.members, dict)
-        self.assertEqual(mock_worker.assign_as_lead.call_count, 1)
+        self.assertIsNotNone(team.lead)
 
-    @patch('superscript_model.project.Project')
-    @patch('superscript_model.worker.Worker')
-    def test_remove_lead(self, mock_worker, mock_project):
+    def test_remove_lead(self):
 
-        team = Team(mock_project,
-                    members={mock_worker.worker_id: mock_worker},
-                    lead=mock_worker)
-        team.remove_lead(mock_project)
-        self.assertEqual(mock_worker.remove_as_lead.call_count, 1)
-        self.assertIs(team.lead, None)
+        self.allocator.allocate_team(self.project)
+        team = self.project.team
+        self.assertIsNotNone(team.lead)
+        team.remove_lead(self.project)
+        self.assertIsNone(team.lead)
 
     @patch('superscript_model.model.Model')
     @patch('superscript_model.project.ProjectInventory')
@@ -235,7 +256,12 @@ class TestRandomStrategy(unittest.TestCase):
     @patch('superscript_model.model.SuperScriptModel')
     def test_select_team(self, mock_model, mock_print, mock_allocator):
 
-        strategy = RandomStrategy(SuperScriptModel(100))
+        strategy = RandomStrategy(
+            SuperScriptModel(worker_count=100,
+                             worker_strategy='AllIn',
+                             budget_functionality_flag=False
+                             )
+        )
         inventory = ProjectInventory(mock_allocator, model=mock_model)
         inventory.create_projects(1, time=0, length=5)
         team = strategy.select_team(inventory.projects[0],
@@ -277,16 +303,20 @@ class TestTeamAllocator(unittest.TestCase):
     @patch('superscript_model.project.ProjectInventory')
     def test_allocate_team(self, mock_inventory):
 
+        model = SuperScriptModel(
+            worker_count=100,
+            worker_strategy='AllIn',
+            organisation_strategy='Random',
+            budget_functionality_flag=False
+        )
+        mock_inventory.model = model
         project = Project(mock_inventory,
-                          project_id=42,
+                          project_id=0,
                           project_length=5,
                           start_time=0)
 
         allocator = TeamAllocator(
-            SuperScriptModel(100,
-                             worker_strategy='AllIn',
-                             organisation_strategy='Random',
-                             budget_functionality_flag=False),
+            model,
             OptimiserFactory()
         )
         allocator.allocate_team(project)
