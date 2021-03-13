@@ -263,7 +263,7 @@ class ProjectInventory:
             )
         }
 
-        if not null:
+        if not null and project.team is not None:
             next_row["team_budget"] = project.team.team_budget
             next_row["team_ovr"] = project.team.team_ovr
             next_row["team_creativity_match"] = project.team.creativity_match

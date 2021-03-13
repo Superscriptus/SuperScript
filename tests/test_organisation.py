@@ -6,6 +6,7 @@ from mesa import Model
 from mesa.time import RandomActivation
 from superscript_model.model import SuperScriptModel
 from superscript_model.worker import Worker
+from superscript_model.optimisation import OptimiserFactory
 from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import (Team,
                                             OrganisationStrategyInterface,
@@ -265,19 +266,31 @@ class TestRandomStrategy(unittest.TestCase):
 class TestTeamAllocator(unittest.TestCase):
 
     def test_init(self):
-        allocator = TeamAllocator(SuperScriptModel(100))
-        self.assertTrue(implements_interface(allocator.strategy,
-                                             OrganisationStrategyInterface))
+        allocator = TeamAllocator(
+            SuperScriptModel(100), OptimiserFactory()
+        )
+        self.assertTrue(
+            implements_interface(allocator.strategy,
+                                 OrganisationStrategyInterface)
+        )
 
-    @patch('superscript_model.project.Project')
-    def test_allocate_team(self, mock_project):
+    @patch('superscript_model.project.ProjectInventory')
+    def test_allocate_team(self, mock_inventory):
 
-        mock_project.start_time = 0
-        mock_project.length = 5
-        mock_project.budget = 1000
-        allocator = TeamAllocator(SuperScriptModel(42))
-        allocator.allocate_team(mock_project)
-        self.assertIsInstance(mock_project.team, Team)
+        project = Project(mock_inventory,
+                          project_id=42,
+                          project_length=5,
+                          start_time=0)
+
+        allocator = TeamAllocator(
+            SuperScriptModel(100,
+                             worker_strategy='AllIn',
+                             organisation_strategy='Random',
+                             budget_functionality_flag=False),
+            OptimiserFactory()
+        )
+        allocator.allocate_team(project)
+        self.assertIsInstance(project.team, Team)
 
 
 class TestDepartment(unittest.TestCase):

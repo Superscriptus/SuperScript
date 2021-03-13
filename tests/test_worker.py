@@ -12,7 +12,8 @@ from superscript_model.worker import (Worker,
 from superscript_model.project import Project, ProjectInventory
 from superscript_model.config import (HARD_SKILLS,
                                       SKILL_DECAY_FACTOR,
-                                      WORKER_SUCCESS_HISTORY_LENGTH)
+                                      WORKER_SUCCESS_HISTORY_LENGTH,
+                                      REPLACE_AFTER_INACTIVE_STEPS)
 
 
 def implements_interface(cls, interface):
@@ -59,6 +60,9 @@ class TestWorker(unittest.TestCase):
     @patch('superscript_model.project.Project.terminate')
     def test_step(self, mock_terminate, mock_allocator, mock_model):
 
+        mock_model.replace_after_inactive_steps = (
+            REPLACE_AFTER_INACTIVE_STEPS
+        )
         worker = Worker(42, mock_model)
         project = Project(ProjectInventory(mock_allocator,
                                            model=mock_model),
