@@ -66,6 +66,7 @@ class TestTeam(unittest.TestCase):
                     members={worker.worker_id: worker},
                     lead=worker)
 
+        team.assign_contributions_to_members()
         self.assertEqual(len(worker.contributes.keys()), p_len)
         for skill in project.required_skills:
             self.assertEqual(
@@ -365,8 +366,8 @@ class TestTrainer(unittest.TestCase):
             trainer.train()
 
         self.assertEqual(workers[0].skills.hard_skills['A'], 4)
-        self.assertEqual(workers[0].skills.hard_skills['B'], 4)
+        self.assertEqual(workers[0].skills.hard_skills['B'], 1)
         self.assertEqual(workers[0].skills.hard_skills['C'], 1)
-        self.assertEqual(workers[1].skills.hard_skills['B'], 4)
+        self.assertEqual(workers[1].skills.hard_skills['B'], 2)
         self.assertEqual(workers[2].skills.hard_skills['A'], 3)
         self.assertEqual(workers[4].skills.hard_skills['B'], 5)

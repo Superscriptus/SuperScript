@@ -652,6 +652,7 @@ class Trainer:
                     if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
                         requires_training = True
                         skill_to_train = skill
+                        break
 
                 if requires_training:
                     self.add_worker(worker, skill_to_train)

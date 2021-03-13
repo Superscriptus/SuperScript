@@ -1,9 +1,10 @@
 import unittest
 from unittest.mock import patch
 
-from superscript_model.model import SuperScriptModel
 from mesa import Model
 from mesa.time import BaseScheduler
+from superscript_model.model import SuperScriptModel
+from superscript_model.config import (NEW_PROJECTS_PER_TIMESTEP)
 
 
 class TestSuperScriptModel(unittest.TestCase):
@@ -33,21 +34,38 @@ class TestSuperScriptModel(unittest.TestCase):
 
     def test_integration(self):
         model = SuperScriptModel(worker_count=1000,
-                                 department_count=10)
+                                 department_count=10,
+                                 budget_functionality_flag=False,
+                                 worker_strategy='AllIn',
+                                 organisation_strategy='Random'
+                                 )
         model.trainer.training_commences = 0
         model.run_model(1)
         self.assertEqual(model.schedule.get_agent_count(), 1000)
-        self.assertEqual(len(model.inventory.projects), 20)
+        self.assertEqual(
+            len(model.inventory.projects),
+            NEW_PROJECTS_PER_TIMESTEP
+        )
         model.run_model(1)
         self.assertEqual(model.schedule.get_agent_count(), 1000)
-        self.assertEqual(len(model.inventory.projects), 40)
+        self.assertEqual(
+            len(model.inventory.projects),
+            2 * NEW_PROJECTS_PER_TIMESTEP
+        )
 
         model = SuperScriptModel(worker_count=1000,
-                                 department_count=10)
+                                 department_count=10,
+                                 budget_functionality_flag=False,
+                                 worker_strategy='AllIn',
+                                 organisation_strategy='Random'
+                                 )
         model.trainer.training_commences = 10
         model.run_model(2)
         self.assertEqual(model.schedule.get_agent_count(), 1000)
-        self.assertEqual(len(model.inventory.projects), 40)
+        self.assertEqual(
+            len(model.inventory.projects),
+            2 * NEW_PROJECTS_PER_TIMESTEP
+        )
         self.assertTrue(model.inventory.projects[20].team.size > 0)
 
 
