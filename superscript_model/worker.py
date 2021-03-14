@@ -7,6 +7,7 @@ Worker class and associated classes.
 Worker is a subclass of mesa.Agent
 
 """
+
 from mesa import Agent
 from interface import Interface, implements
 import json

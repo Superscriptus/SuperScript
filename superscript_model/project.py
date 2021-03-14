@@ -1,3 +1,20 @@
+"""
+SuperScript project module
+===========
+
+Classes:
+    ProjectInventory
+        Inventory of all projects in the simulation. Creates, tracks
+        and interacts with projects.
+    Project
+        Each project created is an instance of this class
+    Project requirements
+        Handles projects requirements (skill, risk etc)
+    SuccessCalculator
+        Inventory has a single instance of SuccessCalculator, for
+        computing project success probabilities
+"""
+
 from copy import deepcopy
 import numpy as np
 import json
@@ -24,6 +41,59 @@ from .config import (MAXIMUM_TIMELINE_FLEXIBILITY,
 
 
 class ProjectInventory:
+    """Inventory of all projects in the simulation
+
+    This class is responsible for creating projects.
+## FINISH!! Also, saves and loads...
+    ...
+
+    Attributes:
+        projects: dict
+            Stores project instances (key is project_id)
+        null_projects: dict
+            Stores projects which are 'null' (either team or lead is
+            None due to failure to allocate a viable team). The null
+            projects are removed on each timestep
+        null_count: int
+            Counts number of null projects
+        index_total: int
+            Count total number of projects added to the simulation, to
+            ensure that new projects have a unique project_id
+        team_allocator: organisation.TeamAllocator
+            Class that uses predefined strategies to invite bids and
+            select team for a project
+        timeline_flexibility_func: function
+            Function that produces the timeline flexibility value for a
+            project. The actual start time offset is then chosen based
+            on this. (How it is chosen depends on the organisation
+            strategy.)
+        max_timeline_flex: int
+            Parameter for timeline_flexibility_func. Defines upper
+            limit on timeline flexibility.
+        success_calculator: SuccessCalculator
+            Calculates project success probabilities (and determines
+            is they succeed or fail).
+        success_history: dict
+            Records timeseries of project successes.
+        fail_history: dict
+            Records timeseries of project failures.
+        total_skill_requirement: dict
+            Stores current total requirements for each hard skill
+            across all newly created projects (updated each timestep).
+###FINISH!
+        total_skill_requirement = dict(zip(
+            hard_skills, [0 for s in hard_skills]
+        ))
+        self.social_network = social_network
+        self.model = model
+        self.skill_update_func = (FunctionFactory.get(
+            'SkillUpdateByRisk'
+        ) if self.model.update_skill_by_risk_flag
+          else FunctionFactory.get('IdentityFunction'))
+
+        self.io_dir = io_dir
+        self.save_flag = save_flag
+    """
 
     def __init__(self,
                  team_allocator,
@@ -35,7 +105,9 @@ class ProjectInventory:
                  save_flag=False,
                  load_flag=False,
                  io_dir='./'):
-
+        """Create and configure inventory - called once in model.py on
+        simulation setup.
+        """
         self.projects = dict()
         self.null_projects = dict()
         self.null_count = 0
@@ -81,16 +153,24 @@ class ProjectInventory:
 
     @property
     def active_count(self):
+        """Count number of projects that are currently active (have
+        started). Used by SSDataCollector.
+        """
         return sum([1 for p
                     in self.projects.values()
                     if p.progress >= 0])
 
     @property
     def top_two_skills(self):
+        """Returns top two in-demand skills at current time.
+        """
         return list(self.total_skill_requirement.keys())[:2]
 
     def remove_null_projects(self):
-
+        """Removes null projects (which have failed to have a viable
+        team assigned to them. If this is not called the null projects
+        will hang because there is no team lead to advance them.
+        """
         nulls = list(self.null_projects.keys())
         self.null_count = len(nulls)
 
@@ -102,7 +182,16 @@ class ProjectInventory:
             del self.null_projects[project_id]
 
     def get_start_time_offset(self):
+        """Chooses a start time offset uniformly at random from the
+        probabilities produce by timeline_flexibility_func.get()
 
+        Note:
+            For 'Random' and 'Basic' team allocation strategies, this
+            offset is used as the actual offset. For 'Basin' (and any
+            future optimisation methods), the actual offset is chosen
+            as the one which produces the highest probability of
+            project success, with this offset as the upper limit.
+        """
         p_vector = (
             self.timeline_flexibility_func
             .get_values(np.arange(self.max_timeline_flex + 1))
@@ -116,7 +205,13 @@ class ProjectInventory:
             lb += p_vector[i]
 
     def determine_total_skill_requirements(self, projects):
+        """Sums all skill requirements across a list of projects
+        and then ranks them (so that the top two can be selected).
 
+        Args:
+            projects: list
+                List of projects over which to sum skill requirements
+        """
         for skill in self.total_skill_requirement.keys():
             self.total_skill_requirement[skill] = sum([
                 project.requirements.hard_skills[skill]['units']
@@ -125,6 +220,9 @@ class ProjectInventory:
         self.rank_total_requirements()
 
     def rank_total_requirements(self):
+        """Ranks the hard skills by their total required units in
+        descending order.
+        """
         self.total_skill_requirement = {
             k: v for k, v in sorted(
                 self.total_skill_requirement.items(),
@@ -133,34 +231,85 @@ class ProjectInventory:
             )
         }
 
+    def get_loaded_projects_for_timestep(self, time,
+                                         auto_offset=False):
+        """Returns predefined projects for this timestep, from the set
+         of projects that were loaded on construction of the inventory.
+
+         Args:
+             time: int
+                Timestep to get projects for.
+            auto_offset:
+                If True, the realised_offset is equal to the
+                max_start_time_offset, and is automatically applied to
+                the start_time of the project.
+
+        Note:
+            The auto_offset feature is cumbersome. But it allows a
+            different team allocation strategy (e.g. 'Basin') to be
+            used on the loaded projects than the strategy that was
+            originally used (e.g. 'Random') in the simulation that
+            created them. This is important functionality for comparing
+            different team allocation strategies on the same set of
+            projects.
+        """
+        predefined_projects = self.all_projects.get(time, [])
+        new_projects = [deepcopy(p) for p in predefined_projects]
+        for project in new_projects:
+            project.inventory = self
+            project.team = None
+            if self.max_timeline_flex == 0:
+                project.max_start_time_offset = 0
+                project.realised_offset = 0
+            project.progress = 0 - project.max_start_time_offset
+            project.start_time = (
+                time + project.max_start_time_offset
+                if auto_offset else time
+            )
+            project.requirements.budget_functionality_flag = (
+                self.model.budget_functionality_flag
+            )
+            project.requirements.budget = (
+                project.requirements.calculate_budget()
+            )
+
+        return new_projects
+
     def create_projects(self, new_projects_count,
                         time, length):
+        """Creates a batch of new projects. Called once per timestep.
 
+        First the projects are created, then the total_skill_requirements
+        are updated. Then a team is allocated for each project, the
+        success probability is calculated and the project is added to
+        the inventory.
+
+        If project save to disk is enabled, the new projects are logged
+        the self.all_projects to be saved at the end of the simulation.
+
+        Args:
+            new_projects_count: int
+                Number of new projects to create (defined in
+                config.py).
+            time: int
+                Start time for the projects
+            length: int
+                Length of each project
+
+        Note:
+            If 'auto_offset' is True, then the realised_offset is equal
+            to the max_start_time_offset. (See docstring for
+            get_loaded_projects_for_timestep).
+        """
         auto_offset = (
             False if self.model.organisation_strategy == 'Basin'
             else True
         )
 
         if self.load_flag:
-            predefined_projects = self.all_projects.get(time, [])
-            new_projects = [deepcopy(p) for p in predefined_projects]
-            for project in new_projects:
-                project.inventory = self
-                project.team = None
-                if self.max_timeline_flex == 0:
-                    project.max_start_time_offset = 0
-                    project.realised_offset = 0
-                project.progress = 0 - project.max_start_time_offset
-                project.start_time = (
-                    time + project.max_start_time_offset
-                    if auto_offset else time
-                )
-                project.requirements.budget_functionality_flag = (
-                    self.model.budget_functionality_flag
-                )
-                project.requirements.budget = (
-                    project.requirements.calculate_budget()
-                )
+            new_projects = self.get_loaded_projects_for_timestep(
+                time, auto_offset
+            )
         else:
             new_projects = []
             for i in range(new_projects_count):
@@ -185,13 +334,29 @@ class ProjectInventory:
             self.add_project(p)
 
     def save_projects(self):
+        """Saves self.all_projects to disk for re-use in later
+        simulations.
+        """
         if self.save_flag:
-            with open(self.io_dir + '/project_file.pickle', 'wb') as ofile:
+            with open(
+                    self.io_dir + '/project_file.pickle',
+                    'wb') as ofile:
+
                 pickle.dump(self.all_projects, ofile)
 
     @staticmethod
     def rank_projects(project_list):
-        project_list.sort(reverse=True, key=lambda x: (x.risk, x.creativity))
+        """Ranks a list of projects by risk and then creativity in
+        descending order, so that high-risk, high-creativity projects
+        will be allocated a team first.
+
+        Args:
+            project_list: list
+                List of projects to rank
+        """
+        project_list.sort(
+            reverse=True, key=lambda x: (x.risk, x.creativity)
+        )
         return project_list
 
     def add_project(self, project):
