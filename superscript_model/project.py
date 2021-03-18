@@ -43,8 +43,17 @@ from .config import (MAXIMUM_TIMELINE_FLEXIBILITY,
 class ProjectInventory:
     """Inventory of all projects in the simulation
 
-    This class is responsible for creating projects.
-## FINISH!! Also, saves and loads...
+    This class is responsible for creating projects, and keeping track
+    of which projects are active, handling null_projects (those without
+    a valid team allocated), and logging project/team data using the
+    model DataCollector.
+
+    During project creation, the team allocation also takes place and
+    then the project success probability is determined.
+
+    This class also has the capability to either save all the projects
+    to disk (for re-use in later simulations), or to load pre-defined
+    projects from disk.
     ...
 
     Attributes:
@@ -80,19 +89,29 @@ class ProjectInventory:
         total_skill_requirement: dict
             Stores current total requirements for each hard skill
             across all newly created projects (updated each timestep).
-###FINISH!
-        total_skill_requirement = dict(zip(
-            hard_skills, [0 for s in hard_skills]
-        ))
-        self.social_network = social_network
-        self.model = model
-        self.skill_update_func = (FunctionFactory.get(
-            'SkillUpdateByRisk'
-        ) if self.model.update_skill_by_risk_flag
-          else FunctionFactory.get('IdentityFunction'))
-
-        self.io_dir = io_dir
-        self.save_flag = save_flag
+        social_network: network.SocialNetwork
+            This is used in the computation to determine the team
+            chemistry based on their historical collaborations, which
+            are stored in the network.
+        model: model.SuperScriptModel
+            Reference to the main model, used for various purposes
+            including accessing model level config variables (which
+            need to be defined at the model level in order to work
+            with the Mesa GUI controls), and for doing data collection
+            using the DataCollector.
+        skill_update_func: function
+            Passed to team.skill_update method to update member skills
+            on project termination, depending on project success.
+            The function is obtained from function.FunctionFactory
+        io_dir: string
+            Directory for reading/writing projects (if save_flag or
+            load_flag is True)
+        save_flag: bool
+            If True all projects will be saved for later use.
+        load_flag: bool
+            If True the inventory will try to load predefined projects
+            from project_file.pickle in the specified io_dir, instead
+            of creating new projects at random.
     """
 
     def __init__(self,
@@ -360,7 +379,14 @@ class ProjectInventory:
         return project_list
 
     def add_project(self, project):
+        """Adds project to the inventory, providing it has a valid team
+        allocated. Otherwise, the project is added to the dictionary
+        of null_projects which are removed from the simulation each
+        timestep.
 
+        Args:
+            project: project.Project
+        """
         if project.team is None or project.team.lead is None:
             self.null_projects[project.project_id] = project
 
@@ -372,6 +398,11 @@ class ProjectInventory:
                            % project.project_id)
 
     def delete_project(self, project_id):
+        """Safely removes project from inventory.
+
+        Args:
+            project: project.Project
+        """
         try:
             del self.projects[project_id]
         except KeyError:
@@ -379,7 +410,15 @@ class ProjectInventory:
             raise
 
     def advance_projects(self):
-        """ Allows projects to be deleted/terminated during loop"""
+        """Advances all projects in inventory.
+
+        Deprecated because project are advanced individually by the
+        project lead in the Worker.step() method.
+
+        Note:
+            Safe looping over dictionary which can change during the
+            loop if projects terminate when advanced.
+        """
         project_ids = list(self.projects.keys())
 
         for pid in project_ids:
@@ -387,7 +426,24 @@ class ProjectInventory:
                 self.projects[pid].advance()
 
     def log_project_data_collector(self, project, null, success):
+        """Method that creates and logs row of data relating to the
+        project and its assigned team. This is called either when
+        the project terminates, or if when it is removed from the
+        simulation if it is a null_project (i.e. no team allocated
+        or invalid team).
 
+        Uses the model.datacollector instance of SSDataCollector
+        which uses a Mesa table to collect this data.
+
+        Args:
+            project: project.Project
+                The project to log
+            null: bool
+                Was the project a null_project? If True the team data
+                elements are set to None
+            success: bool
+                Was the project successful?
+        """
         success_calculator = project.inventory.success_calculator
         success_calculator.get_component_values(project)
 
@@ -445,7 +501,45 @@ class ProjectInventory:
 
 
 class Project:
-# progress and team are good examples of why objects should be imutable.
+    """Project class.
+
+    This class directly handles advancing and termination of project,
+    and tracks project progress. Also instantiates ProjectRequirements
+    class which handles all skill and budget requirements.
+
+    Properties of this class are provided fo easy access to features of
+    its requirements that are required to calculate probabilities of
+    success (e.g. risk, creativity, etc).
+    ...
+
+    Attributes:
+        inventory: inventory
+            Reference to parent inventory
+        project_id: int
+            Unique integer identifier
+        length: int
+            Length of project in timesteps
+        progress: int
+            Tracks project progress.
+            <0 mean project has not started (inactive)
+        max_start_time_offset: int
+            Maximum allowed start time offset for this project
+            i.e. largest number of timesteps in future when this
+            project could start
+        realised_offset: int
+            Actual start time offset, either set to equal
+            max_start_time_offset or chosen by optimiser, depending on
+            which team allocation strategy is in use
+        start_time: int
+            Timestep on which this project starts
+        team: organisation.Team
+            The team that is allocated to this project. If team is None
+            or team.lead is None, project is null
+        requirements: project.ProjectRequirements
+            Class that handles all requirement for this project
+        success_probability: float
+            Project probability of success ( must be >=0.0)
+        """
     def __init__(self,
                  inventory: ProjectInventory,
                  project_id=42,
@@ -471,12 +565,18 @@ class Project:
         self.success_probability = 0.0
 
     def advance(self):
+        """Advance project by one timestep, terminate if complete."""
         self.progress += 1
         if self.progress >= self.length:
             self.terminate()
 
     def terminate(self):
+        """Terminate project.
 
+        Determine if project was a success, update team member skills,
+        log outcome. Clear the Team and then delete project from
+        inventory.
+        """
         success = (
             self.inventory.success_calculator.determine_success(self)
         )
@@ -492,19 +592,23 @@ class Project:
 
     @property
     def required_skills(self):
+        """Returns dictionary of required units and levels by hard
+        skill."""
         return self.requirements.get_required_skills()
 
     @property
     def risk(self):
+        """Returns project risk (int)."""
         return self.requirements.risk
 
     @property
     def creativity(self):
+        """Returns creativity requirement (float)."""
         return self.requirements.creativity
 
     @property
     def chemistry(self):
-
+        """Returns Team chemistry (float)."""
         chemistry = np.mean(
             [member.individual_chemistry(self)
              for member in self.team.members.values()]
@@ -518,14 +622,63 @@ class Project:
 
     @property
     def budget(self):
+        """Returns project budget (float)."""
         return self.requirements.budget
 
     def get_skill_requirement(self, skill):
+        """Get unit and level requirements for a specific hard skill.
+
+        Args:
+            skill: string
+                Takes value from ['A', 'B, ..., 'E']
+        Returns:
+            dict: requirements for skill
+        """
         return self.requirements.hard_skills[skill]
 
 
 class ProjectRequirements:
+    """Class that handles skill and budget requirements for a specific
+    project instance.
 
+    Attributes:
+        risk: int
+            Choice uniformly at random from predefined list
+        creativity: int
+            Chosen uniformly at random between min and max
+        flexible_budget: bool
+            Does this project have a flexible budget?
+            Determined with specified probability.
+        p_hard_skill_required: float
+            Probability that each had skill will be required.
+        min_skill_required: int
+            At least one skill must have at least this many required
+            units.
+        per_skill_max: int
+            Maximum number of units that can be required for single
+            skill.
+        per_skill_min: int
+            Minimum number of units that can be required (if skill is
+            selected with probability p_hard_skill_required).
+        min_skill_level: int
+            Minimum skill level that can be required.
+        max_skill_level = max_skill_level
+            Maximum skill level that can be required.
+        hard_skills: dict
+            Dictionary that stores requirements for each hard skill.
+            Element for each skill has an entry for 'level' and 'units'
+        total_skill_units: int
+            Total number of skill units required by this project
+        budget_functionality_flag: bool
+            Flag that allows budget functionality to be switched on/off
+            If False, any team is valid for this project.
+            If True, team must be within buget to be valid.
+        max_budget_increase: float
+            Multiplier giving maximum allowed increase in the budget,
+            if this project has a flexible budget.
+        budget: float
+            Actual budget for this project.
+    """
     def __init__(self,
                  p_hard_skill_required=P_HARD_SKILL_PROJECT,
                  per_skill_max=PER_SKILL_MAX_UNITS,
@@ -576,7 +729,23 @@ class ProjectRequirements:
         self.budget = self.calculate_budget()
 
     def select_non_zero_skills(self):
+        """Selects which (hard) skills will be included in the
+        requirements, each with probability self.p_hard_skill_required
 
+        Also sets self.total_skill_units required by the project, based
+        on how many hard skills are required.
+
+        Note:
+            At least one skill must be required.
+
+        Returns:
+            n_skills: int
+                The number of non-zero (i.e. required) hard skills
+            non_zero_skills: list
+                Randomly ordered list of the required skills.
+                This is then used to assign the required units and
+                levels of each skill.
+        """
         n_skills = 0
         while n_skills == 0:
 
@@ -590,7 +759,11 @@ class ProjectRequirements:
         return n_skills, non_zero_skills
 
     def assign_skill_requirements(self):
-
+        """Selects which skills are required by this project, then
+        allocates the self.total_skill_units across these skills
+        at random and assigns a randomly select required 'level'
+        for each skill.
+        """
         n_skills, non_zero_skills = self.select_non_zero_skills()
         remaining_skill_units = self.total_skill_units
         for i, skill in enumerate(non_zero_skills):
@@ -611,6 +784,8 @@ class ProjectRequirements:
             remaining_skill_units -= units
 
     def get_required_skills(self):
+        """Returns a list of which skills are required by this project.
+        """
         return [skill for skill
                 in self.hard_skills.keys()
                 if self.hard_skills[skill]['level'] is not None]
@@ -618,7 +793,21 @@ class ProjectRequirements:
     def calculate_budget(self,
                          flexible_budget_flag=None,
                          max_budget_increase=None):
+        """Determine the budget for this project, taking into account
+        budget flexibility (if enabled and if this project has a
+        flexible budget).
 
+        Args:
+             flexible_budget_flag: bool
+                Allows user to override the projects existing flag.
+                If None, then self.flexible_budget is used.
+             max_budget_increase: bool
+                Allows user to override the default
+                If None, then self.max_budget_increase is used.
+
+        Returns:
+            float: budget value
+        """
         if flexible_budget_flag is None:
             flexible_budget_flag = self.flexible_budget
         if max_budget_increase is None:
@@ -638,7 +827,9 @@ class ProjectRequirements:
         return budget
 
     def to_string(self):
-
+        """Returns json formatted string for printing or saving project
+        requirements.
+        """
         output = {
             'risk': self.risk,
             'creativity': self.creativity,
@@ -654,7 +845,34 @@ class ProjectRequirements:
 
 
 class SuccessCalculator:
+    """Class for calculating project probability of success, and also
+    for determining project success/fail on termination.
 
+    Attributes:
+        probability_ovr: function
+            Function for calculating OVR contribution to probability
+        probability_skill_balance: function
+            Function for calculating skill balance contribution to
+            probability
+        probability_creativity_match: function
+            Function for calculating creativity match contribution to
+            probability
+        probability_risk: function
+            Function for calculating risk contribution to probability
+        probability_chemistry: function
+            Function for calculating chemistry contribution to
+            probability
+        ovr: float
+            OVR value, argument for above function
+        skill_balance: float
+            skill_balance value, argument for above function
+        creativity_match: float
+            creativity_match value, argument for above function
+        risk: float
+            risk value, argument for above function
+        chemistry: float
+            chemistry value, argument for above function
+    """
     def __init__(self):
         self.probability_ovr = (
             FunctionFactory.get('SuccessProbabilityOVR')
@@ -678,7 +896,11 @@ class SuccessCalculator:
         self.chemistry = 0.0
 
     def get_component_values(self, project):
+        """Set the component values from this project and its team.
 
+        Args:
+            project: project.Project
+        """
         if project.team is not None:
             self.ovr = project.team.team_ovr
             self.skill_balance = project.team.skill_balance
@@ -693,7 +915,12 @@ class SuccessCalculator:
             self.chemistry = 0.0
 
     def calculate_success_probability(self, project):
+        """Calculate the success probability for this project,
+        and ensure that it is non-negative.
 
+        Args:
+            project: project.Project
+        """
         if project.team is None or project.team.lead is None:
             project.success_probability = 0
         else:
@@ -710,7 +937,11 @@ class SuccessCalculator:
             project.success_probability = max(0, probability)
 
     def determine_success(self, project):
+        """Determine if the project was successful.
 
+        Args:
+            project: project.Project
+        """
         success = Random.uniform() <= project.success_probability
         time = project.inventory.model.schedule.steps
 
@@ -732,6 +963,8 @@ class SuccessCalculator:
         return success
 
     def to_string(self, project):
+        """Returns json formatted string summary of project success
+        probability and components, for printing or saving."""
         self.get_component_values(project)
         output = {
             'ovr (value, prob): ': (
