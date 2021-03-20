@@ -1026,6 +1026,16 @@ class Trainer:
         """Checks that the worker is free during the proposed training:
          - not assigned to any project work
          - departmental workload is met.
+
+         Note:
+             'slack' is set to the equivalent of full time, because
+              the departmental workload must be met + there must be
+              enough spare capacity for the worker to allocate all of
+              their time to training.
+
+        Args:
+            worker: worker.Worker
+                Worker to check if free.
          """
         return worker.is_free(
             worker.now, worker.training_horizon,
@@ -1033,6 +1043,18 @@ class Trainer:
         )
 
     def add_slots_for_training(self):
+        """This method creates a number of training slots on each
+        timestep to try and meet the model.target_training_load.
+
+        For each worker, their lowest skill is selected out of the
+        current top two in demand skills. If their skill level for
+        this skill is below the median of the workforce, they are
+        add to the list of candidates for training. This list is
+        sorted in ascending skill order, and candidates are added
+        for training until all the slots are filled.
+
+        Only the worst skill is trained for each worker.
+        """
 
         skillA = self.top_two_demanded_skills()[0]
         skillB = self.top_two_demanded_skills()[1]
@@ -1072,7 +1094,12 @@ class Trainer:
                     break
 
     def add_all_for_training(self):
+        """All workers whose skill level for one of the op two in
+        demand is below median are added for training.
 
+        Only one of their skills can be trained, with a preference
+        for the most in-demand skill.
+        """
         for worker in self.model.schedule.agents:
             requires_training = False
 
@@ -1088,7 +1115,23 @@ class Trainer:
                     self.add_worker(worker, skill_to_train)
 
     def add_worker(self, worker, skill_to_train):
+        """Updates worker skill and adds worker for training by:
+        - adding self.trainees
+        - registering with the department that worker is on training
+        - setting the workers training_remaining counter
+        - blocking out the workers contributions for the duration of
+        training so that they are not available for project work
 
+        Note:
+            Skill update happens immediately when worker enters
+            training, which is not realistic.
+
+        Args:
+            worker: worker.Worker
+                Worker to train.
+            skill_to_train: str
+                Which hard skill to train.
+        """
         self.update_worker_skill(worker, skill_to_train)
 
         self.trainees[worker.worker_id] = worker
@@ -1100,7 +1143,21 @@ class Trainer:
             )
 
     def update_worker_skill(self, worker, skill_to_train):
+        """Skill update mechanism.
 
+        Skill level is boosted to the third quartile across
+        the work force.
+
+        The worker's training_tracker is also update, to log how much
+        each skill changes due to training over the course of the
+        simulation.
+
+        Args:
+            worker: worker.Worker
+                Worker to train.
+            skill_to_train: str
+                Which hard skill to train.
+        """
         old_skill = worker.skills.hard_skills[skill_to_train]
         new_skill = min(
             self.skill_quartiles[skill_to_train][2],
@@ -1113,6 +1170,38 @@ class Trainer:
 
 
 class Department:
+    """Department class.
+
+    Keeps track of how many units its workers are contributing to
+    projects (and training) at each timestep, and ensures that
+    the departmental workload is always met.
+
+    ...
+
+    Attributes:
+        dept_id: int
+            Unique integer ID for this department.
+        number_of_workers: int
+            Number of worker in this department.
+        workload: float
+            Fraction of the total capacity that must be kept free from
+            project work or training to ensure that departmental
+            workload is met.
+        units_per_full_time: int
+            Number of units of work that are equivalent to full time
+            for an individual.
+        slack: int
+            Number of units of spare capacity required when checking
+            if departmental workload is met. Default value set in
+            config.
+        units_supplied_to_projects: dict
+            Logs total number of units supplied by department workers
+            to project (and training) at each timestep.
+        maximum_project_units: int
+            The total number of units that the department can supply to
+            project at any time (if none of its workers are on
+            training).
+    """
 
     def __init__(self, dept_id,
                  workload=DEPARTMENTAL_WORKLOAD,
@@ -1123,12 +1212,21 @@ class Department:
         self.number_of_workers = 0
         self.workload = workload
         self.units_per_full_time = units_per_full_time
-        self.tolerance = tolerance
+        self.slack = tolerance
         self.units_supplied_to_projects = dict()
         self.maximum_project_units = 0
 
     def update_supplied_units(self, units_contributed, project):
+        """Registers that a specified number of units will be
+        contributed for the duration of this project.
 
+        Args:
+            units_contributed: int
+                Number of units to register
+            project: project.Project
+                Project to which these units are being contributed
+                (defines the duration of the contribution).
+        """
         for time_offset in range(project.length):
             time = project.start_time + time_offset
 
@@ -1138,10 +1236,25 @@ class Department:
                 self.units_supplied_to_projects[time] += units_contributed
 
     def add_worker(self):
+        """Adds a worker to the department. Updates the maximum
+        capacity of the department accordingly."""
         self.number_of_workers += 1
         self.evaluate_maximum_project_units()
 
     def add_training(self, worker, length):
+        """Registers that a worker is now entering training.
+
+        Their full time equivalent number of units is added to the
+        total being supplied by the department, over the duration
+        of the training.
+
+        Args:
+            worker: worker.Worker
+                Worker that is being trained.
+            length: int
+                Number of timesteps they will be trained for (starting
+                on current timestep).
+        """
 
         start = worker.now
         units = self.units_per_full_time
@@ -1154,8 +1267,10 @@ class Department:
                 self.units_supplied_to_projects[time] += units
 
     def evaluate_maximum_project_units(self):
-        # Note that this is only called by add_worker()
-        # the assumption that none of the other values change during simulation
+        """Determines maximums theoretical capacity while still meeting
+        departmental workload.
+        """
+
         total_units_dept_can_supply = (
                 self.number_of_workers * self.units_per_full_time
         )
@@ -1167,39 +1282,92 @@ class Department:
         )
 
     def units_supplied_to_projects_at_time(self, time):
-        return (
-            self.units_supplied_to_projects[time]
-        ) if time in self.units_supplied_to_projects.keys() else 0
+        """Get total units supplied by departmental workers at this
+        time.
 
-    def is_workload_satisfied(self, start, length, tolerance=None):
+        Args:
+            time: int
+                Timestep to check.
 
-        tolerance = self.tolerance if tolerance is None else tolerance
+        Returns:
+            int: total units supplied at time.
+        """
+
+        return self.units_supplied_to_projects.get(time, 0)
+
+    def is_workload_satisfied(self, start, length, slack=None):
+        """Check if departmental workload is satisfied over specified
+         time range.
+
+        Note:
+            Different amounts of 'slack' are required in different
+            situations. If slack is zero, then departmental workload
+            might be satisfied, but there is not spare capacity in the
+            department for workers to enter training or join projects.
+
+            To enter training there must be at least 10 units of slack
+            (equivalent to full time) in the department.
+
+        Args:
+            start: int
+                Timestep that range starts at.
+            length: int
+                Length of range in timesteps.
+            slack: int
+                Number of additional units above baseline workload
+                to keep free.
+
+        Returns: bool
+            True if workload is satisfied (with requested slack).
+        """
+        slack = self.slack if slack is None else slack
         for t in range(length):
 
             time = start + t
-            if (self.units_supplied_to_projects_at_time(time)
-                    >= (self.maximum_project_units - self.tolerance)):
+            if (
+                    self.units_supplied_to_projects_at_time(time)
+                    >= (self.maximum_project_units - slack)
+            ):
                 return False
 
         return True
 
     def get_remaining_unit_budget(self, start, length):
+        """Determine how many units are available across the department
+        over the specified time range.
 
+        Note:
+            This uses the default 'slack' value as set in the config
+            file.
+
+        Args:
+            start: int
+                Timestep that range starts at.
+            length: int
+                Length of range in timesteps.
+
+        Returns:
+            int: number of units available.
+        """
         budget_over_time = []
         for t in range(length):
             budget_over_time.append(
                 self.maximum_project_units
                 - self.units_supplied_to_projects_at_time(start + t)
-                - self.tolerance
+                - self.slack
             )
         return min(budget_over_time)
 
     def to_string(self):
+        """Returns json formatted string for printing or saving
+        the details of the department.
+        """
+
         output = {
             'dept_id': self.dept_id,
             'number_of_workers': self.number_of_workers,
             'workload': self.workload,
             'units_per_full_time': self.units_per_full_time,
-            'tolerance': self.tolerance
+            'tolerance': self.slack
         }
         return json.dumps(output, indent=4)

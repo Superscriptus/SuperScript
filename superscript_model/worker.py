@@ -175,7 +175,9 @@ class Worker(Agent):
         Returns:
             Ture if free, False otherwise
         """
-        return self.contributions.is_free_over_period(start, length, slack)
+        return self.contributions.is_free_over_period(
+            start, length, slack
+        )
 
     def check_activity(self):
         """Replaces worker if they have been inactive for more than

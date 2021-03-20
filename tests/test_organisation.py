@@ -329,7 +329,7 @@ class TestDepartment(unittest.TestCase):
         dept = Department(0)
         self.assertEqual(dept.workload, DEPARTMENTAL_WORKLOAD)
         self.assertEqual(dept.units_per_full_time, UNITS_PER_FTE)
-        self.assertEqual(dept.tolerance, WORKLOAD_SATISFIED_TOLERANCE)
+        self.assertEqual(dept.slack, WORKLOAD_SATISFIED_TOLERANCE)
 
     def test_is_workload_satisfied(self):
         dept = Department(0)
