@@ -585,7 +585,7 @@ class Project:
                 success, self.inventory.skill_update_func
             )
             self.team.log_project_outcome(success)
-            self.team.remove_lead(self)
+            self.team.remove_lead()
             self.team = None
 
         self.inventory.delete_project(self.project_id)

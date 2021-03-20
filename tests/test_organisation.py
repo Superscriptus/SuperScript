@@ -67,7 +67,7 @@ class TestTeam(unittest.TestCase):
         self.allocator.allocate_team(self.project)
         team = self.project.team
         self.assertIsNotNone(team.lead)
-        team.remove_lead(self.project)
+        team.remove_lead()
         self.assertIsNone(team.lead)
 
     @patch('superscript_model.model.Model')

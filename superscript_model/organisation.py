@@ -1,3 +1,33 @@
+"""
+SuperScript organisation module
+===========
+
+Classes:
+    Team
+        Team of workers, allocated to a project
+    OrganisationStrategyInterface
+        Interface class that defines how organisation strategies should
+        behave. Actual strategies implement this interface, and
+        determine how teams are allocated.
+    RandomStrategy
+        Strategy for random team allocation.
+    BasicStrategy
+        Naive strategy that aims to imrpove on random allocation.
+    ParallelBasinhopping
+        Optimisation method for team allocation that uses basinhopping
+        with COBYLA optimisation at each hop. Can leverage multiple
+        cores to run parallel optimisations and take the best result.
+    TeamAllocator
+        Class that handles team allocation.
+    Trainer
+        Class handles training of low skilled workers, with various
+        options for how workers are trained.
+    Department
+        Department class. Each worker is registered in a department
+        instance, which handles departmental workload and determines
+        how much capacity each of its workers has to contribute to
+        projects.
+"""
 from pathos.multiprocessing import ProcessingPool as Pool
 from interface import Interface, implements
 from itertools import combinations
@@ -23,7 +53,49 @@ from .config import (TEAM_OVR_MULTIPLIER,
 
 
 class Team:
+    """Team class.
 
+        Note:
+            During team allocation, trail teams may be created while
+            trying to find the best team for the project (depending
+            on which organisation strategy is in use).
+        ...
+
+        Attributes:
+            project: project.Project
+                The project to which this team is assigned
+            members: dict
+                Dictionary of workers that are members of this team.
+                Key is worker_id, value is worker.Worker
+            lead: worker.Worker
+                Team lead. Responsible for advancing the project on each
+                timestep.
+            round_to: int
+                Number of decimal places to round to when printing.
+            soft_skills: list
+                List that defines which skills are soft skills
+                By default it is ['F', 'G', 'H', 'I', 'J']
+            contributions: dict
+                Records the contributions, by hard skill, that each
+                team member makes to the project.
+                Either determined externally during team allocation and
+                passed into constructor, or determined internally
+                during construction.
+            team_ovr: float
+                Team OVR value, used to determine probability of
+                success.
+            team_budget: float
+                Team budget, used to determine if team is viable (when
+                budget functionality is switched on at the simulation
+                level). i.e. Is team within project budget.
+            skill_balance: float
+                Aka 'degree of skill match' captures the deficiency in
+                hard skill provision by this team in relation to the
+                project skill requirements.
+            creativity_match: float
+                Captures how close the creativity of this team is to
+                the required creativity level of the project.
+    """
     def __init__(self, project, members,
                  lead, round_to=PRINT_DECIMALS_TO,
                  soft_skills=SOFT_SKILLS,
@@ -31,12 +103,10 @@ class Team:
         self.project = project
         self.members = members
         self.lead = lead
-        #self.assign_lead(self.project)
         self.round_to = round_to
-        self.soft_skills = soft_skills  # used by compute_creativity_match()
+        self.soft_skills = soft_skills
 
         if contributions is None:
-            # currently this is automatic, but could be handled by TeamAllocator:
             self.contributions = self.determine_member_contributions()
         else:
             self.contributions = contributions
@@ -62,15 +132,28 @@ class Team:
 
     @property
     def size(self):
+        """Returns size of team (int)."""
         return len(self.members.keys())
 
-    def assign_lead(self, project):
-        if self.lead is not None:
-            self.lead.assign_as_lead(project)
+    def assign_lead(self):
+        """Registers with the chosen lead worker that they are the
+        leader of the team (and therefore responsible for
+        progressing the project).
 
-    def remove_lead(self, project):
+        Note:
+            This is not called during construction of the team, because
+            it is not desirable to assign and then un-assign the lead
+            when creating trial teams during optimisation. It is only
+            called during team allocation once the chosen team has been
+            finalised.
+        """
         if self.lead is not None:
-            self.lead.remove_as_lead(project)
+            self.lead.assign_as_lead(self.project)
+
+    def remove_lead(self):
+        """Un-assign the team lead from their role."""
+        if self.lead is not None:
+            self.lead.remove_as_lead(self.project)
             self.lead = None
 
     def compute_ovr(self, multiplier=TEAM_OVR_MULTIPLIER):
@@ -532,17 +615,10 @@ class TeamAllocator:
             project, bid_pool=bid_pool
         )
 
-        # if team is not None and project.budget is not None:
-        #     if team.team_ovr > project.budget:
-        #         team.remove_lead(project)
-        #         team = None
-        #     else:
-        #         team.assign_contributions_to_members()
-
         if team is not None and team.lead is not None:
             if team.within_budget():
                 team.assign_contributions_to_members()
-                team.assign_lead(project)
+                team.assign_lead()
             else:
                 team = None
 
