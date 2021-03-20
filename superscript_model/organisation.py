@@ -157,9 +157,15 @@ class Team:
             self.lead = None
 
     def compute_ovr(self, multiplier=TEAM_OVR_MULTIPLIER):
-        # Updated to only include the number of units actually required
-        # (taking highest available skills by level)
-        # And to use total number of required units as denominator
+        """Compute the team OVR
+
+        Args:
+            multiplier: int
+                Multiplier for OVR calc. Default is 20.
+
+        Returns:
+            float: team OVR value
+        """
         ovr = self.compute_team_budget()
 
         total_required_units = sum(
@@ -172,6 +178,24 @@ class Team:
             return 0.0
 
     def compute_team_budget(self):
+        """Computes team skill budget, which is equal to the sum of the
+        worker skill levels that are actively used by the project.
+
+        Note:
+             This method has safety feature in case self.contributions
+             exceeds what is required by the project e.g. the project
+             only requires 2 units of skill 'A' at level 2, but the
+             team is contributing 3 units of skill 'A'.
+
+             In this case the method only uses the top 2 of those 3
+             units by skill level when computing the budget.
+
+             This should not happen if member contributions are
+             determined correctly.
+
+        Returns:
+            float: team budget value
+        """
         skill_sum = 0
         for skill in self.project.required_skills:
             required_units = (
@@ -188,7 +212,17 @@ class Team:
         return skill_sum
 
     def rank_members_by_skill(self, skill):
+        """Ranks the team members by their skill level for a specific
+        skill, in descending order.
 
+        Args:
+            skill: str
+                Hard skill to rank by.
+                Takes value in ['A',..., 'E']
+
+        Returns:
+            dict: ranked members
+        """
         ranked_members = {
             member[0]: member[1].get_skill(skill)
             for member in self.members.items()
@@ -200,7 +234,25 @@ class Team:
         }
 
     def determine_member_contributions(self):
+        """Determines the skill contributions of team members to the
+        project. Only called if this is not determined externally
+        during team allocation (e.g. is RandomStrategy is in use).
 
+        For each required skill, the members are ranked by skill level,
+        and this method takes the top N available workers, where N is
+        the number if units required by the project for that skill.
+        Availability is determined by departmental workload and the
+        worker having spare capacity to contribute for the duration
+        of the project.
+
+        Note:
+            This method does not respect budgetary constraint, so it
+            often assigns contributions that exceed the project budget,
+            making the team invalid.
+
+        Returns:
+            dict: member skill contributions
+        """
         dept_unit_budgets = {
             dept.dept_id: dept.get_remaining_unit_budget(
                 self.project.start_time, self.project.length
@@ -236,12 +288,19 @@ class Team:
                     member_unit_budgets[member.worker_id] -= 1
                     unit_count += 1
 
-        #self.assign_contributions_to_members(contributions)  # this will be called elsewhere
-
         return contributions
 
     def count_units_contributed_by_member(self, member_id):
+        """Counts the number of units contributed to the project by an
+        individual member.
 
+        Args:
+            member_id: int
+                worker_id of the member to count contributions
+
+        Returns: int
+            Number of units contributed by this member.
+        """
         units_contributed_by_member = 0
         for skill in self.contributions.keys():
             if member_id in self.contributions[skill]:
@@ -250,15 +309,27 @@ class Team:
         return units_contributed_by_member
 
     def assign_contributions_to_members(self):
+        """Registers which each individual member the skills that they
+        are to contribute to this project.
 
+        Note:
+            As with team.assign_lead(), this is note called on
+            construction of the team, but only when team allocation
+            has been finalised. This is because we do not want to
+            have to assign and un-assign contributions to members when
+            creating trial teams during optimisation.
+
+        """
         for member_id in self.members.keys():
 
             units_contributed_by_member = 0
             for skill in self.contributions.keys():
 
                 if member_id in self.contributions[skill]:
-                    self.members[member_id].contributions.add_contribution(
-                        self.project, skill
+                    (
+                        self.members[member_id]
+                        .contributions
+                        .add_contribution(self.project, skill)
                     )
                     units_contributed_by_member += 1
 
@@ -268,8 +339,11 @@ class Team:
             ))
 
     def compute_skill_balance(self):
-        # Updated to only include the number of units actually required
-        # (taking highest available skills by level)
+        """Computes the skill balance aka 'degree of skill match'
+
+        Returns:
+             float: skill balance value
+        """
         skill_balance = 0
         number_with_negative_differences = 0
         for skill in self.project.required_skills:
@@ -299,10 +373,17 @@ class Team:
         else:
             return 0
 
-    def compute_creativity_match(self,
-                                 max_skill_level=MAX_SKILL_LEVEL,
-                                 min_skill_level=MIN_SOFT_SKILL_LEVEL):
+    def compute_creativity_match(
+            self,
+            max_skill_level=MAX_SKILL_LEVEL,
+            min_skill_level=MIN_SOFT_SKILL_LEVEL
+    ):
+        """Compute match between the creativity level of the team and
+        the creativity level required by the project.
 
+        Returns:
+            float: creativity match value
+        """
         creativity_level = 0
         number_of_existing_skills = 0
         max_distance = max_skill_level - min_skill_level
@@ -336,7 +417,15 @@ class Team:
         return (self.project.creativity - creativity_level) ** 2
 
     def skill_update(self, success, skill_update_func):
+        """Update the member skills  on termination of project
+        depending on project success status and project risk.
 
+        Args:
+            success: bool
+                Was the project as success
+            skill_update_func: function
+                Returns skill modifier according to project risk
+        """
         if success:
             modifier = skill_update_func.get_values(self.project.risk)
         else:
@@ -349,13 +438,28 @@ class Team:
                 )
 
     def log_project_outcome(self, success):
+        """Logs the outcome of the project in the member history and
+        in the social network.
 
+        Args:
+            success: bool
+                Was the project a success?
+        """
         if success:
             self.lead.model.grid.add_team_edges(self)
         for member in self.members.values():
             member.history.record(success)
 
     def within_budget(self):
+        """Tests if the team is within budget  for the project.
+
+        Note:
+            project.budget is None when budgetary constraint
+            functionality is switched off at the simulation level.
+
+        Returns:
+            bool: True if budget constraint met
+        """
         if self.project.budget is None:
             return True
         elif self.team_budget <= self.project.budget:
@@ -364,7 +468,8 @@ class Team:
             return False
 
     def to_string(self):
-
+        """Returns json formatted string for print or saving the
+        details of this team."""
         output = {
             'project': self.project.project_id,
             'members': list(self.members.keys()),
@@ -385,17 +490,42 @@ class Team:
 
 
 class OrganisationStrategyInterface(Interface):
+    """Interface class for organisation strategy that is used in team
+    allocation.
 
+    Note:
+        Use of interface pattern is not very pythonic, it could
+        be improved by using ABC pattern instead. One advantage
+        would be that code shared across classes that implement
+        the interface could be moved to the ABC and not need to
+        be duplicated.
+    """
     def invite_bids(self, project: Project) -> list:
+        """Invite bids from workers to be considered for this
+        project.
+        """
         pass
 
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:
+        """Select team for this project from a bid pool of workers."""
         pass
 
 
 class RandomStrategy(implements(OrganisationStrategyInterface)):
+    """Random strategy for team allocation, implements interface.
 
+    ...
+
+    Attributes:
+        model: model.SuperScriptModel
+            Reference to main model, used to access list of
+            agents (workers) via scheduler.
+        min_team_size: int
+            Minimum number of workers in team.
+        max_team_size: int
+            Maximum number of workers in team.
+    """
     def __init__(self, model,
                  min_team_size=MIN_TEAM_SIZE,
                  max_team_size=MAX_TEAM_SIZE):
@@ -404,7 +534,18 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
         self.max_team_size = max_team_size
 
     def invite_bids(self, project: Project) -> list:
+        """Invite bids from workers.
 
+        Calls worker.bid() with behaviour determined by the worker
+        strategy that is in use.
+
+        Args:
+            project: project.Project
+
+        Returns:
+            bid_pool: list
+                List of workers that are bidding for this project.
+        """
         bid_pool = [
             worker for worker in self.model.schedule.agents
             if worker.bid(project)
@@ -413,16 +554,29 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
 
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:
+        """Selects team at random from the supplied bid_pool.
 
+        If the bid_pool is None, all agents in the simulation are
+        available to select from.
+
+        If the bid_pool is shorter than the chosen team size, an empty
+        team is returned.
+
+        Args:
+            project: project.Project
+
+            bid_pool: list (optional)
+                Workers to choose from.
+
+        Returns:
+            organisation.Team: selected team
+        """
         size = Random.randint(self.min_team_size,
                               self.max_team_size)
         bid_pool = (self.model.schedule.agents
                     if bid_pool is None else bid_pool)
 
         if size > len(bid_pool):
-            # print("Cannot select %d workers from "
-            #      "bid_pool of size %d for project %d"
-            #      % (size, len(bid_pool), project.project_id))
             workers = {}
             lead = None
 
@@ -436,6 +590,25 @@ class RandomStrategy(implements(OrganisationStrategyInterface)):
 
 
 class BasicStrategy(implements(OrganisationStrategyInterface)):
+    """Basic strategy for team allocation, implements interface.
+
+    Aims to improve on random team allocation, by selecting the
+    most highly skilled workers available.
+
+    Note:
+        This strategy does respect budgetary constraints.
+
+    ...
+
+    Attributes:
+      model: model.SuperScriptModel
+          Reference to main model, used to access list of
+          agents (workers) via scheduler.
+      min_team_size: int
+          Minimum number of workers in team.
+      max_team_size: int
+          Maximum number of workers in team.
+    """
 
     def __init__(self, model,
                  min_team_size=MIN_TEAM_SIZE,
@@ -445,7 +618,18 @@ class BasicStrategy(implements(OrganisationStrategyInterface)):
         self.max_team_size = max_team_size
 
     def invite_bids(self, project: Project) -> list:
+        """Invite bids from workers.
 
+                Calls worker.bid() with behaviour determined by the worker
+                strategy that is in use.
+
+                Args:
+                    project: project.Project
+
+                Returns:
+                    bid_pool: list
+                        List of workers that are bidding for this project.
+                """
         bid_pool = [
             worker for worker in self.model.schedule.agents
             if worker.bid(project)
@@ -454,7 +638,23 @@ class BasicStrategy(implements(OrganisationStrategyInterface)):
 
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:
+        """Selects team consisting of the top N workers.
 
+        If the bid_pool is None, all agents in the simulation are
+        available to select from.
+
+        If the bid_pool is shorter than the minimum team size, an
+        empty team is returned.
+
+        Args:
+            project: project.Project
+
+            bid_pool: list (optional)
+                Workers to choose from.
+
+        Returns:
+            organisation.Team: selected team
+        """
         bid_pool = (self.model.schedule.agents
                     if bid_pool is None else bid_pool)
 
@@ -464,7 +664,18 @@ class BasicStrategy(implements(OrganisationStrategyInterface)):
             return self.select_top_n(bid_pool, project)
 
     def rank_bids(self, bid_pool, project):
+        """Ranks the workers in the bid_pool by total skill level
+        summed across the skills that are required by this project.
 
+        Args:
+            bid_pool: list (optional)
+                Workers to rank.
+            project: project.Project
+                Provides skill requirements to sum over.
+
+        Returns:
+            dict: workers ranked by total skill
+        """
         ranked_bids = {}
         for worker in bid_pool:
             ranked_bids[worker.worker_id] = sum([
@@ -482,6 +693,26 @@ class BasicStrategy(implements(OrganisationStrategyInterface)):
         return ranked_bids
 
     def select_top_n(self, bid_pool, project):
+        """Selects a valid team (i.e. meet budget constraint) by
+        working through the ranked bid_pool, sequentially adding
+        workers until either:
+            - the team exceeds the project budget
+            - the maximum team size is reached
+            - the end of the bid_pool is reached
+
+        If the resulting team size is less than the minimum, an empty
+        team is returned.
+
+        Args:
+            bid_pool: list (optional)
+                Workers to choose from.
+
+            project: project.Project
+
+        Returns:
+            organisation.Team: selected team
+
+        """
         worker_dict = {worker.worker_id: worker
                        for worker in bid_pool}
         ranked_bids = self.rank_bids(bid_pool, project)
@@ -508,7 +739,25 @@ class BasicStrategy(implements(OrganisationStrategyInterface)):
 
 
 class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
+    """Basic strategy for team allocation, implements interface.
 
+    Aims to improve on random team allocation, by selecting the
+    most highly skilled workers available.
+
+    Note:
+        This strategy does respect budgetary constraints.
+
+    ...
+
+    Attributes:
+      model: model.SuperScriptModel
+          Reference to main model, used to access list of
+          agents (workers) via scheduler.
+      min_team_size: int
+          Minimum number of workers in team.
+      max_team_size: int
+          Maximum number of workers in team.
+    """
     def __init__(self, model, optimiser_factory,
                  min_team_size=MIN_TEAM_SIZE,
                  max_team_size=MAX_TEAM_SIZE,
@@ -523,7 +772,18 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         self.niter = niter
 
     def invite_bids(self, project: Project) -> list:
+        """Invite bids from workers.
 
+                Calls worker.bid() with behaviour determined by the worker
+                strategy that is in use.
+
+                Args:
+                    project: project.Project
+
+                Returns:
+                    bid_pool: list
+                        List of workers that are bidding for this project.
+                """
         base_start_time = project.start_time
         bid_pool = {}
         for offset in range(project.max_start_time_offset + 1):
@@ -536,7 +796,23 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:
+        """Selects team consisting of the top N workers.
 
+        If the bid_pool is None, all agents in the simulation are
+        available to select from.
+
+        If the bid_pool is shorter than the minimum team size, an
+        empty team is returned.
+
+        Args:
+            project: project.Project
+
+            bid_pool: list (optional)
+                Workers to choose from.
+
+        Returns:
+            organisation.Team: selected team
+        """
         bid_pool = (
             {
              offset: self.model.schedule.agents
@@ -598,6 +874,18 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
 
 class TeamAllocator:
+    """Allocates team for project using one of the organisation
+    strategies.
+
+    ...
+
+    Attributes:
+      model: model.SuperScriptModel
+          Reference to main model, used to access organisation strategy
+          setting, to determine which strategy to instantiate.
+      strategy: organisation.OrganisationStrategyInterface
+          Strategy with invite_bids and select_team methods
+    """
 
     def __init__(self, model, optimiser_factory):
         self.model = model
@@ -610,6 +898,19 @@ class TeamAllocator:
             self.strategy = ParallelBasinhopping(model, optimiser_factory)
 
     def allocate_team(self, project: Project):
+        """Allocates team to project.
+
+        Note:
+            If either the team or team.lead is None, then the team
+            is invalid.
+
+         Args:
+             project: project.Project
+
+         Returns:
+             organisation.Team: allocated team
+        """
+
         bid_pool = self.strategy.invite_bids(project)
         team = self.strategy.select_team(
             project, bid_pool=bid_pool
@@ -626,6 +927,39 @@ class TeamAllocator:
 
 
 class Trainer:
+    """Single instance of trainer is responsible for all training of
+    low skilled workers.
+
+    Currently the two available training methods are 'all' and 'slots'.
+
+    Note:
+        Training commences after a pre-defined number of timesteps.
+        This is to avoid half the workforce immediately being absorbed
+        into training when using 'all' mode.
+
+    TODO:
+        Refactor this to use the strategy pattern for different modes
+        of training, rather than the 'if' clause currently used in
+        the train() method.
+    ...
+
+    Attributes:
+        model: model.SuperScriptModel
+            Reference to main model to access training mode setting.
+        training_length: int
+            Number of steps that a training course lasts.
+        max_skill_level: int
+            Maximum possible skill level.
+        hard_skills: list
+            Identifies which skills are 'hard skills'.
+            By default it is ['A', B', 'C', 'D', 'E'].
+        skill_quartiles: dict
+            Quartiles for each hard skill. Used to determine who needs
+            training. Updated on each timestep.
+        trainees: dict
+            Record of the workers currently in training.
+
+    """
 
     def __init__(self, model,
                  training_length=TRAINING_LENGTH,
@@ -640,9 +974,11 @@ class Trainer:
         self.trainees = dict()
 
     def top_two_demanded_skills(self):
+        """Returns top two in demand skills at current time."""
         return self.model.inventory.top_two_skills
 
     def update_skill_quartiles(self):
+        """Re-calculates the quartile values for the hard skills."""
         for skill in self.hard_skills:
             self.skill_quartiles[skill] = percentile(
                 [worker.get_skill(skill)
@@ -651,7 +987,8 @@ class Trainer:
             )
 
     def train(self):
-
+        """Advances training and then adds more workers to training
+        according to which training mode is in use."""
         if (self.model.training_on
                 and self.model.schedule.steps
                 >= self.model.training_commences):
@@ -667,20 +1004,33 @@ class Trainer:
                 pass
 
     def advance_training(self):
+        """Advances the training_remaining counter for each worker who
+        is currently in training. When the counter reaches zero, the
+        worker is removed from training.
 
+        Note:
+            The list of worker_ids is set before the loop, because the
+            dictionary keys may change during the loop as workers
+            reach the end of their training.
+        """
         worker_ids = list(self.trainees.keys())
         for worker_id in worker_ids:
-
             if worker_id in self.trainees.keys():
                 self.trainees[worker_id].training_remaining -= 1
-                # trainee.training_remaining = max(trainee.training_remaining, 0)
+
                 if self.trainees[worker_id].training_remaining == 0:
                     del self.trainees[worker_id]
 
     @staticmethod
     def worker_free_to_train(worker):
-        return worker.is_free(worker.now, worker.training_horizon,
-                              slack=worker.contributions.units_per_full_time)
+        """Checks that the worker is free during the proposed training:
+         - not assigned to any project work
+         - departmental workload is met.
+         """
+        return worker.is_free(
+            worker.now, worker.training_horizon,
+            slack=worker.contributions.units_per_full_time
+        )
 
     def add_slots_for_training(self):
 
