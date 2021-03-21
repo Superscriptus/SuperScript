@@ -217,10 +217,12 @@ class SuperScriptModel(Model):
 
         self.grid.initialise()
         self.worker_turnover = dict()
-        self.time = 0
         self.running = True
-
         self.datacollector = SSDataCollector()
+
+    @property
+    def time(self):
+        return self.schedule.steps
 
     def step(self):
 
@@ -233,7 +235,6 @@ class SuperScriptModel(Model):
         self.schedule.step()
         self.trainer.train()
         self.inventory.remove_null_projects()
-        self.time += 1
 
         if (self.save_network_flag
                 and self.time % self.save_network_freq == 0):
