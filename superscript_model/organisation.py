@@ -739,25 +739,37 @@ class BasicStrategy(implements(OrganisationStrategyInterface)):
 
 
 class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
-    """Basic strategy for team allocation, implements interface.
+    """Optimisation strategy for team allocation, implements interface.
 
-    Aims to improve on random team allocation, by selecting the
-    most highly skilled workers available.
+    Tries to optimise the probability of project success using a
+    optimiser supplied by the OptimiserFactory.
 
     Note:
-        This strategy does respect budgetary constraints.
+        This is not currently very efficient when using a large number
+        of cores (num_proc). 8 seems to work well, but 48 is too many!
+
+    TODO:
+        Refactor much of the (parallelisation) logic from select_team
+        into optimisation.py
 
     ...
 
     Attributes:
-      model: model.SuperScriptModel
-          Reference to main model, used to access list of
-          agents (workers) via scheduler.
-      min_team_size: int
-          Minimum number of workers in team.
-      max_team_size: int
-          Maximum number of workers in team.
+        model: model.SuperScriptModel
+            Reference to main model, used to access list of
+            agents (workers) via scheduler.
+        optimiser_factory: optimisation.OptimiserFactory
+            Supplies optimiser class.
+        min_team_size: int
+            Minimum team size.
+        max_team_size: int
+            Maximum team size.
+        num_proc: int
+            Number of processors (cores/threads) to use in parallel.
+        niter: int
+            Number of iterations to run optimiser for.
     """
+
     def __init__(self, model, optimiser_factory,
                  min_team_size=MIN_TEAM_SIZE,
                  max_team_size=MAX_TEAM_SIZE,
@@ -772,18 +784,19 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         self.niter = niter
 
     def invite_bids(self, project: Project) -> list:
-        """Invite bids from workers.
+        """Invite bids from workers for each possible start time offset
+        for this project - creates a bid_pool for each offset.
 
-                Calls worker.bid() with behaviour determined by the worker
-                strategy that is in use.
+        Calls worker.bid() with behaviour determined by the worker
+        strategy that is in use.
 
-                Args:
-                    project: project.Project
+        Args:
+            project: project.Project
 
-                Returns:
-                    bid_pool: list
-                        List of workers that are bidding for this project.
-                """
+        Returns:
+            bid_pool: dict
+                Dictionary of bid_pools for each offset value.
+        """
         base_start_time = project.start_time
         bid_pool = {}
         for offset in range(project.max_start_time_offset + 1):
@@ -796,19 +809,15 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
     def select_team(self, project: Project,
                     bid_pool=None) -> Team:
-        """Selects team consisting of the top N workers.
-
-        If the bid_pool is None, all agents in the simulation are
-        available to select from.
-
-        If the bid_pool is shorter than the minimum team size, an
-        empty team is returned.
+        """Selects team with best probability of success, using the
+        optimiser to find the best time at each start time offset,
+        and then selecting the offset that produced the best team.
 
         Args:
             project: project.Project
 
-            bid_pool: list (optional)
-                Workers to choose from.
+            bid_pool: dict (optional)
+                Workers to choose from at each offset value.
 
         Returns:
             organisation.Team: selected team
@@ -824,7 +833,7 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         base_start_time = project.start_time
         probabilities = []
         teams = []
-        ## Refactor this logic into the optimisation class:
+
         for offset in range(project.max_start_time_offset + 1):
 
             project.start_time = base_start_time + offset
@@ -840,8 +849,7 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
                 teams.append(opti.get_team(x))
                 probabilities.append(-opti.objective_func(x))
             else:
-                #x0 = [0 for i in range(5 * len(bid_pool))]
-                #x0 = opti.smart_guess()
+
                 batch_results = p.map(
                     opti.solve,
                     [opti.smart_guess() for i in range(self.num_proc)],
@@ -860,17 +868,12 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
         offset = argmax(probabilities)
         best_team = teams[argmax(probabilities)]
-        # this could be refactored (see also project load).:
+
         project.start_time = base_start_time + offset
         project.progress = 0 - offset
         project.realised_offset = offset
 
         return best_team
-
-
-## Add smart_guess to the above (instead of x0)
-## If optimisation fails - use smart_guess?
-## Ensure that contributions have been assigned to workers...
 
 
 class TeamAllocator:
