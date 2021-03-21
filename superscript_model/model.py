@@ -53,9 +53,12 @@ class SuperScriptModel(Model):
     """Subclass of mesa.Model
 
     Note:
-        During team allocation, trail teams may be created while
-        trying to find the best team for the project (depending
-        on which organisation strategy is in use).
+        Many config variables are defined as attributes in this class,
+        and then passed in to the classes where they are actually
+        used. (Or model is passed and the variable is accessed via
+        model.<varname>). This is to allow these config parameters to
+        be set by the Mesa GUI controls, which requires that model
+        level variables are used.
     ...
 
     Attributes:
@@ -222,9 +225,12 @@ class SuperScriptModel(Model):
 
     @property
     def time(self):
+        """Returns current scheduler step."""
         return self.schedule.steps
 
     def step(self):
+        """Step method to advance simulation by one timetsep.
+        """
 
         for agent in self.schedule.agents:
             agent.skills.reset_skill_change_trackers()
@@ -247,6 +253,15 @@ class SuperScriptModel(Model):
                 == self.worker_count)
 
     def run_model(self, step_count: int):
+        """Run model for a number of timesteps.
+
+        Note:
+            Saves projects at the end of the run, if enabled.
+
+        Args:
+            step_count: int
+                Number of steps to take.
+        """
         for i in range(step_count):
             self.step()
 

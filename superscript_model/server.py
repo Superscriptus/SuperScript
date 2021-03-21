@@ -1,3 +1,18 @@
+"""
+SuperScript server script for running in Mesa.
+===========
+
+Defines the display elements and GUI controls.
+
+Note:
+    This script is called from run.py
+    To run use 'mesa runserver' from within the main SuperScript
+    directory.
+
+Classes:
+    ConfigElement
+        Class that defines text display element.
+"""
 from mesa.visualization.ModularVisualization import ModularServer
 from mesa.visualization.UserParam import UserSettableParameter
 from mesa.visualization.modules import (ChartModule,
@@ -12,13 +27,30 @@ from .config import (WORKER_COUNT,
                      NEW_PROJECTS_PER_TIMESTEP)
 from .utilities import Random
 
-r = lambda: Random.randint(0, 255)
+
+def r():
+    """Choose a random colour."""
+    return Random.randint(0, 255)
+
+
+# Assigns random colour for each department.
 colours = {di: '#%02X%02X%02X' % (r(), r(), r())
            for di in range(DEPARTMENT_COUNT)}
 
 
 def network_portrayal(G):
-    # The model ensures there is always 1 agent per node
+    """Function for depicting the social network.
+
+    Note:
+        This is slow when visualising large networks.
+        Often desirable to switch off network portrayal.
+        Could be sped up by using a predefined layout (e.g.
+        circular? ).
+
+    Args:
+        G: nx.Graph
+            Network to visualise.
+    """
 
     def node_color(agent):
         return colours.get(
@@ -26,13 +58,9 @@ def network_portrayal(G):
         )
 
     def edge_color(agent1, agent2):
-        # if State.RESISTANT in (agent1.state, agent2.state):
-        #    return "#000000"
         return "#e8e8e8"
 
     def edge_width(agent1, agent2):
-        # if State.RESISTANT in (agent1.state, agent2.state):
-        #    return 3
         return G[agent1.worker_id][agent2.worker_id]['weight']
 
     def get_agents(source, target):
@@ -64,7 +92,14 @@ def network_portrayal(G):
 
 
 class ConfigElement(TextElement):
+    """Defines text elements used to display current parameter values.
 
+    Note:
+        These are a legacy features from development that were used to
+        confirm that the GUI parameters were correctly setting model
+        attributes. But they can be handy for a quick view of the
+        current settings.
+    """
     def __init__(self, parameter_name,
                  display_name):
         self.parameter_name = parameter_name
@@ -79,6 +114,7 @@ class ConfigElement(TextElement):
                 + switch[getattr(model, self.parameter_name)])
 
 
+# These define the GUI controls that are used to set model attributes:
 model_params = {
     "organisation_strategy": UserSettableParameter(
         "choice",
@@ -202,6 +238,9 @@ model_params = {
     )
 }
 
+# Network portrayal is slow for large networks. Often it is best not to
+# visualise the network (see ModularServer() creation below).
+#   Could be improved by using a predefined layout?
 network = NetworkModule(network_portrayal, 500, 500, library="d3")
 
 training_element = ConfigElement(
@@ -211,6 +250,7 @@ budget_element = ConfigElement(
     'budget_functionality_flag', 'Budget constraint'
 )
 
+# Define the plots/charts:
 chart1 = ChartModule([{"Label": "ActiveProjects",
                        "Color": "Black"}],
                      data_collector_name='datacollector')
@@ -271,10 +311,16 @@ chart10 = ChartModule([{"Label": "ProjectsPerWorker",
                        "Color": "Blue"}],
                       data_collector_name='datacollector')
 
-
+# Create the server.
 server = ModularServer(
-    # SuperScriptModel, [network, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8], "SuperScript Model", model_params
-    SuperScriptModel, [training_element, budget_element, chart1, chart2, chart3, chart4, chart5, chart6, chart7, chart8, chart9, chart10],
-    "SuperScript Model", model_params
+    SuperScriptModel,
+    [
+        # network, # uncomment this line to visualise the network.
+        training_element, budget_element,
+        chart1, chart2, chart3, chart4, chart5,
+        chart6, chart7, chart8, chart9, chart10
+    ],
+    "SuperScript Model",
+    model_params
 )
 server.port = 8521
