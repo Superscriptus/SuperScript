@@ -1,3 +1,14 @@
+"""
+SuperScript main model module
+===========
+
+Classes:
+    SuperScriptModel
+        Subclass of mesa.Model
+        Handles model setup. Implements run_model() and step() methods.
+        Defines model level variables, which can be controlled via
+        the mesa GUI.
+"""
 from mesa import Model
 from mesa.time import RandomActivation
 import networkx as nx
@@ -39,6 +50,92 @@ from .config import (PROJECT_LENGTH,
 
 
 class SuperScriptModel(Model):
+    """Subclass of mesa.Model
+
+    Note:
+        During team allocation, trail teams may be created while
+        trying to find the best team for the project (depending
+        on which organisation strategy is in use).
+    ...
+
+    Attributes:
+        worker_count: int
+            Number of workers in the simulation.
+        new_projects_per_timestep:
+            How many new projects to create on each timestep.
+        project_length: int
+            Length of each project in timesteps.
+        budget_functionality_flag: bool
+            If True, budget contraint is switched on.
+        new_workers: int
+            Counts number of new workers added during simulation.
+            Used to ensure that a unique worker_id is assigned
+            when new workers are created.
+        departments: dict
+            Dictionary that stores departments.
+        peer_assessment_success_mean: float
+            Mean value of distribution used in peer assessment,
+            when project is successful.
+        peer_assessment_success_stdev: float
+            Standard deviation value of distribution used in peer
+            assessment, when project is successful.
+        peer_assessment_fail_mean: float
+            Mean value of distribution used in peer assessment,
+            when project fails.
+        peer_assessment_fail_stdev: float
+            Standard deviation value of distribution used in peer
+            assessment, when project fails.
+        peer_assessment_weight: float
+            Weight used when combining peer assessment score with
+            current skill value.
+        update_skill_by_risk_flag: bool
+            Whether to include the stage in skill update that boosts
+            worker skill by larger amounts for riskier (successful)
+            projects.
+        replace_after_inactive_steps: int
+            Number of timesteps of inactivity after which a worker
+            is replaced.
+        organisation_strategy: str
+            Strategy to use for team allocation.
+            Takes one of: "Random", "Basic", "Basin"
+        worker_strategy: str
+            Strategy for worker bidding.
+            Takes one of: "AllIn", "Stake"
+        G: nx.Graph
+            Base graph for social network/
+        grid: network.SocialNetwork
+            Stores number of successful collaboration between each pair
+            of workers.
+        save_network_flag: bool
+            Whether to save the social network for later analysis.
+        save_network_freq: int
+            How often to save the network (in number of timesteps).
+        schedule: mesa.time.RandomActivation
+            Mesa scheduler (determines order in which workers are
+            updated).
+        io_dir: str
+            Path to directory for reading/writing projects.
+        inventory: project.ProjectInventory
+            Creates and keeps track of projects.
+        training_on: bool
+            Whether training is activated for this simulation.
+        training_mode: str
+            Mode to use for training.
+            Currently: 'all' or 'slots'
+        target_training_load: float
+            Fraction of workforce that should be engaged in training.
+        training_commences: int
+            Timestep at which training starts (if activated).
+        trainer: organisation.Trainer
+            Handles all training of workers.
+        worker_turnover: dict
+            Records how many workers are replaced on each timstep.
+        running: bool
+            Required by mesa to indicate that simulation is active.
+        datacollector: tracking.SSDataCollector
+            Leverages mesa functionality to save simulation data for
+            later analysis.
+    """
 
     def __init__(self, worker_count=WORKER_COUNT,
                  department_count=DEPARTMENT_COUNT,

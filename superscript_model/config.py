@@ -14,26 +14,40 @@ UNITS_PER_FTE = 10  # number of units equal to full-time equivalent
 HARD_SKILLS = ['A', 'B', 'C', 'D', 'E']
 SOFT_SKILLS = ['F', 'G', 'H', 'I', 'J']
 
-# worker:
+"""Worker parameters:
+"""
+# Maximum level for hard and soft skills:
 MAX_SKILL_LEVEL = 5
+# Minimum possible values for soft skills:
 MIN_SOFT_SKILL_LEVEL = 1
+# Probability that each hard skill is non-zero when worker created:
 P_HARD_SKILL = 0.8
+# Multiplier for calculating worker OVR:
 WORKER_OVR_MULTIPLIER = 20
+# Parameters for worker success history ('momentum'):
 WORKER_SUCCESS_HISTORY_LENGTH = 4
 WORKER_SUCCESS_HISTORY_THRESHOLD = 0.75
+# Decay multiplier for unused skills:
 SKILL_DECAY_FACTOR = 0.99
+# Distribution parameters for peer assessment (success and fail):
 PEER_ASSESSMENT_SUCCESS_MEAN = 1.05
 PEER_ASSESSMENT_SUCCESS_STDEV = 0.2
 PEER_ASSESSMENT_FAIL_MEAN = 0.95
 PEER_ASSESSMENT_FAIL_STDEV = 0.2
 PEER_ASSESSMENT_WEIGHT = 0.25
+# Whether to include the stage in skill update which is dependent on
+# project risk:
 UPDATE_SKILL_BY_RISK_FLAG = True
 REPLACE_AFTER_INACTIVE_STEPS = 10
 
-# general:
+"""General parameters:
+"""
+# Number of decimal points to use when printing:
 PRINT_DECIMALS_TO = 1
 
-# project:
+"""Project parameters:
+"""
+
 MAXIMUM_TIMELINE_FLEXIBILITY = 4
 PROJECT_LENGTH = 5
 DEFAULT_START_OFFSET = 0
