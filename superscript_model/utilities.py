@@ -1,5 +1,5 @@
 import random
-
+import numpy as np
 
 class Random:
 
@@ -12,6 +12,11 @@ class Random:
         return random.choices(iterable, k=k)
 
     @staticmethod
+    def weighted_choice(iterable, k, replace=False, p=None):
+        return np.random.choice(iterable, size=k,
+                                replace=replace, p=p)
+
+    @staticmethod
     def randint(a, b):
         return random.randint(a, b)
 
@@ -22,3 +27,7 @@ class Random:
     @staticmethod
     def shuffle(x):
         random.shuffle(x)
+
+    @staticmethod
+    def normal(mean, std):
+        return random.normalvariate(mean, std)

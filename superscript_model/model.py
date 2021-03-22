@@ -1,51 +1,268 @@
+"""
+SuperScript main model module
+===========
+
+Classes:
+    SuperScriptModel
+        Subclass of mesa.Model
+        Handles model setup. Implements run_model() and step() methods.
+        Defines model level variables, which can be controlled via
+        the mesa GUI.
+"""
 from mesa import Model
 from mesa.time import RandomActivation
+import networkx as nx
 
 from .worker import Worker
 from .project import ProjectInventory
-from .organisation import TeamAllocator
+from .network import SocialNetwork
+from .optimisation import OptimiserFactory
+from .organisation import (TeamAllocator,
+                           Department,
+                           Trainer)
+from .tracking import (SSDataCollector,
+                       on_projects,
+                       no_projects,
+                       on_training)
+from .config import (PROJECT_LENGTH,
+                     NEW_PROJECTS_PER_TIMESTEP,
+                     WORKER_COUNT,
+                     DEPARTMENT_COUNT,
+                     TRAINING_ON,
+                     TRAINING_MODE,
+                     TARGET_TRAINING_LOAD,
+                     TRAINING_COMMENCES,
+                     BUDGET_FUNCTIONALITY_FLAG,
+                     PEER_ASSESSMENT_SUCCESS_MEAN,
+                     PEER_ASSESSMENT_SUCCESS_STDEV,
+                     PEER_ASSESSMENT_FAIL_MEAN,
+                     PEER_ASSESSMENT_FAIL_STDEV,
+                     PEER_ASSESSMENT_WEIGHT,
+                     UPDATE_SKILL_BY_RISK_FLAG,
+                     REPLACE_AFTER_INACTIVE_STEPS,
+                     ORGANISATION_STRATEGY,
+                     WORKER_STRATEGY,
+                     SAVE_PROJECTS,
+                     LOAD_PROJECTS,
+                     IO_DIR,
+                     SAVE_NETWORK,
+                     SAVE_NETWORK_FREQUENCY)
 
-
-# TODO:
-# - add worker OVR method and demo print in jupyter
-# - coverage run -m unittest discover && coverage report
-# - move parameters to config.py
-# - refactor to pass project length in to create_projects (from config)
-# - rename private data members _XX
-# - change FunctionInterface to abstract base class (plot and print never change)
-
-# - set worker contribution to project from within team/project on project start..(when progress reaches 0)
-# - manually calculate active_projects (80 versus 85)
-# - does project inventory need to be an ordered dict?
-# - change remote name
-# - add requirements.txt and try installing on different system
-# - remove heavy dependencies for deployment (e.g. ipykernel + jupyterlab)
-# - remove accept method from worker strategy?
-# - refactor so that strategies are injected to clients (not constructed internally)
-# - are we safe passing around references to project and worker (eg. for project_lead?)
-# #    i.e. is memory correctly cleaned up on project/worker deletion?
-# - patch TeamAllocator throughout whole class/file in test_project?
-# - refactor so that plot_function takes a function plotter object
 
 class SuperScriptModel(Model):
+    """Subclass of mesa.Model
 
-    def __init__(self, worker_count):
+    Note:
+        Many config variables are defined as attributes in this class,
+        and then passed in to the classes where they are actually
+        used. (Or model is passed and the variable is accessed via
+        model.<varname>). This is to allow these config parameters to
+        be set by the Mesa GUI controls, which requires that model
+        level variables are used.
+    ...
+
+    Attributes:
+        worker_count: int
+            Number of workers in the simulation.
+        new_projects_per_timestep:
+            How many new projects to create on each timestep.
+        project_length: int
+            Length of each project in timesteps.
+        budget_functionality_flag: bool
+            If True, budget contraint is switched on.
+        new_workers: int
+            Counts number of new workers added during simulation.
+            Used to ensure that a unique worker_id is assigned
+            when new workers are created.
+        departments: dict
+            Dictionary that stores departments.
+        peer_assessment_success_mean: float
+            Mean value of distribution used in peer assessment,
+            when project is successful.
+        peer_assessment_success_stdev: float
+            Standard deviation value of distribution used in peer
+            assessment, when project is successful.
+        peer_assessment_fail_mean: float
+            Mean value of distribution used in peer assessment,
+            when project fails.
+        peer_assessment_fail_stdev: float
+            Standard deviation value of distribution used in peer
+            assessment, when project fails.
+        peer_assessment_weight: float
+            Weight used when combining peer assessment score with
+            current skill value.
+        update_skill_by_risk_flag: bool
+            Whether to include the stage in skill update that boosts
+            worker skill by larger amounts for riskier (successful)
+            projects.
+        replace_after_inactive_steps: int
+            Number of timesteps of inactivity after which a worker
+            is replaced.
+        organisation_strategy: str
+            Strategy to use for team allocation.
+            Takes one of: "Random", "Basic", "Basin"
+        worker_strategy: str
+            Strategy for worker bidding.
+            Takes one of: "AllIn", "Stake"
+        G: nx.Graph
+            Base graph for social network/
+        grid: network.SocialNetwork
+            Stores number of successful collaboration between each pair
+            of workers.
+        save_network_flag: bool
+            Whether to save the social network for later analysis.
+        save_network_freq: int
+            How often to save the network (in number of timesteps).
+        schedule: mesa.time.RandomActivation
+            Mesa scheduler (determines order in which workers are
+            updated).
+        io_dir: str
+            Path to directory for reading/writing projects.
+        inventory: project.ProjectInventory
+            Creates and keeps track of projects.
+        training_on: bool
+            Whether training is activated for this simulation.
+        training_mode: str
+            Mode to use for training.
+            Currently: 'all' or 'slots'
+        target_training_load: float
+            Fraction of workforce that should be engaged in training.
+        training_commences: int
+            Timestep at which training starts (if activated).
+        trainer: organisation.Trainer
+            Handles all training of workers.
+        worker_turnover: dict
+            Records how many workers are replaced on each timstep.
+        running: bool
+            Required by mesa to indicate that simulation is active.
+        datacollector: tracking.SSDataCollector
+            Leverages mesa functionality to save simulation data for
+            later analysis.
+    """
+
+    def __init__(self, worker_count=WORKER_COUNT,
+                 department_count=DEPARTMENT_COUNT,
+                 new_projects_per_timestep=NEW_PROJECTS_PER_TIMESTEP,
+                 project_length=PROJECT_LENGTH,
+                 training_on=TRAINING_ON,
+                 training_mode=TRAINING_MODE,
+                 target_training_load=TARGET_TRAINING_LOAD,
+                 training_commences=TRAINING_COMMENCES,
+                 budget_functionality_flag=BUDGET_FUNCTIONALITY_FLAG,
+                 peer_assessment_success_mean=PEER_ASSESSMENT_SUCCESS_MEAN,
+                 peer_assessment_success_stdev=PEER_ASSESSMENT_SUCCESS_STDEV,
+                 peer_assessment_fail_mean=PEER_ASSESSMENT_FAIL_MEAN,
+                 peer_assessment_fail_stdev=PEER_ASSESSMENT_FAIL_STDEV,
+                 peer_assessment_weight=PEER_ASSESSMENT_WEIGHT,
+                 update_skill_by_risk_flag=UPDATE_SKILL_BY_RISK_FLAG,
+                 replace_after_inactive_steps=REPLACE_AFTER_INACTIVE_STEPS,
+                 organisation_strategy=ORGANISATION_STRATEGY,
+                 worker_strategy=WORKER_STRATEGY,
+                 io_dir=IO_DIR,
+                 save_network=SAVE_NETWORK,
+                 save_network_freq=SAVE_NETWORK_FREQUENCY):
 
         self.worker_count = worker_count
-        self.schedule = RandomActivation(self)
-        self.inventory = ProjectInventory(
-            TeamAllocator(self),
-            timeline_flexibility='TimelineFlexibility'
-        )
+        self.new_projects_per_timestep = new_projects_per_timestep
+        self.project_length = project_length
+        self.budget_functionality_flag = budget_functionality_flag
+        self.new_workers = 0
+        self.departments = dict()
 
+        self.peer_assessment_success_mean = peer_assessment_success_mean
+        self.peer_assessment_success_stdev = peer_assessment_success_stdev
+        self.peer_assessment_fail_mean = peer_assessment_fail_mean
+        self.peer_assessment_fail_stdev = peer_assessment_fail_stdev
+        self.peer_assessment_weight = peer_assessment_weight
+        self.update_skill_by_risk_flag = update_skill_by_risk_flag
+        self.replace_after_inactive_steps = replace_after_inactive_steps
+        self.organisation_strategy = organisation_strategy
+        self.worker_strategy = worker_strategy
+
+        self.G = nx.Graph()
+        self.grid = SocialNetwork(self, self.G)
+        self.save_network_flag = save_network
+        self.save_network_freq = save_network_freq
+
+        self.schedule = RandomActivation(self)
+        self.io_dir = io_dir
+        self.inventory = ProjectInventory(
+            TeamAllocator(self, OptimiserFactory()),
+            timeline_flexibility='TimelineFlexibility',
+            social_network=self.grid,
+            model=self,
+            save_flag=SAVE_PROJECTS,
+            load_flag=LOAD_PROJECTS,
+            io_dir=self.io_dir
+        )
+        self.training_on = training_on
+        self.training_mode = training_mode
+        self.target_training_load = target_training_load
+        self.training_commences = training_commences
+        self.trainer = Trainer(self)
+
+        for di in range(department_count):
+            self.departments[di] = Department(di)
+
+        workers_per_department = worker_count / department_count
+        assert workers_per_department * department_count == worker_count
+
+        di = 0
+        assigned_to_di = 0
         for i in range(self.worker_count):
-            w = Worker(i, self)
+            w = Worker(i, self, self.departments[di])
             self.schedule.add(w)
 
+            assigned_to_di += 1
+            if assigned_to_di == workers_per_department:
+                di += 1
+                assigned_to_di = 0
+
+        self.grid.initialise()
+        self.worker_turnover = dict()
+        self.running = True
+        self.datacollector = SSDataCollector()
+
+    @property
+    def time(self):
+        """Returns current scheduler step."""
+        return self.schedule.steps
+
     def step(self):
-        self.inventory.create_projects(20)
+        """Step method to advance simulation by one timetsep.
+        """
+
+        for agent in self.schedule.agents:
+            agent.skills.reset_skill_change_trackers()
+
+        self.trainer.update_skill_quartiles()
+        self.inventory.create_projects(self.new_projects_per_timestep,
+                                       self.time, self.project_length)
         self.schedule.step()
+        self.trainer.train()
+        self.inventory.remove_null_projects()
+
+        if (self.save_network_flag
+                and self.time % self.save_network_freq == 0):
+            self.grid.save()
+
+        self.datacollector.collect(self)
+        assert (on_projects(self)
+                + no_projects(self)
+                + on_training(self)
+                == self.worker_count)
 
     def run_model(self, step_count: int):
+        """Run model for a number of timesteps.
+
+        Note:
+            Saves projects at the end of the run, if enabled.
+
+        Args:
+            step_count: int
+                Number of steps to take.
+        """
         for i in range(step_count):
             self.step()
+
+        self.inventory.save_projects()
