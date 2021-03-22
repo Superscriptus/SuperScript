@@ -63,11 +63,6 @@ For now we exclude the shields...
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
-    <li><a href="#roadmap">Roadmap</a></li>
-    <li><a href="#contributing">Contributing</a></li>
-    <li><a href="#license">License</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="#acknowledgements">Acknowledgements</a></li>
   </ol>
 </details>
 
@@ -172,13 +167,13 @@ mesa runserver
 ```
 
 Most of the important model parameters can be selected in the GUI, but for other parameters they will need to be 
-adjusted in [config.py](https://github.com/cm1788/SuperScript/superscript_model/config.py) before launching the 
-server.
+adjusted in [config.py](https://github.com/cm1788/SuperScript/tree/master/superscript_model/config.py) before launching 
+the server.
 
 To activate the social network visualisation, you need to uncomment line 318 in 
-[server.py](https://github.com/cm1788/SuperScript/superscript_model/server.py) (this feature is deactivated by default 
-because it is slow to recompute the network layout on each timestep). However, the social network can be saved for later 
-analysis by setting the ```SAVE_NETWORK``` flag to ```True```.
+[server.py](https://github.com/cm1788/SuperScript/tree/master/superscript_model/server.py) (this feature is deactivated 
+by default because it is slow to recompute the network layout on each timestep). However, the social network can be 
+saved for later analysis by setting the ```SAVE_NETWORK``` flag to ```True```.
 
 _Note: The parallel basinhopping optimisation (```ORGANISATION_STRATEGY = Basin```) can be very slow depending on the 
 size of simulation. **Add more on this**._
@@ -186,9 +181,9 @@ size of simulation. **Add more on this**._
 #### Running simulations on AWS
 
 Instructions for getting set up on AWS are provided in 
-[documentation/aws_instructions](https://github.com/cm1788/SuperScript/documentation/aws_instructions.md) and there is a 
-python script provided for running these simulations: 
-[aws_run_simulations.py](https://github.com/cm1788/SuperScript/aws_run_simulation.py)
+[documentation/aws_instructions](https://github.com/cm1788/SuperScript/tree/master/documentation/aws_instructions.md) 
+and there is a python script provided for running these simulations: 
+[aws_run_simulations.py](https://github.com/cm1788/SuperScript/tree/master/aws_run_simulation.py)
 
 #### Running simulations locally
 
@@ -212,7 +207,7 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 -->
 
 
-<!-- ACKNOWLEDGEMENTS -->
+<!-- ACKNOWLEDGEMENTS 
 ## Acknowledgements
 * [GitHub Emoji Cheat Sheet](https://www.webpagefx.com/tools/emoji-cheat-sheet)
 * [Img Shields](https://shields.io)
@@ -225,7 +220,7 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 * [Sticky Kit](http://leafo.net/sticky-kit)
 * [JVectorMap](http://jvectormap.com)
 * [Font Awesome](https://fontawesome.com)
-
+-->
 
 
 <!-- MARKDOWN LINKS & IMAGES -->
