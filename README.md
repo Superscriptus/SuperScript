@@ -1,7 +1,3 @@
-
-Folder [developing_model_spec](developing_model_spec) contains scripts that were used in the development of the model. 
-
-This README file will contain high-level overview of the simulation model and how to use it...
 <!--
 *** README template from project: https://github.com/othneildrew/Best-README-Template
 -->
@@ -80,18 +76,12 @@ For now we exclude the shields...
 <!-- ABOUT THE PROJECT -->
 ## About The Project
 
-[![Product Name Screen Shot][product-screenshot]](https://example.com)
+![Product Name Screen Shot][product-screenshot]
 
-There are many great README templates available on GitHub, however, I didn't find one that really suit my needs so I created this enhanced one. I want to create a README template so amazing that it'll be the last one you ever need -- I think this is it.
+The purpose of the extended model is to build a simulation engine that serves as the basis for the “social teamwork game”. The model simulates the state of the world and its development over time for workers within an organization that are assembled in teams to work on projects. 
+The simulation engine will then serve as the underlying model for the world in a Python-Django prototype for a web application (e.g., hosted on Heroku). In that prototype a user (either a worker or an organization) goes through the steps of the user journey and takes part in the social teamwork game. 
+The model will be used to test a number of hypotheses to understand emergent properties and/or to fine-tune the input parameters, to visualize those results, to generate training data for the Machine Learning prototype and to gather model proof points for further discussion. 
 
-Here's why:
-* Your time should be focused on creating something amazing. A project that solves a problem and helps others
-* You shouldn't be doing the same tasks over and over like creating a README from scratch
-* You should element DRY principles to the rest of your life :smile:
-
-Of course, no one template will serve all projects since your needs may be different. So I'll be adding more in the near future. You may also suggest changes by forking this repo and creating a pull request or opening an issue. Thanks to all the people have have contributed to expanding this template!
-
-A list of commonly used resources that I find helpful are listed in the acknowledgements.
 
 ### Built With
 
@@ -99,23 +89,23 @@ SuperScript is built with the following key frameworks/packages:
 * [Mesa](https://github.com/projectmesa/mesa): agent-based modeling framework.
 * [Scipy.optimize](https://docs.scipy.org/doc/scipy/reference/tutorial/optimize.html): optimisation package used for 
 team allocation.
-* [Pathos](https://pypi.org/project/pathos/): used for parallel optimisations on multicore architectures.
+* [Pathos](https://pypi.org/project/pathos/): used for parallel optimizations on multicore architectures.
 
 
 
 <!-- GETTING STARTED -->
 ## Getting Started
 
-This is an example of how you may give instructions on setting up your project locally.
-To get a local copy up and running follow these simple example steps.
+It should be straightforward to get SuperScript working on any system that has Python installed.
+To get a local copy up and running follow, these simple steps.
 
 ### Prerequisites
 
 This is an example of how to list things you need to use the software and how to install them.
-* npm
-  ```sh
-  npm install npm@latest -g
-  ```
+* [Python3.6 or above (python_version>="3.6")](https://www.python.org/downloads/)
+* either [pip](https://pip.pypa.io/en/stable/installing/)(preferred) or 
+[conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
+  
 
 ### Installation
 
