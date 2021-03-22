@@ -5,10 +5,7 @@ Folder [developing_model_spec](developing_model_spec) contains scripts that were
 
 This README file will contain high-level overview of the simulation model and how to use it...
 <!--
-*** Thanks for checking out the Best-README-Template. If you have a suggestion
-*** that would make this better, please fork the repo and create a pull request
-*** or simply open an issue with the tag "enhancement".
-*** Thanks again! Now go create something AMAZING! :D
+*** README template from project: https://github.com/othneildrew/Best-README-Template
 -->
 
 
@@ -33,11 +30,11 @@ This README file will contain high-level overview of the simulation model and ho
 <!-- PROJECT LOGO -->
 <br />
 <p align="center">
-  <a href="https://github.com/othneildrew/Best-README-Template">
+  <a href="https://github.com/cm1788/SuperScript">
     <img src="documentation/images/logo.svg" alt="Logo" width="80" height="80">
   </a>
 
-  <h3 align="center">Best-README-Template</h3>
+  <h3 align="center">SuperScript</h3>
 
   <p align="center">
     An awesome README template to jumpstart your projects!
