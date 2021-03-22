@@ -95,10 +95,11 @@ A list of commonly used resources that I find helpful are listed in the acknowle
 
 ### Built With
 
-This section should list any major frameworks that you built your project using. Leave any add-ons/plugins for the acknowledgements section. Here are a few examples.
-* [Bootstrap](https://getbootstrap.com)
-* [JQuery](https://jquery.com)
-* [Laravel](https://laravel.com)
+SuperScript is built with the following key frameworks/packages:
+* [Mesa](https://github.com/projectmesa/mesa): agent-based modeling framework.
+* [Scipy.optimize](https://docs.scipy.org/doc/scipy/reference/tutorial/optimize.html): optimisation package used for 
+team allocation.
+* [Pathos](https://pypi.org/project/pathos/): used for parallel optimisations on multicore architectures.
 
 
 
