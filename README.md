@@ -166,7 +166,7 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-To run SuperScript in the Mesa server, use:
+To run SuperScript in the Mesa server, first ensure that the ```superscriptenv``` environment is activated and then use:
 ```
 mesa runserver 
 ```
@@ -175,10 +175,27 @@ Most of the important model parameters can be selected in the GUI, but for other
 adjusted in [config.py](https://github.com/cm1788/SuperScript/superscript_model/config.py) before launching the 
 server.
 
-To activate the network visualisation, you need to uncomment line 318 in 
-[server.py](https://github.com/cm1788/SuperScript/superscript_model/server.py)
+To activate the social network visualisation, you need to uncomment line 318 in 
+[server.py](https://github.com/cm1788/SuperScript/superscript_model/server.py) (this feature is deactivated by default 
+because it is slow to recompute the network layout on each timestep). However, the social network can be saved for later 
+analysis by setting the ```SAVE_NETWORK``` flag to ```True```.
 
-_For more examples, please refer to the [Documentation](https://example.com)_
+_Note: The parallel basinhopping optimisation (```ORGANISATION_STRATEGY = Basin```) can be very slow depending on the 
+size of simulation. **Add more on this**._
+
+#### Running simulations on AWS
+
+Instructions for getting set up on AWS are provided in 
+[documentation/aws_instructions](https://github.com/cm1788/SuperScript/documentation/aws_instructions.md) and there is a 
+python script provided for running these simulations: 
+[aws_run_simulations.py](https://github.com/cm1788/SuperScript/aws_run_simulation.py)
+
+#### Running simulations locally
+
+A python script for running batch simulations is provided: [xxx](xxx)
+
+ 
+
 
 
 
