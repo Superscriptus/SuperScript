@@ -31,7 +31,7 @@ This README file will contain high-level overview of the simulation model and ho
 <br />
 <p align="center">
   <a href="https://github.com/cm1788/SuperScript">
-    <img src="documentation/images/logo.svg" alt="Logo" width="80" height="80">
+    <img src="documentation/images/logo.svg" alt="Logo" width="390" height="80">
   </a>
 
   <h3 align="center">SuperScript</h3>
