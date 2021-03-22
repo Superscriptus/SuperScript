@@ -15,7 +15,7 @@ This README file will contain high-level overview of the simulation model and ho
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
 
-<<!--
+<!--
 For now we exclude the shields...
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
@@ -38,7 +38,7 @@ For now we exclude the shields...
     SuperScript is an agent-based model of team formation in large organizations, built using the 
     <a href="https://github.com/projectmesa/mesa">Mesa</a> framework.
     <br />
-    <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
+    <a href="https://github.com/cm1788/SuperScript"><strong>Explore the docs »</strong></a>
     <br />
     <br />
     <a href="https://github.com/cm1788/SuperScript/issues">Report Bug</a>
@@ -211,4 +211,4 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 [license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
 [linkedin-url]: https://linkedin.com/in/othneildrew
-[product-screenshot]: images/screenshot.png
+[product-screenshot]: documentation/images/screenshot.png
