@@ -101,7 +101,7 @@ To get a local copy up and running follow, these simple steps.
 
 ### Prerequisites
 
-This is an example of how to list things you need to use the software and how to install them.
+The following are required in order to run SuperScript locally:
 * [Python3.6 or above (python_version>="3.6")](https://www.python.org/downloads/)
 * either [pip](https://pip.pypa.io/en/stable/installing/)(preferred) or 
 [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
@@ -109,6 +109,18 @@ This is an example of how to list things you need to use the software and how to
 
 ### Installation
 
+Using [pip](https://pip.pypa.io/en/stable/installing/) (recommended):
+
+1. Create a new virtual environment: 
+    ```
+    py -m venv SuperScriptNew
+   ```
+2. Activate your virtual environment:  
+    ```
+   SuperScriptNew\Scripts\activate
+   ```
+ Type: ‘py -m pip install --upgrade pip’
+ Type: ‘py -m pip install -r requirements_pip.txt’
 1. Get a free API Key at [https://example.com](https://example.com)
 2. Clone the repo
    ```sh
