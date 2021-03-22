@@ -103,37 +103,48 @@ To get a local copy up and running follow, these simple steps.
 
 The following are required in order to run SuperScript locally:
 * [Python3.6 or above (python_version>="3.6")](https://www.python.org/downloads/)
-* either [pip](https://pip.pypa.io/en/stable/installing/)(preferred) or 
+* either [pip](https://pip.pypa.io/en/stable/installing/) (recommended) or 
 [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html)
-  
+* [venv](https://docs.python.org/3/library/venv.html)  
+
+
 
 ### Installation
 
-Using [pip](https://pip.pypa.io/en/stable/installing/) (recommended):
+The recommended installation method is to use the package manager [pip](https://pip.pypa.io/en/stable/installing/),
+because this is the most lightweight solution on new machines (e.g. on AWS). But instructions are also provided for 
+installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/install/index.html).
 
-1. Create a new virtual environment: 
+
+
+#### Using pip:   
+
+1. Clone the repo
+   ```
+   git clone https://github.com/cm1788/SuperScript
+   ```
+2. Create a new virtual environment: 
     ```
-    py -m venv SuperScriptNew
+    python -m venv superscriptenv
    ```
-2. Activate your virtual environment:  
+   Note: the ```python``` command here may need to be replaced with ```python3``` or 
+    ```python3.6``` or ```py``` depending on your system, whichever points to the 
+    version of python that you want to use.
+3. Activate your virtual environment:  
     ```
-   SuperScriptNew\Scripts\activate
+   # Windows:
+   superscriptenv\Scripts\activate
+   
+   # Linux:
+   source superscriptenv/bin/activate
    ```
- Type: ‘py -m pip install --upgrade pip’
- Type: ‘py -m pip install -r requirements_pip.txt’
-1. Get a free API Key at [https://example.com](https://example.com)
-2. Clone the repo
-   ```sh
-   git clone https://github.com/your_username_/Project-Name.git
+4. Install requirements:
+    ```
+    python -m pip install --upgrade pip
+    python -m pip install -r requirements.txt
    ```
-3. Install NPM packages
-   ```sh
-   npm install
-   ```
-4. Enter your API in `config.js`
-   ```JS
-   const API_KEY = 'ENTER YOUR API';
-   ```
+   Note: just using ```python``` here should be fine provided that you have activated the ```superscriptenv``` 
+   environment.
 
 
 
