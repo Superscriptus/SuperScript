@@ -147,6 +147,17 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
    environment.
 
 
+#### Using conda:   
+
+1. Clone the repo
+   ```
+   git clone https://github.com/cm1788/SuperScript
+   ```
+2. Create a new virtual environment: 
+    ```
+    conda env create -f SuperScript.yml
+   ```
+
 
 <!-- USAGE EXAMPLES -->
 ## Usage
