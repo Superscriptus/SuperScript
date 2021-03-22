@@ -127,9 +127,9 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
     ```
     python -m venv superscriptenv
    ```
-   Note: the ```python``` command here may need to be replaced with ```python3``` or 
+   _Note: the ```python``` command here may need to be replaced with ```python3``` or 
     ```python3.6``` or ```py``` depending on your system, whichever points to the 
-    version of python that you want to use.
+    version of python that you want to use._
 3. Activate your virtual environment:  
     ```
    # Windows:
@@ -143,8 +143,8 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
     python -m pip install --upgrade pip
     python -m pip install -r requirements.txt
    ```
-   Note: just using ```python``` here should be fine provided that you have activated the ```superscriptenv``` 
-   environment.
+   _Note: just using ```python``` here should be fine provided that you have activated the ```superscriptenv``` 
+   environment._
 
 
 #### Using conda:   
@@ -153,55 +153,46 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
    ```
    git clone https://github.com/cm1788/SuperScript
    ```
-2. Create a new virtual environment: 
+2. Create virtual environment from the YAML file: 
     ```
-    conda env create -f SuperScript.yml
+    conda env create -f superscriptenv.yml
+   ```
+3. Activate the virtual environment:
+   ```
+   conda activate superscriptenv
    ```
 
 
 <!-- USAGE EXAMPLES -->
 ## Usage
 
-Use this space to show useful examples of how a project can be used. Additional screenshots, code examples and demos work well in this space. You may also link to more resources.
+To run SuperScript in the Mesa server, use:
+```
+mesa runserver 
+```
+
+Most of the important model parameters can be selected in the GUI, but for other parameters they will need to be 
+adjusted in [config.py](https://github.com/cm1788/SuperScript/superscript_model/config.py) before launching the 
+server.
+
+To activate the network visualisation, you need to uncomment line 318 in 
+[server.py](https://github.com/cm1788/SuperScript/superscript_model/server.py)
 
 _For more examples, please refer to the [Documentation](https://example.com)_
 
 
 
-<!-- ROADMAP -->
-## Roadmap
-
-See the [open issues](https://github.com/othneildrew/Best-README-Template/issues) for a list of proposed features (and known issues).
-
-
-
-<!-- CONTRIBUTING -->
-## Contributing
-
-Contributions are what make the open source community such an amazing place to be learn, inspire, and create. Any contributions you make are **greatly appreciated**.
-
-1. Fork the Project
-2. Create your Feature Branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your Changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the Branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-
-
-<!-- LICENSE -->
+<!--
 ## License
 
 Distributed under the MIT License. See `LICENSE` for more information.
 
-
-
-<!-- CONTACT -->
 ## Contact
 
 Your Name - [@your_twitter](https://twitter.com/your_username) - email@example.com
 
 Project Link: [https://github.com/your_username/repo_name](https://github.com/your_username/repo_name)
-
+-->
 
 
 <!-- ACKNOWLEDGEMENTS -->
@@ -217,8 +208,6 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 * [Sticky Kit](http://leafo.net/sticky-kit)
 * [JVectorMap](http://jvectormap.com)
 * [Font Awesome](https://fontawesome.com)
-
-
 
 
 
