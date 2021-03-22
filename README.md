@@ -1,5 +1,3 @@
-# SuperScript
-Agent based model of team formation (development and production).
 
 Folder [developing_model_spec](developing_model_spec) contains scripts that were used in the development of the model. 
 
@@ -7,8 +5,6 @@ This README file will contain high-level overview of the simulation model and ho
 <!--
 *** README template from project: https://github.com/othneildrew/Best-README-Template
 -->
-
-
 
 <!-- PROJECT SHIELDS -->
 <!--
@@ -18,14 +14,16 @@ This README file will contain high-level overview of the simulation model and ho
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
+
+<<!--
+For now we exclude the shields...
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![MIT License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
-
-
+-->
 
 <!-- PROJECT LOGO -->
 <br />
@@ -34,19 +32,18 @@ This README file will contain high-level overview of the simulation model and ho
     <img src="documentation/images/logo.svg" alt="Logo" width="390" height="80">
   </a>
 
-  <h3 align="center">SuperScript</h3>
+  <h3 align="center">Simulation engine for a social teamwork game</h3>
 
   <p align="center">
-    An awesome README template to jumpstart your projects!
+    SuperScript is an agent-based model of team formation in large organizations, built using the 
+    <a href="https://github.com/projectmesa/mesa">Mesa</a> framework.
     <br />
     <a href="https://github.com/othneildrew/Best-README-Template"><strong>Explore the docs »</strong></a>
     <br />
     <br />
-    <a href="https://github.com/othneildrew/Best-README-Template">View Demo</a>
+    <a href="https://github.com/cm1788/SuperScript/issues">Report Bug</a>
     ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Report Bug</a>
-    ·
-    <a href="https://github.com/othneildrew/Best-README-Template/issues">Request Feature</a>
+    <a href="https://github.com/cm1788/SuperScript/issues">Request Feature</a>
   </p>
 </p>
 
