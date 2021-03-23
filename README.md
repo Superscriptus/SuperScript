@@ -143,10 +143,15 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
    # Linux:
    source superscriptenv/bin/activate
    ```
-4. Install requirements:
+4. Install requirements (ensuring that you use the correct requirements file for windows/linux):
     ```
     python -m pip install --upgrade pip
+   
+    # Windows:
     python -m pip install -r requirements.txt
+   
+   # Linux:
+   python -m pip install -r requirements_linux.txt
    ```
    _Note: just using ```python``` here should be fine provided that you have activated the ```superscriptenv``` 
    environment._
