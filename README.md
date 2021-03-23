@@ -214,8 +214,12 @@ global optimum team allocation (which was originally called 'go_allocate'). The 
 problem is not computationally tractable for large simulations, and so numerical optimisation will be required.
 * [manually_testing_model.ipynb](model_development/manually_testing_model.ipynb): simple integration test to check that 
 model is running correctly and inspect some of the variables.
-    
-
+* [comparing_strategies.ipynb](model_development/comparing_strategies.ipynb): comparing the 'Random' and 'Basic' team 
+allocation strategies to confirm that 'Basic' does improve over the random method in terms of project success 
+probability.    
+* [optimization_experiments_gekko.ipynb](model_development/optimization_experiments_gekko.ipynb): failed attempt to get 
+Gekko mixed-integer optimisation working (included for completeness).
+* [optimization_experiments_scipy.ipynb](model_development/optimization_experiments_scipy.ipynb): ... 
 
 
 
