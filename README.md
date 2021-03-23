@@ -114,10 +114,20 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
 
 #### Using pip:   
 
-1. Clone the repo
+1. Clone the repo and change into the directory:
    ```
    git clone https://github.com/cm1788/SuperScript
+   
+   # Windows:
+   chdir SuperScript
+   
+   # Linux:
+   cd SuperScript
    ```
+   
+   _Note: if you have an authentication error when using ```git clone``` (or you get a ```repository not found``` error), 
+   you can use the syntax: ```git clone https://username:password@github.com/cm1788/SuperScript```_
+    
 2. Create a new virtual environment: 
     ```
     python -m venv superscriptenv
@@ -140,6 +150,12 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
    ```
    _Note: just using ```python``` here should be fine provided that you have activated the ```superscriptenv``` 
    environment._
+   
+   _Note: The requirements.txt file was produced using ```pip list --format=freeze > requirements.txt``` on a linux 
+   system with Python3.6. Depending on your installation system the following dependencies may have problematic version
+   specifications: ```kiwisolver, numpy, scipy```. If these or any other dependencies fail to install, try manually 
+   removing the version specification from ```requirements.txt``` (i.e. remove the ```==X.X.X```from that line in the 
+   file)._    
 
 
 #### Using conda:   
