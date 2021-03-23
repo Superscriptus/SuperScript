@@ -114,10 +114,20 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
 
 #### Using pip:   
 
-1. Clone the repo
+1. Clone the repo and change into the directory:
    ```
    git clone https://github.com/cm1788/SuperScript
+   
+   # Windows:
+   chdir SuperScript
+   
+   # Linux:
+   cd SuperScript
    ```
+   
+   _Note: if you have an authentication error when using ```git clone``` (or you get a ```repository not found``` error), 
+   you can use the syntax: ```git clone https://username:password@github.com/cm1788/SuperScript```_
+    
 2. Create a new virtual environment: 
     ```
     python -m venv superscriptenv
@@ -140,6 +150,12 @@ installation using [conda](https://conda.io/projects/conda/en/latest/user-guide/
    ```
    _Note: just using ```python``` here should be fine provided that you have activated the ```superscriptenv``` 
    environment._
+   
+   _Note: The requirements.txt file was produced using ```pip list --format=freeze > requirements.txt``` on a linux 
+   system with Python3.6. Depending on your installation system the following dependencies may have problematic version
+   specifications: ```kiwisolver, numpy, scipy```. If these or any other dependencies fail to install, try manually 
+   removing the version specification from ```requirements.txt``` (i.e. remove the ```==X.X.X```from that line in the 
+   file)._    
 
 
 #### Using conda:   
@@ -195,8 +211,31 @@ _TODO: add details of the analysis scripts and what they do._
 
 ### Model development
 
-_TODO: add details of the development scripts and what they do. Also link to full model spec document._ 
+The [documentation](./documentation) folder contains a word document with the full 
+[model specification](documentation/model_specification.docx).
 
+The directory [model_development][./model_development] contains Jupyter Notebooks relating to various stages of 
+development of the model, from initial experiments prior to coding to the model, through to integration tests and 
+performance benchmarking. These notebooks include:
+
+* [active_project_equilibrium.ipynb](model_development/active_project_equilibrium.ipynb): short experiment to determine 
+equilibrium behaviour of the model based on proposed dynamics (i.e. number of active projects, number of active workers, 
+number of workers per project). Written prior to coding up the model.
+* [function_definitions.ipynb](model_development/function_definitions.ipynb): contains definitions of the various 
+functions used throughout the model, with the original piecewise functions that were proposed in the draft spec, and 
+possible alternatives that were suggested. In the model code functions are supplied by the 
+[FunctionFactory](superscript_model/function.py).    
+* [go_allocate_experiment.ipynb](model_development/go_allocate_experiment.ipynb): determines the time taken to find the 
+global optimum team allocation (which was originally called 'go_allocate'). The conclusion, as expected, is that the 
+problem is not computationally tractable for large simulations, and so numerical optimisation will be required.
+* [manually_testing_model.ipynb](model_development/manually_testing_model.ipynb): simple integration test to check that 
+model is running correctly and inspect some of the variables.
+* [comparing_strategies.ipynb](model_development/comparing_strategies.ipynb): comparing the 'Random' and 'Basic' team 
+allocation strategies to confirm that 'Basic' does improve over the random method in terms of project success 
+probability.    
+* [optimization_experiments_gekko.ipynb](model_development/optimization_experiments_gekko.ipynb): failed attempt to get 
+Gekko mixed-integer optimisation working (included for completeness).
+* [optimization_experiments_scipy.ipynb](model_development/optimization_experiments_scipy.ipynb): ... 
 
 
 
