@@ -66,7 +66,7 @@ class TestOptimiser(unittest.TestCase):
             bid_pool=self.model.schedule.agents,
             model=self.model,
             save_flag=True,
-            results_dir='developing_model_spec/experiments/tests/'
+            results_dir='model_development/experiments/tests/'
         )
 
     def test_init(self):

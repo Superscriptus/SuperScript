@@ -10,7 +10,7 @@ is returned via the FunctionFactory.get() method.
 
 Note:
     More detail on the function choice and parameterisation can be
-    found in developing_model_spec/function_definitions.ipynb
+    found in model_development/function_definitions.ipynb
 
 Classes:
     FunctionFactory

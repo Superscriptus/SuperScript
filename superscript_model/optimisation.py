@@ -42,7 +42,7 @@ class Optimiser:
 
     def __init__(self, project, bid_pool, model, exp_number,
                  verbose=False, save_flag=False,
-                 results_dir='developing_model_spec/experiments/optimisation/',
+                 results_dir='model_development/experiments/optimisation/',
                  min_team_size=MIN_TEAM_SIZE,
                  max_team_size=MAX_TEAM_SIZE):
 

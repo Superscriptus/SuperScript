@@ -195,7 +195,26 @@ _TODO: add details of the analysis scripts and what they do._
 
 ### Model development
 
-_TODO: add details of the development scripts and what they do. Also link to full model spec document._ 
+The [documentation](./documentation) folder contains a word document with the full 
+[model specification](documentation/model_specification.docx).
+
+The directory [model_development][./model_development] contains Jupyter Notebooks relating to various stages of 
+development of the model, from initial experiments prior to coding to the model, through to integration tests and 
+performance benchmarking. These notebooks include:
+
+* [active_project_equilibrium.ipynb](model_development/active_project_equilibrium.ipynb): short experiment to determine 
+equilibrium behaviour of the model based on proposed dynamics (i.e. number of active projects, number of active workers, 
+number of workers per project). Written prior to coding up the model.
+* [function_definitions.ipynb](model_development/function_definitions.ipynb): contains definitions of the various 
+functions used throughout the model, with the original piecewise functions that were proposed in the draft spec, and 
+possible alternatives that were suggested. In the model code functions are supplied by the 
+[FunctionFactory](superscript_model/function.py).    
+* [go_allocate_experiment.ipynb](model_development/go_allocate_experiment.ipynb): determines the time taken to find the 
+global optimum team allocation (which was originally called 'go_allocate'). The conclusion, as expected, is that the 
+problem is not computationally tractable for large simulations, and so numerical optimisation will be required.
+* [manually_testing_model.ipynb](model_development/manually_testing_model.ipynb): simple integration test to check that 
+model is running correctly and inspect some of the variables.
+    
 
 
 
