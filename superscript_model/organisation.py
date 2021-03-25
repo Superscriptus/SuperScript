@@ -849,7 +849,6 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
                 teams.append(opti.get_team(x))
                 probabilities.append(-opti.objective_func(x))
             else:
-
                 batch_results = p.map(
                     opti.solve,
                     [opti.smart_guess() for i in range(self.num_proc)],

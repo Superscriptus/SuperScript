@@ -1,3 +1,30 @@
+"""
+SuperScript optimisation module
+===========
+
+This module handles the optimisation methods used for 'optimal' team
+selection. Currently (v1.0) the only method implemented is parallel
+basinhopping, but the factory method ensures that new optimisation
+methods can easily be added in the future (see Roadmap in README.md).
+
+
+Classes:
+    OptimiserFactory
+        Returns an optimiser for team selection according to
+        `optimiser_name`.
+    DummyReturn
+        Dummy return value (in format of scipy optimizer return) that
+        is used when an optimisation fails (or timeouts).
+    PBOptimiser
+        Parallel basinhopping optimiser - does parallel batch
+        optimisations each with a series of basin hops with
+        COBYLA linear optimiser at each hop.
+    MyConstraints
+        Constraints on the team that can be selected (in the format
+        required for COBYLA).
+    MyTakeStep
+        Bespoke step method used in the basinhopping routine.
+"""
 from .organisation import Team
 from .utilities import Random
 from .config import MAX_TEAM_SIZE, MIN_TEAM_SIZE
@@ -10,41 +37,72 @@ import time
 import pickle
 
 ## TODO:
-# - remove save functionality (and results_Dir) (and exp_number)
 # - move imports of MIN and MAX_TEAM_SIZE to main.py (pass via factory)
 # - clean up constraints
 # - set smart_guess and smart_step time limits
 # - write unit tests
-# - comment on use of Paths in docs (use of non-pickleable lambda functions and class methods)
+# - comment on use of Pathos in docs (use of non-pickleable lambda functions and class methods)
 # - it is possible for the new takestep to remove members that have just been added. Prevent this?
 
 
 class OptimiserFactory:
-
+    """Simple factory for supplying an optimiser.
+    """
     @staticmethod
     def get(optimiser_name, project, bid_pool, model,
             save_flag=False, results_dir=None):
+        """Returns an optimiser object according to optimiser_name.
 
+        Args:
+            optimiser_name: str
+                Which type of optimiser to create.
+            project: project.Project
+                The project for which a team is being allocated.
+            bid_pool:
+                The bid_pool from which to select the workers.
+            model: model.SuperScriptModel
+                Reference to main model.
+            save_flag: bool (optional)
+                Allows optimisation outputs to be saved to disk for
+                development and benchmarking of the optimisation
+                method.
+            results_dir: str (optional)
+                Folder in which to save outputs if activated.
+        """
         if optimiser_name == "ParallelBasinhopping":
-            return Optimiser(project, bid_pool,
-                             model, 0,
-                             save_flag=save_flag,
-                             results_dir=results_dir)
+            return PBOptimiser(project, bid_pool,
+                               model,
+                               save_flag=save_flag,
+                               results_dir=results_dir)
 
 
 class DummyReturn:
+    """Dummy return value for when a Scipy.optimize method fails or
+    timeouts.
+
+    ...
+
+    Attributes:
+        fun: float
+            Value of objective function.
+        x: NoneType
+            Solution vector.
+    """
     def __init__(self):
         self.fun = 0.0
         self.x = None
 
 
-class Optimiser:
+class PBOptimiser:
 
-    def __init__(self, project, bid_pool, model, exp_number,
-                 verbose=False, save_flag=False,
-                 results_dir='model_development/experiments/optimisation/',
-                 min_team_size=MIN_TEAM_SIZE,
-                 max_team_size=MAX_TEAM_SIZE):
+    def __init__(
+            self, project, bid_pool, model,
+            exp_number=None,
+            verbose=False, save_flag=False,
+            results_dir='model_development/experiments/optimisation/',
+            min_team_size=MIN_TEAM_SIZE,
+            max_team_size=MAX_TEAM_SIZE
+    ):
 
         self.project = project
         self.bid_pool = bid_pool
@@ -76,7 +134,6 @@ class Optimiser:
             return None
 
         contributions = dict()
-        # for skill in project.required_skills:
         for skill in self.skills:
             contributions[skill] = []
 
@@ -86,7 +143,6 @@ class Optimiser:
             start = wi * 5
             in_team = False
 
-            # for si, skill in enumerate(project.required_skills):
             for si, skill in enumerate(self.skills):
                 if x[start + si] > 0.5:
                     contributions[skill].append(worker_id)
