@@ -1,6 +1,7 @@
 import random
 import numpy as np
 
+
 class Random:
 
     @staticmethod
@@ -13,8 +14,13 @@ class Random:
 
     @staticmethod
     def weighted_choice(iterable, k, replace=False, p=None):
-        return np.random.choice(iterable, size=k,
-                                replace=replace, p=p)
+        if p is not None:
+            p = p/sum(p)
+
+        return np.random.choice(
+            iterable, size=k,
+            replace=replace, p=p
+        )
 
     @staticmethod
     def randint(a, b):

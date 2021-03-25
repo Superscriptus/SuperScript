@@ -29,6 +29,8 @@ from .organisation import Team
 from .utilities import Random
 from .config import MAX_TEAM_SIZE, MIN_TEAM_SIZE
 
+from pathos.multiprocessing import ProcessingPool as Pool
+from numpy import argmax
 from scipy.optimize import basinhopping
 from scipy.spatial import minkowski_distance
 import numpy as np
@@ -50,7 +52,7 @@ class OptimiserFactory:
     """
     @staticmethod
     def get(optimiser_name, project, bid_pool, model,
-            save_flag=False, results_dir=None):
+            num_proc=1, niter=0, save_flag=False, results_dir=None):
         """Returns an optimiser object according to optimiser_name.
 
         Args:
@@ -70,10 +72,16 @@ class OptimiserFactory:
                 Folder in which to save outputs if activated.
         """
         if optimiser_name == "ParallelBasinhopping":
-            return PBOptimiser(project, bid_pool,
-                               model,
-                               save_flag=save_flag,
-                               results_dir=results_dir)
+            return ParallelBasinhopping(
+                model, project,
+                bid_pool,
+                num_proc,
+                niter,
+                min_team_size=MIN_TEAM_SIZE,
+                max_team_size=MAX_TEAM_SIZE,
+                save_flag=save_flag,
+                results_dir=results_dir
+            )
 
 
 class DummyReturn:
@@ -92,9 +100,66 @@ class DummyReturn:
         self.fun = 0.0
         self.x = None
 
-# class ParallelBasinHopping:
-#
-#     def __init__(self):
+
+class ParallelBasinhopping:
+
+    def __init__(self, model, project,
+                 bid_pool, num_proc, niter,
+                 min_team_size=MIN_TEAM_SIZE,
+                 max_team_size=MAX_TEAM_SIZE,
+                 save_flag=False,
+                 results_dir=None):
+
+        self.model = model
+        self.project = project
+        self.bid_pool = bid_pool
+        self.num_proc = num_proc
+        self.niter = niter
+        self.min_team_size = min_team_size
+        self.max_team_size = max_team_size
+        self.save_flag = save_flag
+        self.results_dir = results_dir
+
+    def optimise(self):
+
+        opti = PBOptimiser(
+            self.project,
+            self.bid_pool,
+            self.model,
+            save_flag=self.save_flag,
+            results_dir=self.results_dir
+        )
+
+        if len(self.bid_pool) < self.min_team_size:
+            return Team(self.project, {}, None), 0.0
+
+        elif self.niter == 0:
+            x = opti.smart_guess()
+            return (
+                opti.get_team(x),
+                -opti.objective_func(x)
+            )
+
+        else:
+            p = Pool(processes=self.num_proc)
+            batch_results = p.map(
+                opti.solve,
+                [opti.smart_guess() for i in range(self.num_proc)],
+                [self.niter for i in range(self.num_proc)],
+                range(self.num_proc)
+            )
+
+            p.close()
+            p.join()
+            p.clear()
+
+            probs = [-r[1].fun for r in batch_results]
+            team_x = [r[1].x for r in batch_results]
+
+            return (
+                opti.get_team(team_x[argmax(probs)]),
+                max(probs)
+            )
 
 
 class PBOptimiser:

@@ -1,0 +1,3 @@
+# Local simulation batch runner...
+
+# Needs to use try catch on each run in case of crash (and log output).
