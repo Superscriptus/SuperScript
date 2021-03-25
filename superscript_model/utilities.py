@@ -14,8 +14,14 @@ class Random:
 
     @staticmethod
     def weighted_choice(iterable, k, replace=False, p=None):
+
+        if k > len(iterable) or len(iterable) == 0:
+            return iterable
+
         if p is not None:
+            p = np.array(p)
             p = p/sum(p)
+            p[-1] = 1 - sum(p[:-1])
 
         return np.random.choice(
             iterable, size=k,

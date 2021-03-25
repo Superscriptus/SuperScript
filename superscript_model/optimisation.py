@@ -102,7 +102,7 @@ class DummyReturn:
 
 
 class ParallelBasinhopping:
-
+    """Note that bid_pool must be at least as long as max_team_size to work"""
     def __init__(self, model, project,
                  bid_pool, num_proc, niter,
                  min_team_size=MIN_TEAM_SIZE,
@@ -130,7 +130,7 @@ class ParallelBasinhopping:
             results_dir=self.results_dir
         )
 
-        if len(self.bid_pool) < self.min_team_size:
+        if len(self.bid_pool) < self.max_team_size:
             return Team(self.project, {}, None), 0.0
 
         elif self.niter == 0:
@@ -411,8 +411,9 @@ class PBOptimiser:
 
         return elapsed_time, ret
 
-    def compute_distances_from_requirements(self, project=None,
-                                            workers=None, p=2):
+    def compute_distances_from_requirements(
+            self, project=None, workers=None, p=2
+    ):
 
         if project is None:
             project = self.project
@@ -437,7 +438,7 @@ class PBOptimiser:
                                required_levels, p)
             for ri, row in worker_table.iterrows()
         ]
-        worker_table['prob'] = [(1 / d) if d > 0 else 0
+        worker_table['prob'] = [(1 / d) if d > 0 else 100000
                                 for d in worker_table.distance]
         #1 / worker_table.distance
         if sum(worker_table['prob']) > 0:
@@ -456,37 +457,15 @@ class PBOptimiser:
 
             x = np.zeros(5 * len(self.bid_pool))
 
-            worker_table = pd.DataFrame()
             worker_dict = {m.worker_id: m
                            for m in self.bid_pool}
-            worker_table['id'] = worker_dict.keys()
 
-            for skill in self.project.required_skills:
-                worker_table[skill] = [
-                    m.get_skill(skill) for m in self.bid_pool
-                ]
-
-            required_levels = [
-                self.project.requirements.hard_skills[skill]['level']
-                for skill in self.project.required_skills
-            ]
-
-            worker_table['distance'] = [
-                minkowski_distance(row[self.project.required_skills],
-                                   required_levels, p)
-                for ri, row in worker_table.iterrows()
-            ]
-            worker_table['prob'] = [(1 / d) if d > 0 else 0
-                                    for d in worker_table.distance]
-            if sum(worker_table['prob']) > 0:
-                worker_table['prob'] /= sum(worker_table['prob'])
-
-            worker_table.sort_values('prob', ascending=False, inplace=True)
-
+            p = list(self.compute_distances_from_requirements(
+                workers=self.bid_pool
+            ).values())
             size = np.random.randint(self.min_team_size, self.max_team_size + 1)
-            members = np.random.choice(
-                worker_table.id, size=size, replace=False, p=worker_table.prob
-            )
+            members = Random.weighted_choice(list(worker_dict.keys()), size, p=p)
+
             members = [worker_dict[wid] for wid in members]
 
             for m in members:
@@ -557,6 +536,7 @@ class MyTakeStep(object):
                 Random.randint(0, self.max_team_size),
                 len(self.bid_pool) - self.optimiser.team_size(x)
             )
+            number_to_add = max(0, number_to_add)
 
             new_size = self.optimiser.team_size(x) + number_to_add
             min_remove = max(0, new_size - self.min_team_size)
@@ -574,7 +554,6 @@ class MyTakeStep(object):
                     >= number_to_add + self.optimiser.team_size(x))
             current_team = self.optimiser.get_team(x)
 
-            to_add = []
             new_team_members = list(current_team.members.values())
             choose_from = [bid for bid in self.bid_pool
                            if bid not in new_team_members]
