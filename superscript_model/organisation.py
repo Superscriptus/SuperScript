@@ -837,33 +837,7 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         for offset in range(project.max_start_time_offset + 1):
 
             project.start_time = base_start_time + offset
-            p = Pool(processes=self.num_proc)
-            opti = self.optimiser_factory.get(
-                "ParallelBasinhopping", project, bid_pool[offset], self.model
-            )
-            if len(bid_pool[offset]) < self.min_team_size:
-                teams.append(Team(project, {}, None))
-                probabilities.append(0.0)
-            elif self.niter == 0:
-                x = opti.smart_guess()
-                teams.append(opti.get_team(x))
-                probabilities.append(-opti.objective_func(x))
-            else:
-                batch_results = p.map(
-                    opti.solve,
-                    [opti.smart_guess() for i in range(self.num_proc)],
-                    [self.niter for i in range(self.num_proc)],
-                    range(self.num_proc)
-                )
-
-                p.close()
-                p.join()
-                p.clear()
-
-                probs = [-r[1].fun for r in batch_results]
-                team_x = [r[1].x for r in batch_results]
-                teams.append(opti.get_team(team_x[argmax(probs)]))
-                probabilities.append(max(probs))
+            self.optimise(bid_pool, offset, probabilities, project, teams)
 
         offset = argmax(probabilities)
         best_team = teams[argmax(probabilities)]
@@ -873,6 +847,35 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         project.realised_offset = offset
 
         return best_team
+
+    def optimise(self, bid_pool, offset, probabilities, project, teams):
+        p = Pool(processes=self.num_proc)
+        opti = self.optimiser_factory.get(
+            "ParallelBasinhopping", project, bid_pool[offset], self.model
+        )
+        if len(bid_pool[offset]) < self.min_team_size:
+            teams.append(Team(project, {}, None))
+            probabilities.append(0.0)
+        elif self.niter == 0:
+            x = opti.smart_guess()
+            teams.append(opti.get_team(x))
+            probabilities.append(-opti.objective_func(x))
+        else:
+            batch_results = p.map(
+                opti.solve,
+                [opti.smart_guess() for i in range(self.num_proc)],
+                [self.niter for i in range(self.num_proc)],
+                range(self.num_proc)
+            )
+
+            p.close()
+            p.join()
+            p.clear()
+
+            probs = [-r[1].fun for r in batch_results]
+            team_x = [r[1].x for r in batch_results]
+            teams.append(opti.get_team(team_x[argmax(probs)]))
+            probabilities.append(max(probs))
 
 
 class TeamAllocator:

@@ -38,7 +38,7 @@ import pickle
 
 ## TODO:
 # - move imports of MIN and MAX_TEAM_SIZE to main.py (pass via factory)
-# - clean up constraints
+# - clean up constraints: move to MyConstraints ?
 # - set smart_guess and smart_step time limits
 # - write unit tests
 # - comment on use of Pathos in docs (use of non-pickleable lambda functions and class methods)
@@ -91,6 +91,10 @@ class DummyReturn:
     def __init__(self):
         self.fun = 0.0
         self.x = None
+
+# class ParallelBasinHopping:
+#
+#     def __init__(self):
 
 
 class PBOptimiser:
