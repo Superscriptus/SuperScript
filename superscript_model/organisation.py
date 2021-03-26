@@ -91,9 +91,12 @@ class Team:
                 Aka 'degree of skill match' captures the deficiency in
                 hard skill provision by this team in relation to the
                 project skill requirements.
+            creativity_level: float
+                Creativity level of the team (Captures 'cognitive
+                diversity')
             creativity_match: float
-                Captures how close the creativity of this team is to
-                the required creativity level of the project.
+                Captures how close the creativity level of this team is
+                to the required creativity level of the project.
     """
     def __init__(self, project, members,
                  lead, round_to=PRINT_DECIMALS_TO,
@@ -127,6 +130,7 @@ class Team:
         self.team_ovr = self.compute_ovr()
         self.team_budget = self.compute_team_budget()
         self.skill_balance = self.compute_skill_balance()
+        self.creativity_level = None
         self.creativity_match = self.compute_creativity_match()
 
     @property
@@ -383,7 +387,8 @@ class Team:
         Returns:
             float: creativity match value
         """
-        creativity_level = 0
+
+        self.creativity_level = 0.0
         number_of_existing_skills = 0
         max_distance = max_skill_level - min_skill_level
         if len(self.members.keys()) > 1:
@@ -400,7 +405,7 @@ class Team:
 
             pairs = list(combinations(worker_skills, 2))
             if len(pairs) > 0:
-                creativity_level += (
+                self.creativity_level += (
                         sum([((p[1] - p[0]) / max_distance) ** 2
                              for p in pairs])
                         / len(pairs)
@@ -408,12 +413,14 @@ class Team:
                 number_of_existing_skills += 1
 
         if number_of_existing_skills > 0:
-            creativity_level /= number_of_existing_skills
+            self.creativity_level /= number_of_existing_skills
         else:
-            creativity_level = 0
+            self.creativity_level = 0
 
-        creativity_level = (creativity_level * max_distance) + 1
-        return (self.project.creativity - creativity_level) ** 2
+        self.creativity_level = 1 + (
+                self.creativity_level * max_distance
+        )
+        return (self.project.creativity - self.creativity_level) ** 2
 
     def skill_update(self, success, skill_update_func):
         """Update the member skills  on termination of project

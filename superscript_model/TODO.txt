@@ -3,6 +3,7 @@ TODO list for future development of SuperScript model.
 Priority:
 - fix bug in network visualisation....(due to worker replacement? or library problem?)
 - write script to produce requirements and script to install (with pip + conda)
+- write test runner (and fix tests)
 - add niter selection to GUI.
 - write a better copy method for saving/loading project, rather than pickling whole project and then re-setting the mutable data memebers
 - Add parallel niter=0 guesses: poor performance!
