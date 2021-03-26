@@ -305,7 +305,17 @@ class Basinhopping(implements(OptimiserInterface)):
     """Basinhopping optimiser that uses COBYLA optimisation at
     each basin hopping step.
 
-    Both the initial guess (smart_guess) and the step method...
+    Both the initial guess (smart_guess) and the BHStep methods select
+    members based on how closely their skill set resembles the skill
+    required by the project (using minkowski distance).
+
+    Note:
+        The solution vector `x` is a binary vector with one entry for
+        each hard skill for each worker. So its length is:
+        len(bid_pool) * 5
+
+        If an entry is one it indicates that the worker contributes
+        that skill to the project.
     ...
 
     Attributes:
@@ -342,6 +352,8 @@ class Basinhopping(implements(OptimiserInterface)):
         results_dir: str (optional)
             Folder in which to save outputs if activated.
         verbose: bool
+            Indicates whether to print details such as time taken to
+            complete optimisation and constraint violation.
         smart_guess_timeout: int
             Number of seconds to spend trying to find a smart_guess
             that meets the constraints (else timeout).
@@ -379,7 +391,7 @@ class Basinhopping(implements(OptimiserInterface)):
         self.skills = ['A', 'B', 'C', 'D', 'E']
         self.worker_ids = [m.worker_id for m in bid_pool]
         self.worker_unit_budgets = self.get_worker_units_budgets()
-        self.constraints = self.build_constraints()
+        self.constraints = BHConstraints(self, verbose)
         self.min_team_size = min_team_size
         self.max_team_size = max_team_size
         self.save_flag = save_flag
@@ -402,6 +414,14 @@ class Basinhopping(implements(OptimiserInterface)):
                 pickle.dump(self.bid_pool, ofile)
 
     def get_team(self, x):
+        """Return Team that is encoded in solution vector x.
+
+        Args:
+            x: np.ndarray
+
+        Returns:
+            Team: the team represented by x
+        """
 
         if x is None:
             return None
@@ -433,6 +453,19 @@ class Basinhopping(implements(OptimiserInterface)):
                         contributions=contributions)
 
     def objective_func(self, x):
+        """Objective function that the optimiser tries to minimise.
+
+        Because scipy's optimisers do minimisation (not maximisation),
+        we take the negative of the probability.
+
+        Args:
+            x: np.ndarray
+                Solution vector
+
+        Returns:
+            float: value of objective function for x ( always <=0).
+
+        """
         test_team = self.get_team(x)
 
         self.project.team = test_team
@@ -443,6 +476,12 @@ class Basinhopping(implements(OptimiserInterface)):
         return -self.project.success_probability
 
     def get_worker_units_budgets(self):
+        """For each worker in the bid_pool, determine how many units
+        they have available to contribute to the project.
+
+        Returns:
+            dict: record of unit availability.
+        """
         return {
             worker.worker_id: worker.contributions.get_remaining_units(
                 self.project.start_time, self.project.length
@@ -450,86 +489,30 @@ class Basinhopping(implements(OptimiserInterface)):
             for worker in self.bid_pool
         }
 
-    def build_constraints(self):
-        constraints = []
+    def adjusted_dept_unit_budget(
+            self, x,
+            dept_id,
+            base_dept_unit_budgets,
+            dept_members
+    ):
+        """Updates the available units in each department based on the
+        current allocation in the solution vector x. This ensures that
+        departmental unit budget will always be met.
 
-        for wi, worker in enumerate(self.bid_pool):
-            start = wi * 5
+        Args:
+            x: np.ndarray
+                Solution vector
+            dept_id: int
+                Identifier for the department
+            base_dept_unit_budgets: dict
+                Dictionary of current unit availability in each
+                department.
+            dept_members: dict
+                Dictionary of workers belonging to each department.
 
-            constraints.append({
-                'type': 'ineq',
-                'fun': (lambda x:
-                        self.worker_unit_budgets[worker.worker_id]
-                        - sum(np.round(x[start:start + 5]))
-                        ),
-                'name': 'worker_unit_budget_%d' % worker.worker_id
-            })
-
-        base_dept_unit_budgets = {
-            dept.dept_id: dept.get_remaining_unit_budget(
-                self.project.start_time, self.project.length
-            )
-            for dept in set(
-                [m.department for m in self.bid_pool]
-            )
-        }
-        dept_ids = base_dept_unit_budgets.keys()
-        dept_members = {
-            dept.dept_id: [m for m in self.bid_pool if m.department.dept_id == dept.dept_id]
-            for dept in set(
-                [m.department for m in self.bid_pool]
-            )
-        }
-
-        for dept_id in dept_ids:
-            constraints.append({
-                'type': 'ineq',
-                'fun': lambda x: self.adjusted_dept_unit_budget(
-                    x, dept_id, base_dept_unit_budgets, dept_members
-                ),
-                'name': 'dept_budget_%d' % dept_id
-            })
-
-        constraints.append({
-            'type': 'ineq', 'fun': (lambda x:
-                                    self.max_team_size - self.team_size(x)),
-            'name': 'team_size_ub'
-        })
-        constraints.append({
-            'type': 'ineq', 'fun': (lambda x:
-                                    self.team_size(x) - self.min_team_size)
-            , 'name': 'team_size_lb'
-        })
-
-        for i in range(5 * len(self.bid_pool)):
-            constraints.append({
-                'type': 'ineq', 'fun': lambda x: x[i], 'name': 'lb_%d' % i
-            })
-            constraints.append({
-                'type': 'ineq', 'fun': lambda x: 1 - x[i], 'name': 'ub_%d' % i
-            })
-
-        constraints.append({
-            'type': 'ineq', 'fun': (
-                lambda x:
-                -1 + int(self.get_team(x).within_budget())
-            ),
-            'name': 'budget_constraint'
-        })
-
-        for si, skill in enumerate(self.skills):
-            if skill not in self.project.required_skills:
-
-                for i in range(len(self.worker_ids)):
-                    constraints.append({
-                        'type': 'ineq', 'fun': lambda x: 0 - x[i * 5 + si],
-                        'name': 'non_required_skill_constraint'
-                    })
-
-        return constraints
-
-    def adjusted_dept_unit_budget(self, x, dept_id,
-                                  base_dept_unit_budgets, dept_members):
+        Returns:
+            dict: updated copy of base_dept_unit_budgets
+        """
 
         base = base_dept_unit_budgets[dept_id]
         for m in dept_members[dept_id]:
@@ -537,17 +520,6 @@ class Basinhopping(implements(OptimiserInterface)):
             base -= sum(np.round(x[start:start + 5]))
 
         return base
-
-    def test_constraints(self, x, verbose=False):
-
-        for cons in self.constraints:
-            assert cons['type'] == 'ineq'
-            if cons['fun'](x) < 0:
-                if verbose:
-                    print("Constraint violated: %s" % cons['name'])
-                return False
-
-        return True
 
     def team_size(self, x):
 
@@ -566,7 +538,7 @@ class Basinhopping(implements(OptimiserInterface)):
 
         minimizer_kwargs = {
             "method": 'COBYLA',
-            'constraints': self.constraints,
+            'constraints': self.constraints.constraint_list,
             'options': {
                 'maxiter': self.maxiter,
                 'disp': False,
@@ -575,25 +547,23 @@ class Basinhopping(implements(OptimiserInterface)):
             }
         }
 
-        my_constraints = MyConstraints(self)
-        my_takestep = MyTakeStep(self)
+        my_takestep = BHStep(self)
 
         start_time = time.time()
         res = basinhopping(self.objective_func, guess,
                            minimizer_kwargs=minimizer_kwargs,
                            niter=niter, seed=70470,
-                           accept_test=my_constraints,
+                           accept_test=self.constraints,
                            take_step=my_takestep)
-                           #callback=print_fun,)
 
         if (res.fun >= 0.0
                 or sum(res.x) == 0
-                or not self.test_constraints(res.x)):
+                or not self.constraints.test(res.x)):
 
             res.x = guess
             res.fun = self.objective_func(res.x)
 
-        assert self.test_constraints(res.x)
+        assert self.constraints.test(res.x)
         elapsed_time = time.time() - start_time
         if self.verbose:
             print("%d iterations took %.2f seconds" % (niter, elapsed_time))
@@ -694,7 +664,7 @@ class Basinhopping(implements(OptimiserInterface)):
                     si = self.skills.index(skill)
                     x[start + si] = 1
 
-            constraints_met = self.test_constraints(x)
+            constraints_met = self.constraints.test(x)
             if time.time() > timeout:
                 x = None
                 break
@@ -702,17 +672,160 @@ class Basinhopping(implements(OptimiserInterface)):
         return x
 
 
-class MyConstraints(object):
+class BHConstraints(object):
+    """Constraints on the solution vector (x) for basinhopping
+    optimiser, such as ensuring that team size is within the specified
+    bounds, budget constraint is met, non-required skills are not
+    included etc.
 
-    def __init__(self, optimiser):
-        self.test = optimiser.test_constraints
+    Note:
+        constraint_list is in the format required by Scipy's COBYLA
+        optimiser (see the documentation).
+    ...
+
+    Attributes:
+        optimiser: Basinhopping
+            Optimiser to build constraints for.
+        constraint_list: list
+            Stores the constraints.
+        verbose: bool
+            Whether to print constraint violation when testing.
+    """
+    def __init__(self, optimiser, verbose=False):
+        self.optimiser = optimiser
+        self.constraint_list = self.build_constraints()
+        self.verbose = verbose
 
     def __call__(self, **kwargs):
+        """Used by scipy's basinhopping `accept_test` to determine
+        if a new hop should be accepted.
+        """
         x = kwargs["x_new"]
         return self.test(x)
 
+    def build_constraints(self):
+        """Builds constraint list in required format.
 
-class MyTakeStep(object):
+        Returns:
+            list: of constraints
+        """
+        constraints = []
+
+        for wi, worker in enumerate(self.optimiser.bid_pool):
+            start = wi * 5
+
+            constraints.append({
+                'type': 'ineq',
+                'fun': (
+                    lambda x:
+                    self.optimiser.worker_unit_budgets[
+                        worker.worker_id
+                    ]
+                    - sum(np.round(x[start:start + 5]))
+                ),
+                'name': 'worker_unit_budget_%d' % worker.worker_id
+            })
+
+        base_dept_unit_budgets = {
+            dept.dept_id: dept.get_remaining_unit_budget(
+                self.optimiser.project.start_time,
+                self.optimiser.project.length
+            )
+            for dept in set(
+                [m.department for m in self.optimiser.bid_pool]
+            )
+        }
+        dept_ids = base_dept_unit_budgets.keys()
+        dept_members = {
+            dept.dept_id: [
+                m for m in self.optimiser.bid_pool
+                if m.department.dept_id == dept.dept_id
+            ]
+            for dept in set(
+                [m.department for m in self.optimiser.bid_pool]
+            )
+        }
+
+        for dept_id in dept_ids:
+            constraints.append({
+                'type': 'ineq',
+                'fun': (
+                    lambda x: self.optimiser.adjusted_dept_unit_budget(
+                        x,
+                        dept_id, base_dept_unit_budgets,
+                        dept_members
+                    )
+                ),
+                'name': 'dept_budget_%d' % dept_id
+            })
+
+        constraints.append({
+            'type': 'ineq',
+            'fun': (
+                lambda x:
+                self.optimiser.max_team_size
+                - self.optimiser.team_size(x)
+            ),
+            'name': 'team_size_ub'
+        })
+        constraints.append({
+            'type': 'ineq',
+            'fun': (
+                lambda x:
+                self.optimiser.team_size(x)
+                - self.optimiser.min_team_size
+            )
+            , 'name': 'team_size_lb'
+        })
+
+        for i in range(5 * len(self.optimiser.bid_pool)):
+            constraints.append({
+                'type': 'ineq', 'fun': lambda x: x[i], 'name': 'lb_%d' % i
+            })
+            constraints.append({
+                'type': 'ineq', 'fun': lambda x: 1 - x[i], 'name': 'ub_%d' % i
+            })
+
+        constraints.append({
+            'type': 'ineq', 'fun': (
+                lambda x:
+                -1 + int(self.optimiser.get_team(x).within_budget())
+            ),
+            'name': 'budget_constraint'
+        })
+
+        for si, skill in enumerate(self.optimiser.skills):
+            if skill not in self.optimiser.project.required_skills:
+
+                for i in range(len(self.optimiser.worker_ids)):
+                    constraints.append({
+                        'type': 'ineq', 'fun': lambda x: 0 - x[i * 5 + si],
+                        'name': 'non_required_skill_constraint'
+                    })
+
+        return constraints
+
+    def test(self, x):
+        """Test all constraints.
+
+        Args:
+            x: np.ndarray
+                Solution vector to test.
+
+        Returns:
+            bool: True if all constraints met.
+        """
+        for cons in self.constraint_list:
+            assert cons['type'] == 'ineq'
+            if cons['fun'](x) < 0:
+                if self.verbose:
+                    print("Constraint violated: %s" % cons['name'])
+                return False
+
+        return True
+
+
+class BHStep(object):
 
     def __init__(self, optimiser,
                  max_team_size=MAX_TEAM_SIZE,
@@ -794,7 +907,7 @@ class MyTakeStep(object):
                 for i in range(5):
                     x[start + i] = 0
 
-            constraints_met = self.optimiser.test_constraints(x)
+            constraints_met = self.optimiser.constraints.test(x)
             if time.time() > timeout:
                 x = old_x
                 break

@@ -12,8 +12,8 @@ from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import Team
 from superscript_model.optimisation import (OptimiserFactory,
                                             Basinhopping,
-                                            MyTakeStep,
-                                            MyConstraints,
+                                            BHStep,
+                                            BHConstraints,
                                             DummyReturn)
 
 from superscript_model.config import (DEPARTMENTAL_WORKLOAD,
@@ -159,7 +159,7 @@ class TestOptimiser(unittest.TestCase):
 
     def test_my_constraints(self):
 
-        cons = MyConstraints(self.optimiser)
+        cons = BHConstraints(self.optimiser)
         self.assertEqual(cons.test, self.optimiser.test_constraints)
 
         self.assertIsInstance(
@@ -168,7 +168,7 @@ class TestOptimiser(unittest.TestCase):
 
     def test_my_take_step(self):
 
-        stepper = MyTakeStep(self.optimiser)
+        stepper = BHStep(self.optimiser)
         new_x = stepper.__call__(self.optimiser.smart_guess())
         self.assertEqual(
             len(new_x),
