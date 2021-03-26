@@ -28,10 +28,9 @@ Classes:
         how much capacity each of its workers has to contribute to
         projects.
 """
-from pathos.multiprocessing import ProcessingPool as Pool
 from interface import Interface, implements
 from itertools import combinations
-from numpy import percentile, argmax, zeros
+from numpy import percentile, argmax
 import json
 
 from .project import Project
@@ -47,9 +46,7 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      WORKLOAD_SATISFIED_TOLERANCE,
                      UNITS_PER_FTE,
                      TRAINING_LENGTH,
-                     HARD_SKILLS,
-                     NUMBER_OF_PROCESSORS,
-                     NUMBER_OF_BASIN_HOPS)
+                     HARD_SKILLS)
 
 
 class Team:
@@ -92,9 +89,12 @@ class Team:
                 Aka 'degree of skill match' captures the deficiency in
                 hard skill provision by this team in relation to the
                 project skill requirements.
+            creativity_level: float
+                Creativity level of the team (Captures 'cognitive
+                diversity')
             creativity_match: float
-                Captures how close the creativity of this team is to
-                the required creativity level of the project.
+                Captures how close the creativity level of this team is
+                to the required creativity level of the project.
     """
     def __init__(self, project, members,
                  lead, round_to=PRINT_DECIMALS_TO,
@@ -128,6 +128,7 @@ class Team:
         self.team_ovr = self.compute_ovr()
         self.team_budget = self.compute_team_budget()
         self.skill_balance = self.compute_skill_balance()
+        self.creativity_level = None
         self.creativity_match = self.compute_creativity_match()
 
     @property
@@ -384,7 +385,8 @@ class Team:
         Returns:
             float: creativity match value
         """
-        creativity_level = 0
+
+        self.creativity_level = 0.0
         number_of_existing_skills = 0
         max_distance = max_skill_level - min_skill_level
         if len(self.members.keys()) > 1:
@@ -401,7 +403,7 @@ class Team:
 
             pairs = list(combinations(worker_skills, 2))
             if len(pairs) > 0:
-                creativity_level += (
+                self.creativity_level += (
                         sum([((p[1] - p[0]) / max_distance) ** 2
                              for p in pairs])
                         / len(pairs)
@@ -409,12 +411,14 @@ class Team:
                 number_of_existing_skills += 1
 
         if number_of_existing_skills > 0:
-            creativity_level /= number_of_existing_skills
+            self.creativity_level /= number_of_existing_skills
         else:
-            creativity_level = 0
+            self.creativity_level = 0
 
-        creativity_level = (creativity_level * max_distance) + 1
-        return (self.project.creativity - creativity_level) ** 2
+        self.creativity_level = 1 + (
+                self.creativity_level * max_distance
+        )
+        return (self.project.creativity - self.creativity_level) ** 2
 
     def skill_update(self, success, skill_update_func):
         """Update the member skills  on termination of project
@@ -748,10 +752,6 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         This is not currently very efficient when using a large number
         of cores (num_proc). 8 seems to work well, but 48 is too many!
 
-    TODO:
-        Refactor much of the (parallelisation) logic from select_team
-        into optimisation.py
-
     ...
 
     Attributes:
@@ -772,16 +772,14 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
     def __init__(self, model, optimiser_factory,
                  min_team_size=MIN_TEAM_SIZE,
-                 max_team_size=MAX_TEAM_SIZE,
-                 num_proc=NUMBER_OF_PROCESSORS,
-                 niter=NUMBER_OF_BASIN_HOPS):
+                 max_team_size=MAX_TEAM_SIZE):
 
         self.model = model
         self.optimiser_factory = optimiser_factory
         self.min_team_size = min_team_size
         self.max_team_size = max_team_size
-        self.num_proc = num_proc
-        self.niter = niter
+        self.num_proc = self.model.number_of_processors
+        self.niter = self.model.number_of_basin_hops
 
     def invite_bids(self, project: Project) -> list:
         """Invite bids from workers for each possible start time offset
@@ -837,34 +835,23 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         for offset in range(project.max_start_time_offset + 1):
 
             project.start_time = base_start_time + offset
-            p = Pool(processes=self.num_proc)
-            opti = self.optimiser_factory.get(
-                "ParallelBasinhopping", project, bid_pool[offset], self.model
+
+            optimiser = self.optimiser_factory.get_optimiser(
+                optimiser_name="Basinhopping",
+                project=project,
+                bid_pool=bid_pool[offset],
+                model=self.model,
+                niter=self.niter
             )
-            if len(bid_pool[offset]) < self.min_team_size:
-                teams.append(Team(project, {}, None))
-                probabilities.append(0.0)
-            elif self.niter == 0:
-                x = opti.smart_guess()
-                teams.append(opti.get_team(x))
-                probabilities.append(-opti.objective_func(x))
-            else:
 
-                batch_results = p.map(
-                    opti.solve,
-                    [opti.smart_guess() for i in range(self.num_proc)],
-                    [self.niter for i in range(self.num_proc)],
-                    range(self.num_proc)
-                )
-
-                p.close()
-                p.join()
-                p.clear()
-
-                probs = [-r[1].fun for r in batch_results]
-                team_x = [r[1].x for r in batch_results]
-                teams.append(opti.get_team(team_x[argmax(probs)]))
-                probabilities.append(max(probs))
+            runner = self.optimiser_factory.get_runner(
+                runner_name="Parallel",
+                optimiser=optimiser,
+                num_proc=self.num_proc
+            )
+            team, probability = runner.run()
+            teams.append(team)
+            probabilities.append(probability)
 
         offset = argmax(probabilities)
         best_team = teams[argmax(probabilities)]

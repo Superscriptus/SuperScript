@@ -46,7 +46,11 @@ from .config import (PROJECT_LENGTH,
                      LOAD_PROJECTS,
                      IO_DIR,
                      SAVE_NETWORK,
-                     SAVE_NETWORK_FREQUENCY)
+                     SAVE_NETWORK_FREQUENCY,
+                     DEPARTMENTAL_WORKLOAD,
+                     TIMELINE_FLEXIBILITY,
+                     NUMBER_OF_BASIN_HOPS,
+                     NUMBER_OF_PROCESSORS)
 
 
 class SuperScriptModel(Model):
@@ -74,6 +78,11 @@ class SuperScriptModel(Model):
             Counts number of new workers added during simulation.
             Used to ensure that a unique worker_id is assigned
             when new workers are created.
+        number_of_processors: int
+            Number of processors to use (in parallel optimisation).
+        number_of_basin_hops: int
+            Number of basinhopping steps (if using basinhopping
+            optimiser).
         departments: dict
             Dictionary that stores departments.
         peer_assessment_success_mean: float
@@ -118,6 +127,14 @@ class SuperScriptModel(Model):
             updated).
         io_dir: str
             Path to directory for reading/writing projects.
+        save_projects: bool
+            Whether to save projects for use in later simulations.
+        load_projects: bool
+            Whether to load predefined projects from a previous
+            simulation.
+        timeline_flexibility: str
+            Indicates type of timeline flexibility to use.
+            (currently just switches flexibility on or off). .
         inventory: project.ProjectInventory
             Creates and keeps track of projects.
         training_on: bool
@@ -131,6 +148,9 @@ class SuperScriptModel(Model):
             Timestep at which training starts (if activated).
         trainer: organisation.Trainer
             Handles all training of workers.
+        departmental_workload: float
+            Fraction of department capacity that needs to be held back
+            to do departmental work.
         worker_turnover: dict
             Records how many workers are replaced on each timstep.
         running: bool
@@ -159,8 +179,14 @@ class SuperScriptModel(Model):
                  organisation_strategy=ORGANISATION_STRATEGY,
                  worker_strategy=WORKER_STRATEGY,
                  io_dir=IO_DIR,
+                 save_projects=SAVE_PROJECTS,
+                 load_projects=LOAD_PROJECTS,
                  save_network=SAVE_NETWORK,
-                 save_network_freq=SAVE_NETWORK_FREQUENCY):
+                 save_network_freq=SAVE_NETWORK_FREQUENCY,
+                 departmental_workload=DEPARTMENTAL_WORKLOAD,
+                 timeline_flexibility=TIMELINE_FLEXIBILITY,
+                 number_of_processors=NUMBER_OF_PROCESSORS,
+                 number_of_basin_hops=NUMBER_OF_BASIN_HOPS):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -168,6 +194,9 @@ class SuperScriptModel(Model):
         self.budget_functionality_flag = budget_functionality_flag
         self.new_workers = 0
         self.departments = dict()
+
+        self.number_of_processors = number_of_processors
+        self.number_of_basin_hops = number_of_basin_hops
 
         self.peer_assessment_success_mean = peer_assessment_success_mean
         self.peer_assessment_success_stdev = peer_assessment_success_stdev
@@ -186,13 +215,16 @@ class SuperScriptModel(Model):
 
         self.schedule = RandomActivation(self)
         self.io_dir = io_dir
+        self.save_projects = save_projects
+        self.load_projects = load_projects
+        self.timeline_flexibility = timeline_flexibility
         self.inventory = ProjectInventory(
             TeamAllocator(self, OptimiserFactory()),
-            timeline_flexibility='TimelineFlexibility',
+            timeline_flexibility=self.timeline_flexibility,
             social_network=self.grid,
             model=self,
-            save_flag=SAVE_PROJECTS,
-            load_flag=LOAD_PROJECTS,
+            save_flag=self.save_projects,
+            load_flag=self.load_projects,
             io_dir=self.io_dir
         )
         self.training_on = training_on
@@ -201,8 +233,11 @@ class SuperScriptModel(Model):
         self.training_commences = training_commences
         self.trainer = Trainer(self)
 
+        self.departmental_workload = departmental_workload
         for di in range(department_count):
-            self.departments[di] = Department(di)
+            self.departments[di] = Department(
+                di, workload=self.departmental_workload
+            )
 
         workers_per_department = worker_count / department_count
         assert workers_per_department * department_count == worker_count

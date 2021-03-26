@@ -99,6 +99,16 @@ class Worker(Agent):
         return self.contributions.get_contributions()
 
     @property
+    def contributes_now(self):
+        """
+        dict: returns dictionary of worker contributions by skill
+              at current timestep (or None if no contributions).
+        """
+        return (
+            self.contributions.get_contributions().get(self.now, None)
+        )
+
+    @property
     def now(self):
         """int: current simulation step (from scheduler)"""
         return self.model.schedule.steps

@@ -207,7 +207,7 @@ class SSDataCollector(DataCollector):
             }
         agent_reporters = {
             "now": "now",
-            "contributes": "contributes",
+            "contributes": "contributes_now",
             "ovr": worker_ovr,
             "hard_skills": worker_hard_skills,
             "training": worker_training_tracker,

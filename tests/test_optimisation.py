@@ -11,9 +11,9 @@ from superscript_model.worker import Worker, SkillMatrix
 from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import Team
 from superscript_model.optimisation import (OptimiserFactory,
-                                            Optimiser,
-                                            MyTakeStep,
-                                            MyConstraints,
+                                            Basinhopping,
+                                            BHStep,
+                                            BHConstraints,
                                             DummyReturn)
 
 from superscript_model.config import (DEPARTMENTAL_WORKLOAD,
@@ -45,7 +45,7 @@ class TestOptimiserFactory(unittest.TestCase):
             bid_pool=[],
             model=model
         )
-        self.assertIsInstance(optimiser, Optimiser)
+        self.assertIsInstance(optimiser, Basinhopping)
 
 
 class TestOptimiser(unittest.TestCase):
@@ -150,7 +150,7 @@ class TestOptimiser(unittest.TestCase):
 
     def test_compute_distances_from_requirements(self):
 
-        dists = self.optimiser.compute_distances_from_requirements()
+        dists = self.optimiser.assign_dist_probs_from_requirements()
         self.assertIsInstance(dists, dict)
         self.assertEqual(
             set(dists.keys()),
@@ -159,7 +159,7 @@ class TestOptimiser(unittest.TestCase):
 
     def test_my_constraints(self):
 
-        cons = MyConstraints(self.optimiser)
+        cons = BHConstraints(self.optimiser)
         self.assertEqual(cons.test, self.optimiser.test_constraints)
 
         self.assertIsInstance(
@@ -168,7 +168,7 @@ class TestOptimiser(unittest.TestCase):
 
     def test_my_take_step(self):
 
-        stepper = MyTakeStep(self.optimiser)
+        stepper = BHStep(self.optimiser)
         new_x = stepper.__call__(self.optimiser.smart_guess())
         self.assertEqual(
             len(new_x),
