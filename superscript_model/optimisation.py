@@ -56,13 +56,6 @@ import pandas as pd
 import time
 import pickle
 
-## TODO:
-# - clean up constraints: move to MyConstraints ?
-# - write unit tests
-# - comment on use of Pathos in docs (use of non-pickleable lambda functions and class methods)
-# - it is possible for the new takestep to remove members that have just been added. Prevent this?
-## TODO: refactor so that niter foes to optimiser rather than to runner?
-
 
 class OptimiserFactory:
     """Simple factory for supplying a runner and an optimiser.
@@ -227,6 +220,19 @@ class ParallelRunner(implements(RunnerInterface)):
         If niter=0 the optimiser's smart_guess method is used to
         return a guess solution. This is not mapped across multiple
         processes even if num_proc>1.
+
+    Note:
+        This method uses Pathos multiprocessing because the standard
+        library uses Pickle to pass data to the new processes, and
+        this was not working with some of the class methods and lambda
+        functions (Pathos uses Dill instead of Pickle). By most
+        accounts the Pathos implementation is better anyway. But there
+        are likely other solutions.
+
+        One thing to note is that this is blocking, so the processors
+        must wait until the longest basinhopping is complete. For high
+        values for `niter` and `num_proc` this can mean that many cores
+        are sitting ideal for large parts of the simulation.
 
     ...
 
@@ -522,6 +528,15 @@ class Basinhopping(implements(OptimiserInterface)):
         return base
 
     def team_size(self, x):
+        """Calculate how many workers in the team represented by x.
+
+        Args:
+            x: np.ndarray
+                Solution vector
+
+        Returns:
+            int: number of workers with non-zero entries in x
+        """
 
         size = 0
         for wi, worker_id in enumerate(self.worker_ids):
@@ -532,6 +547,19 @@ class Basinhopping(implements(OptimiserInterface)):
         return size
 
     def solve(self, guess, niter, repeat=0):
+        """Solve the optimisation problem by trying to minimise
+        the objective function.
+
+        Args:
+            guess: np.ndarray
+                Initial guess of solution vector x.
+            niter: int
+                Number of iterations (i.e. number of basin hops).
+            repeat: int (optional)
+                Integer ID for this run, used when doing multiple
+                optimisations for benchmarking. Not required for
+                normal simulations.
+        """
 
         if guess is None:
             return 0.0, DummyReturn()
@@ -565,16 +593,17 @@ class Basinhopping(implements(OptimiserInterface)):
 
         assert self.constraints.test(res.x)
         elapsed_time = time.time() - start_time
+
         if self.verbose:
             print("%d iterations took %.2f seconds" % (niter, elapsed_time))
 
-# Can be removed!
-        best_team = self.get_team(res.x)
-        self.project.team = best_team
-        self.model.inventory.success_calculator.calculate_success_probability(
-            self.project
-        )
         if self.save_flag:
+            best_team = self.get_team(res.x)
+            self.project.team = best_team
+            self.model.inventory.success_calculator.calculate_success_probability(
+                self.project
+            )
+
             with open(self.results_dir
                       + 'best_team_project_%d_niter_%d_repeat_%d.json'
                       % (self.exp_number, niter, repeat), 'wb') as ofile:
@@ -590,9 +619,21 @@ class Basinhopping(implements(OptimiserInterface)):
 
         return elapsed_time, res
 
-    def compute_distances_from_requirements(
+    def assign_dist_probs_from_requirements(
             self, project=None, workers=None
     ):
+        """Assigns a probability for each worker based on the distance
+        between their skill set and the skills required by the project.
+
+        Args:
+            project: project.Project (optional)
+                Project to use requirements from.
+            workers: list (optional)
+                List of workers to assign probabilities to.
+
+        Returns:
+            dict: with a probability entry for each worker
+        """
 
         if project is None:
             project = self.project
@@ -620,8 +661,19 @@ class Basinhopping(implements(OptimiserInterface)):
             )
             for ri, row in worker_table.iterrows()
         ]
-        worker_table['prob'] = [(1 / d) if d > 0 else 100000
-                                for d in worker_table.distance]
+
+        # Avoids division by zero when distance is zero
+        probabilities = [
+            (1 / d) if d > 0 else -1
+            for d in worker_table.distance
+        ]
+        # Ensures that workers with distance = zero are assigned the
+        # highest probability.
+        worker_table['prob'] = [
+            max(probabilities) + 1
+            if p == -1 else p
+            for p in probabilities
+        ]
 
         if sum(worker_table['prob']) > 0:
             worker_table['prob'] /= sum(worker_table['prob'])
@@ -631,6 +683,20 @@ class Basinhopping(implements(OptimiserInterface)):
         return dict(zip(worker_table.id, worker_table.prob))
 
     def smart_guess(self):
+        """Guesses a solution vector by assigning randomly assigning
+        members based on the distance probabilities computed by
+        self.assign_dist_probs_from_requirements
+
+        Guess always respects the constraints, unless it times out.
+
+        Note:
+              This method will try repeated guessing a solution until
+              it finds one that respects all the constraints.If it
+              times out it returns None.
+
+        Returns:
+            np.ndarray: guess of solution vector (None if timeout).
+        """
 
         constraints_met = False
         timeout = time.time() + self.smart_guess_timeout
@@ -641,24 +707,36 @@ class Basinhopping(implements(OptimiserInterface)):
             worker_dict = {m.worker_id: m
                            for m in self.bid_pool}
 
-            p = list(self.compute_distances_from_requirements(
-                workers=self.bid_pool
-            ).values())
-            size = np.random.randint(self.min_team_size, self.max_team_size + 1)
-            members = Random.weighted_choice(list(worker_dict.keys()), size, p=p)
+            p = list(
+                self.assign_dist_probs_from_requirements(
+                    workers=self.bid_pool
+                ).values()
+            )
+            size = np.random.randint(
+                self.min_team_size, self.max_team_size + 1
+            )
+            members = Random.weighted_choice(
+                list(worker_dict.keys()), size, p=p
+            )
 
             members = [worker_dict[wid] for wid in members]
 
             for m in members:
                 start = self.bid_pool.index(m) * 5
 
-                required_skill_count = len(self.project.required_skills)
+                required_skill_count = len(
+                    self.project.required_skills
+                )
+
                 add_skills = Random.choices(
                     self.project.required_skills,
-                    min(required_skill_count,
+                    min(
+                        required_skill_count,
                         m.contributions.get_remaining_units(
-                            self.project.start_time, self.project.length)
+                            self.project.start_time,
+                            self.project.length
                         )
+                    )
                 )
                 for skill in add_skills:
                     si = self.skills.index(skill)
@@ -826,6 +904,40 @@ class BHConstraints(object):
 
 
 class BHStep(object):
+    """Smart stepping used by Basinhopping optimiser.
+
+    Shuffles the team by randomly adding and removing workers to the
+    solution vector based on the distance probabilities computed by
+    `Basinhopping.assign_dist_probs_from_requirements`, while remaining
+    within the min.max team size bounds.
+
+    Note:
+         The method will keep randomly suffling the team until it
+         arrives at one that respects the constraints. If it does not
+         achieve this within the time limit, it returns the old
+         solution vector.
+
+    Attributes:
+        optimiser: Basinhopping
+            Optimiser to which this object belongs.
+        bid_pool: list
+            List of workers to choose from.
+        skills: list
+            Indicates which skills are hard skills.
+            By default: ['A', 'B', 'C', 'D', 'E']
+        project: project.Project
+            Project that a team is being selected for.
+        worker_unit_budgets: dict
+            Records how many units each worker has available.
+        max_team_size: int
+            Maximum team size.
+        min_team_size: int
+            Minimum team size
+        time_limit: int
+            Number of seconds after which the method times out and
+            returns the old solution vector instead of a new one to
+            step to.
+    """
 
     def __init__(self, optimiser,
                  max_team_size=MAX_TEAM_SIZE,
@@ -839,7 +951,8 @@ class BHStep(object):
         self.worker_unit_budgets = optimiser.worker_unit_budgets
 
         self.max_team_size = max_team_size
-        # team needs at least as many members as the maximum required skill units:
+        # team needs at least as many members as the maximum required
+        # skill units:
         self.min_team_size = max(
             [self.project.get_skill_requirement(skill)['units']
              for skill in self.project.required_skills]
@@ -848,7 +961,16 @@ class BHStep(object):
         self.time_limit = time_limit
 
     def __call__(self, x):
+        """Called by basinhopping on each hop.
 
+        Args:
+            x: np.ndarray
+                Current solution vector
+
+        Returns:
+            np.ndarray: new solution vector to step to (if method
+                        times out, this is equal to x).
+        """
         constraints_met = False
         old_x = x
         timeout = time.time() + self.time_limit
@@ -873,7 +995,6 @@ class BHStep(object):
                 )
 
             # choose members to add:
-            #assert len(self.bid_pool) >= number_to_add + number_to_remove
             assert (len(self.bid_pool)
                     >= number_to_add + self.optimiser.team_size(x))
             current_team = self.optimiser.get_team(x)
@@ -881,7 +1002,7 @@ class BHStep(object):
             new_team_members = list(current_team.members.values())
             choose_from = [bid for bid in self.bid_pool
                            if bid not in new_team_members]
-            p = list(self.optimiser.compute_distances_from_requirements(
+            p = list(self.optimiser.assign_dist_probs_from_requirements(
                 workers=choose_from
             ).values())
             to_add = Random.weighted_choice(choose_from, number_to_add, p=p)

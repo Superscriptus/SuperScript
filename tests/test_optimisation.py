@@ -150,7 +150,7 @@ class TestOptimiser(unittest.TestCase):
 
     def test_compute_distances_from_requirements(self):
 
-        dists = self.optimiser.compute_distances_from_requirements()
+        dists = self.optimiser.assign_dist_probs_from_requirements()
         self.assertIsInstance(dists, dict)
         self.assertEqual(
             set(dists.keys()),
