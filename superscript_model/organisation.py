@@ -46,9 +46,7 @@ from .config import (TEAM_OVR_MULTIPLIER,
                      WORKLOAD_SATISFIED_TOLERANCE,
                      UNITS_PER_FTE,
                      TRAINING_LENGTH,
-                     HARD_SKILLS,
-                     NUMBER_OF_PROCESSORS,
-                     NUMBER_OF_BASIN_HOPS)
+                     HARD_SKILLS)
 
 
 class Team:
@@ -774,16 +772,14 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
 
     def __init__(self, model, optimiser_factory,
                  min_team_size=MIN_TEAM_SIZE,
-                 max_team_size=MAX_TEAM_SIZE,
-                 num_proc=NUMBER_OF_PROCESSORS,
-                 niter=NUMBER_OF_BASIN_HOPS):
+                 max_team_size=MAX_TEAM_SIZE):
 
         self.model = model
         self.optimiser_factory = optimiser_factory
         self.min_team_size = min_team_size
         self.max_team_size = max_team_size
-        self.num_proc = num_proc
-        self.niter = niter
+        self.num_proc = self.model.number_of_processors
+        self.niter = self.model.number_of_basin_hops
 
     def invite_bids(self, project: Project) -> list:
         """Invite bids from workers for each possible start time offset

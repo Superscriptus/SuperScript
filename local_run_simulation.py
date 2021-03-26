@@ -160,6 +160,3 @@ if __name__ == "__main__":
                       % ri, 'wb') as ofile:
 
                 pickle.dump(agents, ofile)
-
-            break
-        break
