@@ -7,17 +7,34 @@ selection. Currently (v1.0) the only method implemented is parallel
 basinhopping, but the factory method ensures that new optimisation
 methods can easily be added in the future (see Roadmap in README.md).
 
+An optimisation method consists of two component classes:
+1. A runner
+2. An optimiser
+
+The runner.run() method is called by the team allocation strategy
+(e.g. organisation.ParallelBasinhopping) and allows multiple
+optimiser.solve() calls to be mapped across multiple cores/processes.
 
 Classes:
     OptimiserFactory
-        Returns an optimiser for team selection according to
-        `optimiser_name`.
+        Returns an optimiser and a runner for team selection according
+        to `optimiser_name` and `runner_name`.
+    OptimiserInterface
+        Defines interface methods for an optimiser, such that new
+        optimisers can easily be added in the future.
+    RunnerInterface
+        Defines interface methods for a runner, such that a new runner
+        could be added in the future (e.g. different parallelisation
+        approach, or single core runner, although ParallelRunner has
+        capability to run on single core by setting num_proc=1).
     DummyReturn
         Dummy return value (in format of scipy optimizer return) that
         is used when an optimisation fails (or timeouts).
-    PBOptimiser
-        Parallel basinhopping optimiser - does parallel batch
-        optimisations each with a series of basin hops with
+    ParallelRunner
+        Takes an optimiser and maps optimiser.solve() across
+        multiple cores/processes for more efficient search.
+    Basinhopping
+        Basinhopping optimiser - conducts a series of basin hops with
         COBYLA linear optimiser at each hop.
     MyConstraints
         Constraints on the team that can be selected (in the format
@@ -31,6 +48,7 @@ from .config import MAX_TEAM_SIZE, MIN_TEAM_SIZE
 
 from pathos.multiprocessing import ProcessingPool as Pool
 from numpy import argmax
+from interface import Interface, implements
 from scipy.optimize import basinhopping
 from scipy.spatial import minkowski_distance
 import numpy as np
@@ -39,20 +57,50 @@ import time
 import pickle
 
 ## TODO:
-# - move imports of MIN and MAX_TEAM_SIZE to main.py (pass via factory)
 # - clean up constraints: move to MyConstraints ?
-# - set smart_guess and smart_step time limits
 # - write unit tests
 # - comment on use of Pathos in docs (use of non-pickleable lambda functions and class methods)
 # - it is possible for the new takestep to remove members that have just been added. Prevent this?
+## TODO: refactor so that niter foes to optimiser rather than to runner?
 
 
 class OptimiserFactory:
-    """Simple factory for supplying an optimiser.
+    """Simple factory for supplying a runner and an optimiser.
     """
     @staticmethod
-    def get(optimiser_name, project, bid_pool, model,
-            num_proc=1, niter=0, save_flag=False, results_dir=None):
+    def get_runner(
+            runner_name, optimiser,
+            num_proc=1,
+            niter=0
+    ):
+        """Returns a runner object according to runner_name.
+
+        Note:
+            Currently (v1.0) only ParallelRunner implements this
+            interface.
+
+        Args:
+            runner_name: str
+                Which type of runner to create.
+            optimiser: OptimiserInterface
+                An optimiser for the runner to call.
+            num_proc: int
+                Number of processors to run on.
+            niter: int
+                Number of iterations (optimiser parameter).
+        """
+        if runner_name == "Parallel":
+            return ParallelRunner(
+                optimiser,
+                num_proc,
+                min_team_size=MIN_TEAM_SIZE,
+                max_team_size=MAX_TEAM_SIZE
+            )
+
+    @staticmethod
+    def get_optimiser(optimiser_name, project,
+                      bid_pool, model, niter,
+                      save_flag=False, results_dir=None):
         """Returns an optimiser object according to optimiser_name.
 
         Args:
@@ -71,23 +119,89 @@ class OptimiserFactory:
             results_dir: str (optional)
                 Folder in which to save outputs if activated.
         """
-        if optimiser_name == "ParallelBasinhopping":
-            return ParallelBasinhopping(
-                model, project,
+        if optimiser_name == 'Basinhopping':
+            return Basinhopping(
+                project,
                 bid_pool,
-                num_proc,
+                model,
                 niter,
-                min_team_size=MIN_TEAM_SIZE,
-                max_team_size=MAX_TEAM_SIZE,
                 save_flag=save_flag,
                 results_dir=results_dir
             )
 
 
+class OptimiserInterface(Interface):
+    """Interface class for optimiser.
+
+    Defines the required methods for an optimiser to solve the team
+    allocation problem.
+    """
+    def team_size(self, x) -> int:
+        """Returns size of team, calculated from solution vector x"""
+        pass
+
+    def solve(self, guess, niter, repeat=0) -> tuple:
+        """Solves the optimisation problem.
+
+        Args:
+            guess: np.ndarray
+                Initial guess of solution vector x
+            niter: int
+                Number of iterations to run optimiser.
+            repeat: int
+                Integer counter, used to identify which optimisation
+                run this is when doing multiple optimisations in
+                parallel, or doing repeated optimisation for
+                benchmarking.
+
+        Returns:
+            tuple: (elapsed_time, res)
+                (Runtime, Result object with attributes 'x' and 'fun')
+                    res.x = optimised solution vector
+                    res.fun = value of objective function at res.x
+        """
+        pass
+
+    def get_team(self, x) -> Team:
+        """Produces Team from solution vector x."""
+        pass
+
+    def objective_func(self, x) -> float:
+        """Objective function to be minimised by the optimiser.
+
+        As standard this would be the negative of the probability of
+        project success, using the Team encoded in solution vector x.
+        """
+        pass
+
+    def smart_guess(self) -> np.ndarray:
+        """Returns a guess of the solution vector x, used
+        for initial guess.
+
+        Args:
+            p: float
+                Generic parameter.
+            time_limit: int
+                Maximum number of seconds before timeout.
+        """
+        pass
+
+
+class RunnerInterface(Interface):
+    """Interface class for runner.
+
+        Defines the required methods for an runner, which calls the
+        optimiser including the solve() method.
+        """
+    def run(self) -> (Team, float):
+        """Returns a (locally) optimal Team and the probability of
+        success for that team."""
+        pass
+
+
 class DummyReturn:
     """Dummy return value for when a Scipy.optimize method fails or
     timeouts.
-
     ...
 
     Attributes:
@@ -101,51 +215,76 @@ class DummyReturn:
         self.x = None
 
 
-class ParallelBasinhopping:
-    """Note that bid_pool must be at least as long as max_team_size to work"""
-    def __init__(self, model, project,
-                 bid_pool, num_proc, niter,
-                 min_team_size=MIN_TEAM_SIZE,
-                 max_team_size=MAX_TEAM_SIZE,
-                 save_flag=False,
-                 results_dir=None):
+class ParallelRunner(implements(RunnerInterface)):
+    """Runs num_proc parallel optimisations using the supplied
+    optimiser with Pathos.multiprocessing.
 
-        self.model = model
-        self.project = project
-        self.bid_pool = bid_pool
+    Note:
+         The bid_pool must be at least as long as max_team_size to
+         work.
+
+    Note:
+        If niter=0 the optimiser's smart_guess method is used to
+        return a guess solution. This is not mapped across multiple
+        processes even if num_proc>1.
+
+    ...
+
+    Attributes:
+        optimiser: OptimiserInterface
+            Optimiser for runner to use.
+        project: project.Project
+            The project for which a team is being allocated.
+        bid_pool:
+            The bid_pool from which to select the workers.
+        num_proc: int
+            Number of processors to use.
+        min_team_size: int
+            Minimum size of team allowed.
+        max_team_size: int
+            Maximum size of team allowed.
+    """
+
+    def __init__(
+            self, optimiser,
+            num_proc,
+            min_team_size=MIN_TEAM_SIZE,
+            max_team_size=MAX_TEAM_SIZE
+    ):
+
+        self.opti = optimiser
+        self.project = optimiser.project
+        self.bid_pool = optimiser.bid_pool
         self.num_proc = num_proc
-        self.niter = niter
         self.min_team_size = min_team_size
         self.max_team_size = max_team_size
-        self.save_flag = save_flag
-        self.results_dir = results_dir
 
-    def optimise(self):
+    def run(self):
+        """Run optimiser across multiple core/processes.
 
-        opti = PBOptimiser(
-            self.project,
-            self.bid_pool,
-            self.model,
-            save_flag=self.save_flag,
-            results_dir=self.results_dir
-        )
+        If the optimiser has niter=0, this method just returns the
+        optimiser.smart_guess() for a quick and dirty approximation.
 
+        Returns:
+            (Team, float): tuple with best Team found and the
+            corresponding probability of project success.
+        """
         if len(self.bid_pool) < self.max_team_size:
             return Team(self.project, {}, None), 0.0
 
-        elif self.niter == 0:
-            x = opti.smart_guess()
+        elif self.opti.niter == 0:
+            x = self.opti.smart_guess()
             return (
-                opti.get_team(x),
-                -opti.objective_func(x)
+                self.opti.get_team(x),
+                -self.opti.objective_func(x)
             )
 
         else:
             p = Pool(processes=self.num_proc)
             batch_results = p.map(
-                opti.solve,
-                [opti.smart_guess() for i in range(self.num_proc)],
-                [self.niter for i in range(self.num_proc)],
+                self.opti.solve,
+                [self.opti.smart_guess() for i in range(self.num_proc)],
+                [self.opti.niter for i in range(self.num_proc)],
                 range(self.num_proc)
             )
 
@@ -157,35 +296,100 @@ class ParallelBasinhopping:
             team_x = [r[1].x for r in batch_results]
 
             return (
-                opti.get_team(team_x[argmax(probs)]),
+                self.opti.get_team(team_x[argmax(probs)]),
                 max(probs)
             )
 
 
-class PBOptimiser:
+class Basinhopping(implements(OptimiserInterface)):
+    """Basinhopping optimiser that uses COBYLA optimisation at
+    each basin hopping step.
+
+    Both the initial guess (smart_guess) and the step method...
+    ...
+
+    Attributes:
+        optimiser: OptimiserInterface
+            Optimiser for runner to use.
+        project: project.Project
+            The project for which a team is being allocated.
+        bid_pool:
+            The bid_pool from which to select the workers.
+        niter: int
+            Number of iterations (basinhopping steps).
+        exp_number: int
+            Integer ID for the number of this experiment,
+            used if running becnhmarking.
+        skills: list
+            Indicates which skills are 'hard' skills.
+            By default: ['A', 'B', 'C', 'D', 'E']
+        worker_ids: list
+            List of worker_id numbers for the workers in the bid_pool
+        worker_unit_budgets: dict
+            Records how many units each worker has available to
+            contribute to the project.
+        constraints: dict
+            Dictionary of contraints on the solutions vector, in the
+            format required for COBYLA (scipy).
+        min_team_size: int
+            Minimum size of team allowed.
+        max_team_size: int
+            Maximum size of team allowed.
+        save_flag: bool (optional)
+            Allows optimisation outputs to be saved to disk for
+            development and benchmarking of the optimisation
+            method.
+        results_dir: str (optional)
+            Folder in which to save outputs if activated.
+        verbose: bool
+        smart_guess_timeout: int
+            Number of seconds to spend trying to find a smart_guess
+            that meets the constraints (else timeout).
+        p_norm: int
+            P-norm to use for minkowski distance between worker skills
+            and project requirements (e.g. p_norm=2 is Euclidean
+            distance).
+        maxiter: int
+            Maximum iterations (COBYLA parameter).
+        catol: float
+            Tolerance on constraints (COBYLA parameter).
+        rhobeg: float
+            Reasonable initial change (COBYLA parameter).
+    """
 
     def __init__(
-            self, project, bid_pool, model,
+            self, project, bid_pool, model, niter,
             exp_number=None,
             verbose=False, save_flag=False,
             results_dir='model_development/experiments/optimisation/',
             min_team_size=MIN_TEAM_SIZE,
-            max_team_size=MAX_TEAM_SIZE
+            max_team_size=MAX_TEAM_SIZE,
+            smart_guess_timeout=1,
+            p_norm=2,
+            maxiter=100,
+            catol=0.0,
+            rhobeg=0.6
     ):
 
         self.project = project
         self.bid_pool = bid_pool
         self.model = model
+        self.niter = niter
         self.exp_number = exp_number
         self.skills = ['A', 'B', 'C', 'D', 'E']
         self.worker_ids = [m.worker_id for m in bid_pool]
         self.worker_unit_budgets = self.get_worker_units_budgets()
         self.constraints = self.build_constraints()
-        self.verbose = verbose
-        self.save_flag = save_flag
-        self.results_dir = results_dir
         self.min_team_size = min_team_size
         self.max_team_size = max_team_size
+        self.save_flag = save_flag
+        self.results_dir = results_dir
+        self.verbose = verbose
+        self.smart_guess_timeout = smart_guess_timeout
+        self.p_norm = p_norm
+        self.maxiter = maxiter
+        self.catol = catol
+        self.rhobeg = rhobeg
 
         if self.save_flag:
             with open(self.results_dir
@@ -355,42 +559,47 @@ class PBOptimiser:
 
         return size
 
-    def solve(self, guess, niter, repeat,
-              maxiter = 100, catol = 0.0, rhobeg = 0.6):
+    def solve(self, guess, niter, repeat=0):
 
         if guess is None:
             return 0.0, DummyReturn()
 
-        minimizer_kwargs = {"method": 'COBYLA',
-                            'constraints': self.constraints,
-                            'options': {'maxiter': maxiter, 'disp': False,
-                                        'catol': catol, 'rhobeg': rhobeg}}
+        minimizer_kwargs = {
+            "method": 'COBYLA',
+            'constraints': self.constraints,
+            'options': {
+                'maxiter': self.maxiter,
+                'disp': False,
+                'catol': self.catol,
+                'rhobeg': self.rhobeg
+            }
+        }
 
         my_constraints = MyConstraints(self)
         my_takestep = MyTakeStep(self)
 
         start_time = time.time()
-        ret = basinhopping(self.objective_func, guess,
+        res = basinhopping(self.objective_func, guess,
                            minimizer_kwargs=minimizer_kwargs,
                            niter=niter, seed=70470,
                            accept_test=my_constraints,
                            take_step=my_takestep)
                            #callback=print_fun,)
 
-        if (ret.fun >= 0.0
-                or sum(ret.x) == 0
-                or not self.test_constraints(ret.x)):
+        if (res.fun >= 0.0
+                or sum(res.x) == 0
+                or not self.test_constraints(res.x)):
 
-            ret.x = guess
-            ret.fun = self.objective_func(ret.x)
+            res.x = guess
+            res.fun = self.objective_func(res.x)
 
-        assert self.test_constraints(ret.x)
+        assert self.test_constraints(res.x)
         elapsed_time = time.time() - start_time
         if self.verbose:
             print("%d iterations took %.2f seconds" % (niter, elapsed_time))
 
 # Can be removed!
-        best_team = self.get_team(ret.x)
+        best_team = self.get_team(res.x)
         self.project.team = best_team
         self.model.inventory.success_calculator.calculate_success_probability(
             self.project
@@ -409,10 +618,10 @@ class PBOptimiser:
                     ofile
                 )
 
-        return elapsed_time, ret
+        return elapsed_time, res
 
     def compute_distances_from_requirements(
-            self, project=None, workers=None, p=2
+            self, project=None, workers=None
     ):
 
         if project is None:
@@ -434,13 +643,16 @@ class PBOptimiser:
         ]
 
         worker_table['distance'] = [
-            minkowski_distance(row[project.required_skills],
-                               required_levels, p)
+            minkowski_distance(
+                row[project.required_skills],
+                required_levels,
+                self.p_norm
+            )
             for ri, row in worker_table.iterrows()
         ]
         worker_table['prob'] = [(1 / d) if d > 0 else 100000
                                 for d in worker_table.distance]
-        #1 / worker_table.distance
+
         if sum(worker_table['prob']) > 0:
             worker_table['prob'] /= sum(worker_table['prob'])
 
@@ -448,13 +660,12 @@ class PBOptimiser:
 
         return dict(zip(worker_table.id, worker_table.prob))
 
-    def smart_guess(self, p=2, time_limit=1):
+    def smart_guess(self):
 
         constraints_met = False
-        timeout = time.time() + time_limit
+        timeout = time.time() + self.smart_guess_timeout
 
         while not constraints_met:
-
             x = np.zeros(5 * len(self.bid_pool))
 
             worker_dict = {m.worker_id: m

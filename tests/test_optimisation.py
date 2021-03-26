@@ -11,7 +11,7 @@ from superscript_model.worker import Worker, SkillMatrix
 from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import Team
 from superscript_model.optimisation import (OptimiserFactory,
-                                            PBOptimiser,
+                                            Basinhopping,
                                             MyTakeStep,
                                             MyConstraints,
                                             DummyReturn)
@@ -45,7 +45,7 @@ class TestOptimiserFactory(unittest.TestCase):
             bid_pool=[],
             model=model
         )
-        self.assertIsInstance(optimiser, PBOptimiser)
+        self.assertIsInstance(optimiser, Basinhopping)
 
 
 class TestOptimiser(unittest.TestCase):

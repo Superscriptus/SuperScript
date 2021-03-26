@@ -832,12 +832,21 @@ class ParallelBasinhopping(implements(OrganisationStrategyInterface)):
         for offset in range(project.max_start_time_offset + 1):
 
             project.start_time = base_start_time + offset
-            optimiser = self.optimiser_factory.get(
-                "ParallelBasinhopping",
-                project, bid_pool[offset],
-                self.model, self.num_proc, self.niter
+
+            optimiser = self.optimiser_factory.get_optimiser(
+                optimiser_name="Basinhopping",
+                project=project,
+                bid_pool=bid_pool[offset],
+                model=self.model,
+                niter=self.niter
             )
-            team, probability = optimiser.optimise()
+
+            runner = self.optimiser_factory.get_runner(
+                runner_name="Parallel",
+                optimiser=optimiser,
+                num_proc=self.num_proc
+            )
+            team, probability = runner.run()
             teams.append(team)
             probabilities.append(probability)
 
