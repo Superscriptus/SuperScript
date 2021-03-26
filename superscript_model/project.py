@@ -487,11 +487,17 @@ class ProjectInventory:
         if not null and project.team is not None:
             next_row["team_budget"] = project.team.team_budget
             next_row["team_ovr"] = project.team.team_ovr
-            next_row["team_creativity_match"] = project.team.creativity_match
+            next_row["team_creativity_level"] = (
+                project.team.creativity_level
+            )
+            next_row["team_creativity_match"] = (
+                project.team.creativity_match
+            )
             next_row["team_size"] = len(project.team.members)
         else:
             next_row["team_budget"] = None
             next_row["team_ovr"] = None
+            next_row["team_creativity_level"] = None
             next_row["team_creativity_match"] = None
             next_row["team_size"] = None
 
