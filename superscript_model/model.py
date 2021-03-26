@@ -47,7 +47,8 @@ from .config import (PROJECT_LENGTH,
                      IO_DIR,
                      SAVE_NETWORK,
                      SAVE_NETWORK_FREQUENCY,
-                     DEPARTMENTAL_WORKLOAD)
+                     DEPARTMENTAL_WORKLOAD,
+                     TIMELINE_FLEXIBILITY)
 
 
 class SuperScriptModel(Model):
@@ -124,6 +125,9 @@ class SuperScriptModel(Model):
         load_projects: bool
             Whether to load predefined projects from a previous
             simulation.
+        timeline_flexibility: str
+            Indicates type of timeline flexibility to use.
+            (currently just switches flexibility on or off). .
         inventory: project.ProjectInventory
             Creates and keeps track of projects.
         training_on: bool
@@ -172,7 +176,8 @@ class SuperScriptModel(Model):
                  load_projects=LOAD_PROJECTS,
                  save_network=SAVE_NETWORK,
                  save_network_freq=SAVE_NETWORK_FREQUENCY,
-                 departmental_workload=DEPARTMENTAL_WORKLOAD):
+                 departmental_workload=DEPARTMENTAL_WORKLOAD,
+                 timeline_flexibility=TIMELINE_FLEXIBILITY):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -200,9 +205,10 @@ class SuperScriptModel(Model):
         self.io_dir = io_dir
         self.save_projects = save_projects
         self.load_projects = load_projects
+        self.timeline_flexibility = timeline_flexibility
         self.inventory = ProjectInventory(
             TeamAllocator(self, OptimiserFactory()),
-            timeline_flexibility='TimelineFlexibility',
+            timeline_flexibility=self.timeline_flexibility,
             social_network=self.grid,
             model=self,
             save_flag=self.save_projects,
@@ -215,7 +221,7 @@ class SuperScriptModel(Model):
         self.training_commences = training_commences
         self.trainer = Trainer(self)
 
-        self.departmental_workload = DEPARTMENTAL_WORKLOAD
+        self.departmental_workload = departmental_workload
         for di in range(department_count):
             self.departments[di] = Department(
                 di, workload=self.departmental_workload

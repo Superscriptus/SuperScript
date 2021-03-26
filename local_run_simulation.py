@@ -9,10 +9,25 @@ import sys, os
 # Name for this batch of simulations:
 # (Note: should include date and code version number)
 BATCH_NAME = 'test_run_260321_v0.0'
+
+# Types of simulation to run:
+TYPES = ['Random', 'Basic', 'Niter0', 'Basin', 'Basin_w_flex']
+# Details are as follows:
+#
+#    Time flexibility:
+#    Without: 'Random', 'Basic', 'Niter0', 'Basin'
+#    With: 'Basin_w_flex'
+#
+#    Worker strategy:
+#    Using 'AllIn': 'Random'
+#    Using 'Stake': 'Basic', 'Niter0', 'Basin', 'Basin_w_flex'
+
 # These global configuration values override config.py:
-STEPS = 100
-WORKER_COUNT = 100
-NEW_PROJECTS = 2
+REPLICATE_COUNT = 1  # Number of replicate simulations to run
+STEPS = 100  # Number of time steps for each simulation
+WORKER_COUNT = 100  # Total number of workers in simulation
+NEW_PROJECTS = 2  # Number of new projects created on each time step
+DEPARTMENTAL_WORKLOAD = 0.1
 WORKER_STRATEGY = 'AllIN'
 ORGANISATION_STRATEGY = 'Random'
 
