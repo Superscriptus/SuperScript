@@ -48,7 +48,9 @@ from .config import (PROJECT_LENGTH,
                      SAVE_NETWORK,
                      SAVE_NETWORK_FREQUENCY,
                      DEPARTMENTAL_WORKLOAD,
-                     TIMELINE_FLEXIBILITY)
+                     TIMELINE_FLEXIBILITY,
+                     NUMBER_OF_BASIN_HOPS,
+                     NUMBER_OF_PROCESSORS)
 
 
 class SuperScriptModel(Model):
@@ -76,6 +78,11 @@ class SuperScriptModel(Model):
             Counts number of new workers added during simulation.
             Used to ensure that a unique worker_id is assigned
             when new workers are created.
+        number_of_processors: int
+            Number of processors to use (in parallel optimisation).
+        number_of_basin_hops: int
+            Number of basinhopping steps (if using basinhopping
+            optimiser).
         departments: dict
             Dictionary that stores departments.
         peer_assessment_success_mean: float
@@ -177,7 +184,9 @@ class SuperScriptModel(Model):
                  save_network=SAVE_NETWORK,
                  save_network_freq=SAVE_NETWORK_FREQUENCY,
                  departmental_workload=DEPARTMENTAL_WORKLOAD,
-                 timeline_flexibility=TIMELINE_FLEXIBILITY):
+                 timeline_flexibility=TIMELINE_FLEXIBILITY,
+                 number_of_processors=NUMBER_OF_PROCESSORS,
+                 number_of_basin_hops=NUMBER_OF_BASIN_HOPS):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -185,6 +194,9 @@ class SuperScriptModel(Model):
         self.budget_functionality_flag = budget_functionality_flag
         self.new_workers = 0
         self.departments = dict()
+
+        self.number_of_processors = number_of_processors
+        self.number_of_basin_hops = number_of_basin_hops
 
         self.peer_assessment_success_mean = peer_assessment_success_mean
         self.peer_assessment_success_stdev = peer_assessment_success_stdev
