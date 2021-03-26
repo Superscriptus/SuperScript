@@ -4,7 +4,7 @@
 
 import time
 import pickle
-import sys, os
+import sys, os, shutil
 
 # Name for this batch of simulations:
 # (Note: should include date and code version number)
@@ -12,12 +12,13 @@ BATCH_NAME = 'test_run_260321_v0.0'
 
 # These global configuration values override config.py and will be
 # used in all the simulations:
-REPLICATE_COUNT = 1  # Number of replicate simulations to run
+REPLICATE_COUNT = 2  # Number of replicate simulations to run
 STEPS = 100  # Number of time steps for each simulation
 WORKER_COUNT = 100  # Total number of workers in simulation
 NEW_PROJECTS = 2  # Number of new projects created on each time step
-DEPARTMENTAL_WORKLOAD = 0.1
-NUMBER_OF_PROCESSORS = 8
+DEPARTMENTAL_WORKLOAD = 0.1  # Fraction of department capacity to keep
+                             # free for dept work.
+NUMBER_OF_PROCESSORS = 8  # Number of cores to use for parallel optimiser
 
 # This dictionary defines the specific simulations and their distinct
 # configuration parameters:
@@ -25,30 +26,40 @@ SIMULATIONS = {
     'Random': {
         'WORKER_STRATEGY': 'AllIN',
         'ORGANISATION_STRATEGY': 'Random',
-        'TIMELINE_FLEXIBILITY': 'NoFlexibility'
+        'TIMELINE_FLEXIBILITY': 'NoFlexibility',
+        'SAVE_PROJECTS': False,
+        'LOAD_PROJECTS': True
     },
-    'Basic':{
+    'Basic': {
         'WORKER_STRATEGY': 'Stake',
         'ORGANISATION_STRATEGY': 'Basic',
-        'TIMELINE_FLEXIBILITY': 'NoFlexibility'
+        'TIMELINE_FLEXIBILITY': 'NoFlexibility',
+        'SAVE_PROJECTS': False,
+        'LOAD_PROJECTS': True
     },
-    'Niter0':{
+    'Niter0': {
         'WORKER_STRATEGY': 'Stake',
         'ORGANISATION_STRATEGY': 'Basin',
         'TIMELINE_FLEXIBILITY': 'NoFlexibility',
-        'NUMBER_OF_BASIN_HOPS': 0
+        'NUMBER_OF_BASIN_HOPS': 0,
+        'SAVE_PROJECTS': False,
+        'LOAD_PROJECTS': True
     },
-    'Basin':{
+    'Basin': {
         'WORKER_STRATEGY': 'Stake',
         'ORGANISATION_STRATEGY': 'Basin',
         'TIMELINE_FLEXIBILITY': 'NoFlexibility',
-        'NUMBER_OF_BASIN_HOPS': 10
+        'NUMBER_OF_BASIN_HOPS': 10,
+        'SAVE_PROJECTS': False,
+        'LOAD_PROJECTS': True
     },
-    'Basin_w_flex':{
+    'Basin_w_flex': {
         'WORKER_STRATEGY': 'Stake',
         'ORGANISATION_STRATEGY': 'Basin',
         'TIMELINE_FLEXIBILITY': 'TimelineFlexibility',
-        'NUMBER_OF_BASIN_HOPS': 10
+        'NUMBER_OF_BASIN_HOPS': 10,
+        'SAVE_PROJECTS': False,
+        'LOAD_PROJECTS': True
     }
 }
 # Details are as follows:
@@ -70,48 +81,85 @@ if __name__ == "__main__":
     sys.path.append(os.path.normpath(MODEL_DIR))
     from superscript_model import model
 
-    for sim_type in TYPES:
+    for sim_type in SIMULATIONS.keys():
 
         sim_io_dir = SAVE_DIR + '/' + sim_type
         os.mkdir(sim_io_dir)
+        print("Simulation: ", sim_type)
 
-        abm = model.SuperScriptModel(
-            worker_count=WORKER_COUNT,
-            new_projects_per_timestep=NEW_PROJECTS,
-            worker_strategy=WORKER_STRATEGY,
-            organisation_strategy=ORGANISATION_STRATEGY,
-            io_dir=SAVE_DIR
-        )
+        if sim_type != 'Random':
+            shutil.copyfile(
+                SAVE_DIR + '/Random/project_file.pickle',
+                sim_io_dir + '/project_file.pickle'
+            )
 
-    start_time = time.time()
-    abm.run_model(STEPS)
-    elapsed_time = time.time() - start_time
-    print(
-        "Took %.2f seconds to run %d steps."
-        % (elapsed_time, STEPS)
-    )
+        for ri in range(REPLICATE_COUNT):
+            print("\t replicate: ", ri)
 
-    tracked = abm.datacollector.get_model_vars_dataframe()
+            if sim_type == 'Random' and ri == 0:
+                save_projects = True
+                load_projects = False
+            else:
+                save_projects = (
+                    SIMULATIONS[sim_type]['SAVE_PROJECTS']
+                )
+                load_projects = (
+                    SIMULATIONS[sim_type]['LOAD_PROJECTS']
+                )
 
-    with open(SAVE_DIR
-              + '/tracked_model_vars_wc_%d_np_%d_ts_%d.pickle'
-              % (WORKER_COUNT, NEW_PROJECTS, STEPS), 'wb') as ofile:
+            abm = model.SuperScriptModel(
+                worker_count=WORKER_COUNT,
+                new_projects_per_timestep=NEW_PROJECTS,
+                number_of_processors=NUMBER_OF_PROCESSORS,
+                departmental_workload=DEPARTMENTAL_WORKLOAD,
+                worker_strategy=SIMULATIONS[sim_type]['WORKER_STRATEGY'],
+                organisation_strategy=(
+                    SIMULATIONS[sim_type]['ORGANISATION_STRATEGY']
+                ),
+                timeline_flexibility=(
+                    SIMULATIONS[sim_type]['TIMELINE_FLEXIBILITY']
+                ),
+                number_of_basin_hops=(
+                    SIMULATIONS[sim_type].get(
+                        'NUMBER_OF_BASIN_HOPS', 0
+                    )
+                ),
+                save_projects=save_projects,
+                load_projects=load_projects,
+                io_dir=sim_io_dir
+            )
 
-        pickle.dump(tracked, ofile)
+            start_time = time.time()
+            abm.run_model(STEPS)
+            elapsed_time = time.time() - start_time
+            print(
+                "Took %.2f seconds to run %d steps."
+                % (elapsed_time, STEPS)
+            )
 
-    projects = abm.datacollector.get_table_dataframe("Projects")
+            tracked = abm.datacollector.get_model_vars_dataframe()
 
-    with open(SAVE_DIR
-              + '/tracked_projects_wc_%d_np_%d_ts_%d.pickle'
-              % (WORKER_COUNT, NEW_PROJECTS, STEPS), 'wb') as ofile:
+            with open(sim_io_dir
+                      + '/model_vars_rep_%d.pickle'
+                      % ri, 'wb') as ofile:
 
-        pickle.dump(projects, ofile)
+                pickle.dump(tracked, ofile)
 
-    agents = abm.datacollector.get_agent_vars_dataframe()
+            projects = abm.datacollector.get_table_dataframe("Projects")
 
-    with open(SAVE_DIR
-              + '/tracked_agents_wc_%d_np_%d_ts_%d.pickle'
-              % (WORKER_COUNT, NEW_PROJECTS, STEPS), 'wb') as ofile:
+            with open(sim_io_dir
+                      + '/projects_table_rep_%d.pickle'
+                      % ri, 'wb') as ofile:
 
-        pickle.dump(agents, ofile)
+                pickle.dump(projects, ofile)
 
+            agents = abm.datacollector.get_agent_vars_dataframe()
+
+            with open(sim_io_dir
+                      + '/agents_vars_rep_%d.pickle'
+                      % ri, 'wb') as ofile:
+
+                pickle.dump(agents, ofile)
+
+            break
+        break
