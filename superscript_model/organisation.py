@@ -1158,6 +1158,24 @@ class Trainer:
             worker.skills.hard_skills[skill_to_train] - old_skill
         )
 
+    def training_boost(self):
+        """Instantly boost the skill levels of all workers whose skill
+        is below median, making them equal to the thrid quartile value.
+
+        Note:
+            This method can be called externally as an intervention
+            during simulation to test the effects of training.
+        """
+        for worker in self.model.schedule.agents:
+            for skill in self.hard_skills:
+                if (
+                        worker.get_skill(skill)
+                        < self.skill_quartiles[skill][1]
+                ):
+                    worker.skills.hard_skills[skill] = (
+                        self.skill_quartiles[skill][2]
+                    )
+
 
 class Department:
     """Department class.
