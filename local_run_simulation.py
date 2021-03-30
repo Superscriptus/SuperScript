@@ -8,17 +8,21 @@ import sys, os, shutil
 
 # Name for this batch of simulations:
 # (Note: should include date and code version number)
-BATCH_NAME = 'test_run_260321_v0.0'
+
+BATCH_NAME = '1000_worker_trainload_0.4_290321_v0.0' #'test_run_260321_v0.0'
 
 # These global configuration values override config.py and will be
 # used in all the simulations:
-REPLICATE_COUNT = 2  # Number of replicate simulations to run
+REPLICATE_COUNT = 1  # Number of replicate simulations to run
 STEPS = 100  # Number of time steps for each simulation
-WORKER_COUNT = 100  # Total number of workers in simulation
-NEW_PROJECTS = 2  # Number of new projects created on each time step
+WORKER_COUNT = 1000  # Total number of workers in simulation
+NEW_PROJECTS = 20  # Number of new projects created on each time step
 DEPARTMENTAL_WORKLOAD = 0.1  # Fraction of department capacity to keep
                              # free for dept work.
 NUMBER_OF_PROCESSORS = 8  # Number of cores to use for parallel optimiser
+BUDGET_CONSTRAINT_FLAG = True
+TRAINING_FLAG = True
+TRAINING_LOAD = 0.4
 
 # This dictionary defines the specific simulations and their distinct
 # configuration parameters:
@@ -112,6 +116,9 @@ if __name__ == "__main__":
                 new_projects_per_timestep=NEW_PROJECTS,
                 number_of_processors=NUMBER_OF_PROCESSORS,
                 departmental_workload=DEPARTMENTAL_WORKLOAD,
+                budget_functionality_flag=BUDGET_CONSTRAINT_FLAG,
+                training_on=TRAINING_FLAG,
+                target_training_load=TRAINING_LOAD,
                 worker_strategy=SIMULATIONS[sim_type]['WORKER_STRATEGY'],
                 organisation_strategy=(
                     SIMULATIONS[sim_type]['ORGANISATION_STRATEGY']
