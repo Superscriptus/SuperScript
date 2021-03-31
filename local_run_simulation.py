@@ -9,7 +9,7 @@ import sys, os, shutil
 # Name for this batch of simulations:
 # (Note: should include date and code version number)
 
-BATCH_NAME = 'training_boost_300321_v0.0' #'test_run_260321_v0.0'
+BATCH_NAME = 'normal_run_310321_v0.0' #'test_run_260321_v0.0'
 
 # These global configuration values override config.py and will be
 # used in all the simulations:
@@ -137,10 +137,10 @@ if __name__ == "__main__":
             )
 
             start_time = time.time()
-            # abm.run_model(STEPS)
-            abm.run_model(50)
-            abm.trainer.training_boost() 
-            abm.run_model(50)
+            abm.run_model(STEPS)
+            #abm.run_model(50)
+            #abm.trainer.training_boost() 
+            #abm.run_model(50)
             elapsed_time = time.time() - start_time
             print(
                 "Took %.2f seconds to run %d steps."

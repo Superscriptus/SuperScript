@@ -1072,7 +1072,7 @@ class Trainer:
         target_slots = (
                 (self.model.target_training_load
                  * self.model.worker_count)
-                / (self.training_length * 100)
+                / self.training_length
         )
         for worker_id in sorted_workers.keys():
             worker = self.model.schedule._agents[worker_id]

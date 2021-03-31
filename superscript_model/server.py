@@ -169,10 +169,10 @@ model_params = {
     "target_training_load": UserSettableParameter(
         "slider",
         "Target training load",
-        10,
+        0.1,
+        0,
         1,
-        100,
-        5,
+        0.1,
         description="Choose target training load",
     ),
     "training_commences": UserSettableParameter(

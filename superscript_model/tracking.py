@@ -87,8 +87,8 @@ def project_load(model, units_per_fte=UNITS_PER_FTE):
     return project_units / (model.worker_count * units_per_fte)
 
 
-def departmental_load(model, workload=DEPARTMENTAL_WORKLOAD):
-    return workload
+def departmental_load(model):
+    return model.departmental_workload
 
 
 def slack(model):
