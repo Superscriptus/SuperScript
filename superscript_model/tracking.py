@@ -231,6 +231,7 @@ class SSDataCollector(DataCollector):
                          "chemistry_prob_cpt": [],
                          "team_budget": [],
                          "team_ovr": [],
+                         "team_creativity_level": [],
                          "team_creativity_match": [],
                          "team_size": []
                          }
