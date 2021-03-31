@@ -368,7 +368,7 @@ class WorkerContributions:
         contributions = self.get_contributions(time)
 
         if skill in contributions.keys():
-            return contributions[skill]
+            return len(contributions[skill])
         else:
             return 0
 
