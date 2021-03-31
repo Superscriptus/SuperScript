@@ -129,5 +129,5 @@ class SocialNetwork(NetworkGrid):
         nx.write_gpickle(
             self.G,
             self.model.io_dir
-            + 'network_timestep_%d.gpickle' % self.model.time
+            + '/network_timestep_%d.gpickle' % self.model.time
         )
