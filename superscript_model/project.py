@@ -277,9 +277,13 @@ class ProjectInventory:
         for project in new_projects:
             project.inventory = self
             project.team = None
-            if self.max_timeline_flex == 0:
-                project.max_start_time_offset = 0
-                project.realised_offset = 0
+
+            start_time_offset = self.get_start_time_offset()
+            project.max_start_time_offset = start_time_offset
+            project.realised_offset = (
+                start_time_offset if auto_offset
+                else None
+            )
             project.progress = 0 - project.max_start_time_offset
             project.start_time = (
                 time + project.max_start_time_offset
