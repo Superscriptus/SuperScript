@@ -1057,7 +1057,7 @@ class Trainer:
                 else skillB
             )
             skill_value = worker.get_skill(skill)
-            if skill_value < self.skill_quartiles[skill][1]:
+            if 0 < skill_value < self.skill_quartiles[skill][1]:
                 sorted_workers[worker.worker_id] = (skill, skill_value)
 
         sorted_workers = {
@@ -1096,7 +1096,11 @@ class Trainer:
             if self.worker_free_to_train(worker):
 
                 for skill in self.top_two_demanded_skills():
-                    if worker.get_skill(skill) < self.skill_quartiles[skill][1]:
+                    if (
+                            0
+                            < worker.get_skill(skill)
+                            < self.skill_quartiles[skill][1]
+                    ):
                         requires_training = True
                         skill_to_train = skill
                         break
