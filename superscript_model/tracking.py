@@ -152,26 +152,6 @@ def projects_per_worker(model):
     return project_count / model.worker_count
 
 
-def worker_ovr(worker):
-    return worker.skills.ovr
-
-
-def worker_hard_skills(worker):
-    return worker.skills.hard_skills
-
-
-def worker_training_tracker(worker):
-    return worker.skills.training_tracker
-
-
-def worker_skill_decay_tracker(worker):
-    return worker.skills.skill_decay_tracker
-
-
-def worker_peer_assessment_tracker(worker):
-    return worker.skills.peer_assessment_tracker
-
-
 class SSDataCollector(DataCollector):
     """Data collection class.
 
@@ -208,11 +188,13 @@ class SSDataCollector(DataCollector):
         agent_reporters = {
             "now": "now",
             "contributes": "contributes_now",
-            "ovr": worker_ovr,
-            "hard_skills": worker_hard_skills,
-            "training": worker_training_tracker,
-            "skill_decay": worker_skill_decay_tracker,
-            "peer_assessment": worker_peer_assessment_tracker
+            "ovr": "worker_ovr",
+            "hard_skills": "hard_skills",
+            "training": "training_tracker",
+            "skill_decay": "skill_decay_tracker",
+            "peer_assessment": "peer_assessment_tracker",
+            "training_remaining": "training_remaining",
+            "timesteps_inactive": "timesteps_inactive"
         }
         tables = {
             "Projects": {"project_id": [],

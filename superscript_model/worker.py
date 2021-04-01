@@ -37,6 +37,15 @@ class Worker(Agent):
 
     The step() method is called by the Mesa scheduler.
 
+    Note:
+        Various properties are defined that are only used by the
+        SSDataCollector agent_reporters. They return copies of
+        the dictionaries that are needed. Previously these were
+        defined as tracking methods in tracking.py, and were
+        returning references to the same dictionaries. But this
+        produced unexpected behaviour e.g. The values in hard_skills
+        were not updating in the DataCollector.
+
     ...
 
     Attributes:
@@ -117,6 +126,41 @@ class Worker(Agent):
     def training_horizon(self):
         """int: length of training (defined in config)"""
         return self.model.trainer.training_length
+
+    @property
+    def hard_skills(self):
+        """Returns a copy of hard_skills dictionary,
+        used by DataCollector.
+        """
+        return self.skills.hard_skills.copy()
+
+    @property
+    def training_tracker(self):
+        """Returns a copy of tracker dictionary,
+        used by DataCollector.
+        """
+        return self.skills.training_tracker.copy()
+
+    @property
+    def skill_decay_tracker(self):
+        """Returns a copy of tracker dictionary,
+        used by DataCollector.
+        """
+        return self.skills.skill_decay_tracker.copy()
+
+    @property
+    def peer_assessment_tracker(self):
+        """Returns a copy of tracker dictionary,
+        used by DataCollector.
+        """
+        return self.skills.peer_assessment_tracker.copy()
+
+    @property
+    def worker_ovr(self):
+        """Returns current worker OVR value,
+        used by DataCollector.
+        """
+        return self.skills.ovr
 
     def assign_as_lead(self, project):
         """Assigns this worker as project lead.
@@ -679,10 +723,11 @@ class SkillMatrix:
         """Returns this workers top two skills (by level)"""
         ranked_skills = {
             k: v for k, v in sorted(
-            self.hard_skills.items(),
-            reverse=True,
-            key=lambda item: item[1]
-        )}
+                self.hard_skills.items(),
+                reverse=True,
+                key=lambda item: item[1]
+            )
+        }
         return list(ranked_skills.keys())[:2]
 
     def assign_hard_skills(self):
