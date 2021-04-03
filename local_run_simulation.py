@@ -7,11 +7,11 @@ import sys, os, shutil
 # Name for this batch of simulations:
 # (Note: should include date and code version number)
 
-BATCH_NAME = 'normal_run_310321_v0.0' #'test_run_260321_v0.0'
+BATCH_NAME = 'trainboost_r10_030421_v0.1' #'test_run_260321_v0.0'
 
 # These global configuration values override config.py and will be
 # used in all the simulations:
-REPLICATE_COUNT = 20  # Number of replicate simulations to run
+REPLICATE_COUNT = 10 # Number of replicate simulations to run
 STEPS = 100  # Number of time steps for each simulation
 WORKER_COUNT = 100  # Total number of workers in simulation
 NEW_PROJECTS = 2  # Number of new projects created on each time step
@@ -21,6 +21,8 @@ NUMBER_OF_PROCESSORS = 8  # Number of cores to use for parallel optimiser
 BUDGET_CONSTRAINT_FLAG = True
 TRAINING_FLAG = True
 TRAINING_LOAD = 0.1
+P_BUDGET_FLEXIBILITY = 0.0
+MAX_BUDGET_INCREASE = 1.0 
 
 # This dictionary defines the specific simulations and their distinct
 # configuration parameters:
@@ -118,6 +120,8 @@ if __name__ == "__main__":
                     budget_functionality_flag=BUDGET_CONSTRAINT_FLAG,
                     training_on=TRAINING_FLAG,
                     target_training_load=TRAINING_LOAD,
+                    p_budget_flexibility=P_BUDGET_FLEXIBILITY,
+                    max_budget_increase=MAX_BUDGET_INCREASE,
                     worker_strategy=SIMULATIONS[sim_type]['WORKER_STRATEGY'],
                     organisation_strategy=(
                         SIMULATIONS[sim_type]['ORGANISATION_STRATEGY']
@@ -136,10 +140,10 @@ if __name__ == "__main__":
                 )
 
                 start_time = time.time()
-                abm.run_model(STEPS)
-                #abm.run_model(50)
-                #abm.trainer.training_boost()
-                #abm.run_model(50)
+                #abm.run_model(STEPS)
+                abm.run_model(50)
+                abm.trainer.training_boost()
+                abm.run_model(50)
                 elapsed_time = time.time() - start_time
                 print(
                     "Took %.2f seconds to run %d steps."
