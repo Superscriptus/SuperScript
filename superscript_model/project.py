@@ -570,7 +570,11 @@ class Project:
         self.team = None
         self.requirements = ProjectRequirements(
             budget_functionality_flag
-            =self.inventory.model.budget_functionality_flag
+            =self.inventory.model.budget_functionality_flag,
+            p_budget_flexibility
+            =self.inventory.model.p_budget_flexibility,
+            max_budget_increase
+            =self.inventory.model.max_budget_increase
         )
         self.success_probability = 0.0
 

@@ -50,7 +50,9 @@ from .config import (PROJECT_LENGTH,
                      DEPARTMENTAL_WORKLOAD,
                      TIMELINE_FLEXIBILITY,
                      NUMBER_OF_BASIN_HOPS,
-                     NUMBER_OF_PROCESSORS)
+                     NUMBER_OF_PROCESSORS,
+                     P_BUDGET_FLEXIBILITY,
+                     MAX_BUDGET_INCREASE)
 
 
 class SuperScriptModel(Model):
@@ -74,6 +76,12 @@ class SuperScriptModel(Model):
             Length of each project in timesteps.
         budget_functionality_flag: bool
             If True, budget contraint is switched on.
+        p_budget_flexibility: float
+            Probability that an individual project has a flexible
+            budget.
+        max_budget_increase: float
+            Multiplier that defines how much flexibility there is for
+            a project that has a flexible budget (1.0 = no flex).
         new_workers: int
             Counts number of new workers added during simulation.
             Used to ensure that a unique worker_id is assigned
@@ -186,12 +194,16 @@ class SuperScriptModel(Model):
                  departmental_workload=DEPARTMENTAL_WORKLOAD,
                  timeline_flexibility=TIMELINE_FLEXIBILITY,
                  number_of_processors=NUMBER_OF_PROCESSORS,
-                 number_of_basin_hops=NUMBER_OF_BASIN_HOPS):
+                 number_of_basin_hops=NUMBER_OF_BASIN_HOPS,
+                 p_budget_flexibility=P_BUDGET_FLEXIBILITY,
+                 max_buget_increase=MAX_BUDGET_INCREASE):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
         self.project_length = project_length
         self.budget_functionality_flag = budget_functionality_flag
+        self.p_budget_flexibility = p_budget_flexibility
+        self.max_budget_increase = max_buget_increase
         self.new_workers = 0
         self.departments = dict()
 
