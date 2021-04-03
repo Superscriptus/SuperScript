@@ -196,14 +196,14 @@ class SuperScriptModel(Model):
                  number_of_processors=NUMBER_OF_PROCESSORS,
                  number_of_basin_hops=NUMBER_OF_BASIN_HOPS,
                  p_budget_flexibility=P_BUDGET_FLEXIBILITY,
-                 max_buget_increase=MAX_BUDGET_INCREASE):
+                 max_budget_increase=MAX_BUDGET_INCREASE):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
         self.project_length = project_length
         self.budget_functionality_flag = budget_functionality_flag
         self.p_budget_flexibility = p_budget_flexibility
-        self.max_budget_increase = max_buget_increase
+        self.max_budget_increase = max_budget_increase
         self.new_workers = 0
         self.departments = dict()
 
