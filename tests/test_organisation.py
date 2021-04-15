@@ -71,16 +71,18 @@ class TestTeam(unittest.TestCase):
         self.assertIsNone(team.lead)
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
+    @patch('superscript_model.organisation.TeamAllocator')
     def test_assign_contributions_to_members(self,
-                                             mock_inventory,
+                                             mock_allocator,
                                              mock_model):
 
         pid = 42
         p_len = 5
         p_start = 0
         worker = Worker(1, mock_model)
-        project = Project(mock_inventory,
+        mock_model.p_budget_flexibility = 0.25
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
                           project_id=pid,
                           project_length=p_len,
                           start_time=p_start)
@@ -96,11 +98,12 @@ class TestTeam(unittest.TestCase):
             )
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_to_string(self, mock_inventory, mock_model):
-
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_to_string(self, mock_allocator, mock_model):
+        mock_model.p_budget_flexibility = 0.25
         worker = Worker(1, mock_model)
-        project = Project(mock_inventory,
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
                           project_id=42,
                           project_length=5)
 
@@ -111,8 +114,8 @@ class TestTeam(unittest.TestCase):
         self.assertIsInstance(team.to_string(), str)
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_compute_ovr(self, mock_inventory, mock_model):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_compute_ovr(self, mock_allocator, mock_model):
 
         workers = [Worker(i, mock_model) for i in range(5)]
         hard_skills = ['A', 'B','C', 'D', 'E']
@@ -126,7 +129,9 @@ class TestTeam(unittest.TestCase):
                                                  [0.0, 3.6, 2.5, 4.9, 5.0]))
         workers[4].skills.hard_skills = dict(zip(hard_skills,
                                                  [0.0, 0.0, 0.0, 2.9, 0.0]))
-        project = Project(mock_inventory,
+        mock_model.p_budget_flexibility = 0.25
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
                           project_id=42,
                           project_length=5)
         project.requirements.hard_skills = {
@@ -144,8 +149,8 @@ class TestTeam(unittest.TestCase):
         self.assertEqual(round(team.compute_ovr(), 2), 72.36)
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_compute_skill_balance(self, mock_inventory, mock_model):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_compute_skill_balance(self, mock_allocator, mock_model):
 
         workers = [Worker(i, mock_model) for i in range(5)]
         hard_skills = ['A', 'B','C', 'D', 'E']
@@ -159,7 +164,9 @@ class TestTeam(unittest.TestCase):
                                                  [0.0, 3.6, 2.5, 4.9, 5.0]))
         workers[4].skills.hard_skills = dict(zip(hard_skills,
                                                  [0.0, 0.0, 0.0, 2.9, 0.0]))
-        project = Project(mock_inventory,
+        mock_model.p_budget_flexibility = 0.25
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
                           project_id=42,
                           project_length=5)
         project.requirements.hard_skills = {
@@ -177,8 +184,8 @@ class TestTeam(unittest.TestCase):
         self.assertEqual(round(team.compute_skill_balance(), 2), 0.16)
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_compute_creativity_match(self, mock_inventory, mock_model):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_compute_creativity_match(self, mock_allocator, mock_model):
 
         w1 = Worker(1, mock_model)
         w2 = Worker(2, mock_model)
@@ -187,7 +194,9 @@ class TestTeam(unittest.TestCase):
         w5 = Worker(1, mock_model)
         w6 = Worker(2, mock_model)
         w7 = Worker(2, mock_model)
-        project = Project(mock_inventory,
+        mock_model.p_budget_flexibility = 0.25
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
                           project_id=42,
                           project_length=5)
         team = Team(project,
@@ -207,7 +216,8 @@ class TestTeam(unittest.TestCase):
                                          [1.0, 1.0, 1.0, 1.0, 1.0]))
         w2.skills.soft_skills = dict(zip(soft_skills,
                                          [5.0, 5.0, 5.0, 5.0, 5.0]))
-        project = Project(mock_inventory,
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
                           project_id=43,
                           project_length=5)
         project.requirements.creativity = 5
@@ -218,14 +228,17 @@ class TestTeam(unittest.TestCase):
         self.assertEqual(team.creativity_match, 0)
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_log_project_outcome(self, mock_inventory, mock_model):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_log_project_outcome(self, mock_allocator, mock_model):
 
         w1 = Worker(1, mock_model)
         w2 = Worker(2, mock_model)
-        project = Project(mock_inventory,
+        mock_model.p_budget_flexibility = 0.25
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
                           project_id=42,
                           project_length=5)
+
         team = Team(project,
                     members={w1.worker_id: w1,
                              w2.worker_id: w2},
@@ -262,6 +275,7 @@ class TestRandomStrategy(unittest.TestCase):
                              budget_functionality_flag=False
                              )
         )
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator, model=mock_model)
         inventory.create_projects(1, time=0, length=5)
         team = strategy.select_team(inventory.projects[0],

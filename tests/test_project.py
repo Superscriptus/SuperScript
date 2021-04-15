@@ -14,7 +14,7 @@ class TestProject(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_init(self, mock_model, mock_allocator):
-
+        mock_model.p_budget_flexibility = 0.25
         project = Project(
             ProjectInventory(mock_allocator, model=mock_model), 42, 5
         )
@@ -25,7 +25,7 @@ class TestProject(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_advance(self, mock_model, mock_allocator):
-
+        mock_model.p_budget_flexibility = 0.25
         project = Project(
             ProjectInventory(mock_allocator, model=mock_model), 42, 5)
         project.advance()
@@ -41,6 +41,7 @@ class TestProject(unittest.TestCase):
     def test_terminate(self, mock_model, mock_worker,
                        mock_allocator, mock_team):
 
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         inventory.create_projects(1, time=0, length=5)
@@ -97,7 +98,7 @@ class TestProjectInventory(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_create_projects(self, mock_model, mock_allocator):
-
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         inventory.create_projects(5, time=0, length=5)
@@ -106,7 +107,7 @@ class TestProjectInventory(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_add_project(self, mock_model, mock_allocator):
-
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         project = Project(inventory, 42)
@@ -118,7 +119,7 @@ class TestProjectInventory(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_delete_project(self, mock_model, mock_allocator):
-
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         inventory.create_projects(5, time=0, length=5)
@@ -131,7 +132,7 @@ class TestProjectInventory(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_advance_projects(self, mock_model, mock_allocator):
-
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         inventory.create_projects(10, time=0, length=5)
@@ -142,7 +143,7 @@ class TestProjectInventory(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_rank_projects(self, mock_model, mock_allocator):
-
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         projects = []
@@ -193,7 +194,7 @@ class TestSuccessCalculator(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_determine_success(self, mock_model, mock_allocator):
-
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         project = Project(inventory, 42)
@@ -224,6 +225,7 @@ class TestSuccessCalculator(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_get_component_values(self, mock_model, mock_allocator):
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         project = Project(inventory, 42)
@@ -235,6 +237,7 @@ class TestSuccessCalculator(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_to_string(self, mock_model, mock_allocator):
+        mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         project = Project(inventory, 42)

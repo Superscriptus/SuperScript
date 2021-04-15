@@ -39,11 +39,12 @@ class TestOptimiserFactory(unittest.TestCase):
             start_time=0)
 
         factory = OptimiserFactory()
-        optimiser = factory.get(
-            optimiser_name='ParallelBasinhopping',
+        optimiser = factory.get_optimiser(
+            optimiser_name='Basinhopping',
             project=project,
             bid_pool=[],
-            model=model
+            model=model,
+            niter=10
         )
         self.assertIsInstance(optimiser, Basinhopping)
 
@@ -60,14 +61,23 @@ class TestOptimiser(unittest.TestCase):
             project_length=5,
             start_time=0)
 
-        self.optimiser = OptimiserFactory().get(
-            optimiser_name='ParallelBasinhopping',
+        self.factory = OptimiserFactory()
+
+        self.optimiser = self.factory.get_optimiser(
+            optimiser_name='Basinhopping',
             project=self.project,
             bid_pool=self.model.schedule.agents,
             model=self.model,
-            save_flag=True,
+            niter=0,
+            save_flag=False,
             results_dir='model_development/experiments/tests/'
         )
+
+        self.runner = self.factory.get_runner(
+                runner_name="Parallel",
+                optimiser=self.optimiser,
+                num_proc=1
+            )
 
     def test_init(self):
 
@@ -75,7 +85,7 @@ class TestOptimiser(unittest.TestCase):
             self.optimiser.worker_ids,
             [agent.worker_id for agent in self.model.schedule.agents]
         )
-        self.assertIsInstance(self.optimiser.constraints, list)
+        self.assertIsInstance(self.optimiser.constraints, BHConstraints)
         self.assertIsInstance(self.optimiser.worker_unit_budgets, dict)
 
     def test_smart_guess(self):
@@ -84,8 +94,8 @@ class TestOptimiser(unittest.TestCase):
             len(x),
             len(self.model.schedule.agents) * 5
         )
-
-        x = self.optimiser.smart_guess(time_limit=0)
+        self.optimiser.smart_guess_timeout = 0
+        x = self.optimiser.smart_guess()
         self.assertIsNone(x)
 
     def test_get_team(self):
@@ -119,9 +129,8 @@ class TestOptimiser(unittest.TestCase):
 
     def test_test_constraints(self):
         self.assertFalse(
-            self.optimiser.test_constraints(
-                np.ones(len(self.model.schedule.agents) * 5),
-                verbose=True
+            self.optimiser.constraints.test(
+                np.ones(len(self.model.schedule.agents) * 5)
             )
         )
 
@@ -159,8 +168,9 @@ class TestOptimiser(unittest.TestCase):
 
     def test_my_constraints(self):
 
+        x = np.zeros(100 * 5)
         cons = BHConstraints(self.optimiser)
-        self.assertEqual(cons.test, self.optimiser.test_constraints)
+        self.assertEqual(cons.test(x), self.optimiser.constraints.test(x))
 
         self.assertIsInstance(
             cons.__call__(x_new=self.optimiser.smart_guess()),
