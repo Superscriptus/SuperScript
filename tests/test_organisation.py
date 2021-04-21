@@ -11,6 +11,7 @@ from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import (Team,
                                             OrganisationStrategyInterface,
                                             RandomStrategy,
+                                            BasicStrategy,
                                             TeamAllocator,
                                             Department,
                                             Trainer)
@@ -148,6 +149,15 @@ class TestTeam(unittest.TestCase):
 
         self.assertEqual(round(team.compute_ovr(), 2), 72.36)
 
+        team.project.requirements.hard_skills = {
+            'A': {'units': 0, 'level': 3},
+            'B': {'units': 0, 'level': 3},
+            'C': {'units': 0, 'level': 3},
+            'D': {'units': 0, 'level': 3},
+            'E': {'units': 0, 'level': 3}
+        }
+        self.assertEqual(round(team.compute_ovr(), 1), 0.0)
+
     @patch('superscript_model.model.Model')
     @patch('superscript_model.organisation.TeamAllocator')
     def test_compute_skill_balance(self, mock_allocator, mock_model):
@@ -251,6 +261,43 @@ class TestTeam(unittest.TestCase):
         self.assertEqual(w1.history.get_success_rate(), 0.5)
         self.assertEqual(w2.history.get_success_rate(), 0.5)
 
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_skill_update(self, mock_allocator, mock_model):
+        model = SuperScriptModel(worker_count=2, department_count=1)
+        w1 = model.schedule.agents[0] #Worker(1, mock_model)
+        w2 = model.schedule.agents[1] #Worker(2, mock_model)
+        mock_model.p_budget_flexibility = 0.25
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model)
+        project = Project(inventory,
+                          project_id=42,
+                          project_length=5)
+
+        team = Team(project,
+                    members={w1.worker_id: w1,
+                             w2.worker_id: w2},
+                    lead=w1
+                    )
+        get_skills = lambda w: {
+            skill: w.get_skill(skill)
+            for skill in project.required_skills
+        }
+        old_skills = {
+            w: get_skills(w1)
+            for w in [w1, w2]
+        }
+        team.skill_update(True, inventory.skill_update_func)
+        team.skill_update(False, inventory.skill_update_func)
+
+        for skill, workers in team.contributions.items():
+            for worker_id in workers:
+                w = team.members[worker_id]
+                if old_skills[w][skill] > 0.0:
+                    self.assertNotEqual(
+                        w1.get_skill(skill), old_skills[w][skill]
+                    )
+
 
 class TestOrganisationStrategyInterface(unittest.TestCase):
 
@@ -298,6 +345,56 @@ class TestRandomStrategy(unittest.TestCase):
         mock_project.start_time = 0
         mock_project.length = 5
         strategy = RandomStrategy(SuperScriptModel(worker_count=100,
+                                                   department_count=10))
+        bids = strategy.invite_bids(mock_project)
+        self.assertEqual(len(bids), 100)
+
+
+class TestBasicStrategy(unittest.TestCase):
+
+    def test_init(self):
+        strategy = BasicStrategy(
+            SuperScriptModel(100),
+            min_team_size=3,
+            max_team_size=7
+        )
+        self.assertIsInstance(strategy.model, Model)
+        self.assertEqual(strategy.min_team_size, 3)
+        self.assertEqual(strategy.max_team_size, 7)
+
+    @patch('superscript_model.organisation.TeamAllocator')
+    @patch('builtins.print')
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_select_team(self, mock_model, mock_print, mock_allocator):
+
+        strategy = BasicStrategy(
+            SuperScriptModel(worker_count=100,
+                             worker_strategy='AllIn',
+                             budget_functionality_flag=False
+                             )
+        )
+        mock_model.p_budget_flexibility = 0.25
+        inventory = ProjectInventory(mock_allocator, model=mock_model)
+        inventory.create_projects(1, time=0, length=5)
+        team = strategy.select_team(inventory.projects[0],
+                                    bid_pool=None)
+
+        self.assertIsInstance(team, Team)
+        self.assertTrue(set(team.members.values())
+                        .issubset(strategy.model.schedule.agents))
+        self.assertTrue(team.lead in team.members.values())
+
+        team = strategy.select_team(inventory.projects[0],
+                                    bid_pool=[])
+        self.assertEqual(team.members, {})
+        self.assertIs(team.lead, None)
+
+    @patch('superscript_model.project.Project')
+    def test_invite_bids(self, mock_project):
+
+        mock_project.start_time = 0
+        mock_project.length = 5
+        strategy = BasicStrategy(SuperScriptModel(worker_count=100,
                                                    department_count=10))
         bids = strategy.invite_bids(mock_project)
         self.assertEqual(len(bids), 100)

@@ -14,7 +14,8 @@ from superscript_model.optimisation import (OptimiserFactory,
                                             Basinhopping,
                                             BHStep,
                                             BHConstraints,
-                                            DummyReturn)
+                                            DummyReturn,
+                                            ParallelRunner)
 
 from superscript_model.config import (DEPARTMENTAL_WORKLOAD,
                                       UNITS_PER_FTE,
@@ -196,3 +197,40 @@ class TestOptimiser(unittest.TestCase):
             len(new_x),
             len(self.model.schedule.agents) * 5
         )
+
+
+class TestRunner(unittest.TestCase):
+
+    def setUp(self):
+
+        self.model = SuperScriptModel(
+            worker_count=10,
+        )
+        self.project = Project(
+            self.model.inventory,
+            project_id=0,
+            project_length=5,
+            start_time=0)
+
+        self.factory = OptimiserFactory()
+
+        self.optimiser = self.factory.get_optimiser(
+            optimiser_name='Basinhopping',
+            project=self.project,
+            bid_pool=self.model.schedule.agents,
+            model=self.model,
+            niter=0,
+            save_flag=False,
+            results_dir='model_development/experiments/tests/'
+        )
+
+        self.runner = self.factory.get_runner(
+                runner_name="Parallel",
+                optimiser=self.optimiser,
+                num_proc=1
+            )
+
+    def test_init(self):
+
+        self.assertIsInstance(self.runner, ParallelRunner)
+        self.assertEqual(self.runner.opti, self.optimiser)
