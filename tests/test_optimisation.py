@@ -10,6 +10,7 @@ from superscript_model.model import SuperScriptModel
 from superscript_model.worker import Worker, SkillMatrix
 from superscript_model.project import ProjectInventory, Project
 from superscript_model.organisation import Team
+from superscript_model.tracking import *
 from superscript_model.optimisation import (OptimiserFactory,
                                             Basinhopping,
                                             BHStep,
@@ -205,6 +206,9 @@ class TestRunner(unittest.TestCase):
 
         self.model = SuperScriptModel(
             worker_count=10,
+            io_dir='tests/',
+            load_projects=True,
+            save_projects=False
         )
         self.project = Project(
             self.model.inventory,
