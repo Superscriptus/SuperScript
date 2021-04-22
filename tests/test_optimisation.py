@@ -210,11 +210,9 @@ class TestRunner(unittest.TestCase):
             load_projects=True,
             save_projects=False
         )
-        self.project = Project(
-            self.model.inventory,
-            project_id=0,
-            project_length=5,
-            start_time=0)
+        self.project = self.model.inventory.get_loaded_projects_for_timestep(
+            time=0
+        )[0]
 
         self.factory = OptimiserFactory()
 

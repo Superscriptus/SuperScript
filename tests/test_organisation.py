@@ -261,18 +261,26 @@ class TestTeam(unittest.TestCase):
         self.assertEqual(w1.history.get_success_rate(), 0.5)
         self.assertEqual(w2.history.get_success_rate(), 0.5)
 
-    @patch('superscript_model.model.Model')
-    @patch('superscript_model.organisation.TeamAllocator')
-    def test_skill_update(self, mock_allocator, mock_model):
-        model = SuperScriptModel(worker_count=2, department_count=1)
+    # @patch('superscript_model.model.Model')
+    # @patch('superscript_model.organisation.TeamAllocator')
+    def test_skill_update(self): #, mock_allocator, mock_model):
+
+        model = SuperScriptModel(
+            worker_count=10,
+            io_dir='tests/',
+            load_projects=True,
+            save_projects=False
+        )
+        project = model.inventory.get_loaded_projects_for_timestep(
+            time=0
+        )[0]
+        print(project.required_skills)
         w1 = model.schedule.agents[0] #Worker(1, mock_model)
         w2 = model.schedule.agents[1] #Worker(2, mock_model)
-        mock_model.p_budget_flexibility = 0.25
-        inventory = ProjectInventory(mock_allocator,
-                                     model=mock_model)
-        project = Project(inventory,
-                          project_id=42,
-                          project_length=5)
+
+        for skill in ['A', 'B', 'C', 'D']:
+            w1.skills.hard_skills[skill] = 1.5
+            w2.skills.hard_skills[skill] = 2.2
 
         team = Team(project,
                     members={w1.worker_id: w1,
@@ -287,8 +295,8 @@ class TestTeam(unittest.TestCase):
             w: get_skills(w1)
             for w in [w1, w2]
         }
-        team.skill_update(True, inventory.skill_update_func)
-        team.skill_update(False, inventory.skill_update_func)
+        team.skill_update(True, model.inventory.skill_update_func)
+        team.skill_update(False, model.inventory.skill_update_func)
 
         for skill, workers in team.contributions.items():
             for worker_id in workers:
