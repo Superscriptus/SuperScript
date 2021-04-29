@@ -368,44 +368,31 @@ class TestBasicStrategy(unittest.TestCase):
         self.assertEqual(strategy.min_team_size, 3)
         self.assertEqual(strategy.max_team_size, 7)
 
-    # @patch('superscript_model.organisation.TeamAllocator')
-    # @patch('builtins.print')
-    # @patch('superscript_model.model.SuperScriptModel')
-    # def test_select_team(self, mock_model, mock_print, mock_allocator):
-    #     model = SuperScriptModel(
-    #         worker_count=10,
-    #         io_dir='tests/',
-    #         load_projects=True,
-    #         save_projects=False
-    #     )
-    #     project = model.inventory.get_loaded_projects_for_timestep(
-    #         time=0
-    #     )[0]
-    #     # model = SuperScriptModel(
-    #     #     worker_count=10,
-    #     #     io_dir='tests/',
-    #     #     load_projects=True,
-    #     #     save_projects=False,
-    #     #     # organisation_strategy='Basic',
-    #     #     # worker_strategy='AllIn',
-    #     #     # budget_functionality_flag=False
-    #     # )
-    #     strategy = model.organisation_strategy
-    #     # project = model.inventory.get_loaded_projects_for_timestep(
-    #     #     time=0
-    #     # )[0]
-    #
-    #     team = strategy.select_team(project, bid_pool=None)
-    #
-    #     self.assertIsInstance(team, Team)
-    #     self.assertTrue(set(team.members.values())
-    #                     .issubset(strategy.model.schedule.agents))
-    #     self.assertTrue(team.lead in team.members.values())
-    #
-    #     team = strategy.select_team(project,
-    #                                 bid_pool=[])
-    #     self.assertEqual(team.members, {})
-    #     self.assertIs(team.lead, None)
+    def test_select_team(self):
+        model = SuperScriptModel(
+            worker_count=10,
+            io_dir='tests/',
+            load_projects=True,
+            save_projects=False
+        )
+        project = model.inventory.get_loaded_projects_for_timestep(
+            time=0
+        )[0]
+        strategy = model.inventory.team_allocator.strategy
+
+        team = strategy.select_team(
+            project, bid_pool=None
+        )
+
+        self.assertIsInstance(team, Team)
+        self.assertTrue(set(team.members.values())
+                        .issubset(strategy.model.schedule.agents))
+        self.assertTrue(team.lead in team.members.values())
+
+        team = strategy.select_team(project,
+                                    bid_pool=[])
+        self.assertEqual(team.members, {})
+        self.assertIs(team.lead, None)
 
     @patch('superscript_model.project.Project')
     def test_invite_bids(self, mock_project):
