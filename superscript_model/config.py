@@ -1,3 +1,13 @@
+"""
+SuperScript configuration parameters.
+===========
+
+Each parameter is explained in the comments.
+
+Variables whose value can be overridden in the model SuperScriptModel()
+constructor are indicated with a [*] at the beginning of the comment.
+"""
+
 # team:
 TEAM_OVR_MULTIPLIER = 20
 MIN_TEAM_SIZE = 3

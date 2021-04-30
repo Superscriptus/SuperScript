@@ -6,7 +6,7 @@ import sys, os
 
 if __name__ == "__main__":
 
-    MODEL_DIR = os.path.realpath(os.path.dirname('../superscript_model'))
+    MODEL_DIR = os.path.realpath(os.path.dirname('superscript_model'))
     sys.path.append(os.path.normpath(MODEL_DIR))
     from superscript_model import model
 

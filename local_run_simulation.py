@@ -79,8 +79,8 @@ SIMULATIONS = {
 
 if __name__ == "__main__":
 
-    MODEL_DIR = '../superscript_model'
-    SAVE_DIR = './simulation_io/' + BATCH_NAME
+    MODEL_DIR = './superscript_model'
+    SAVE_DIR = '../simulation_io/' + BATCH_NAME
     os.mkdir(SAVE_DIR)
     sys.path.append(os.path.normpath(MODEL_DIR))
     from superscript_model import model
