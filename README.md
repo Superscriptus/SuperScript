@@ -15,10 +15,7 @@
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
 [![GNU APGLv3 License][license-shield]][license-url]
-
-<!--
 [![LinkedIn][linkedin-shield]][linkedin-url]
--->
 
 <!-- PROJECT LOGO -->
 <br />
@@ -322,5 +319,5 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 [license-shield]: https://img.shields.io/github/license/Superscriptus/SuperScript.svg?style=for-the-badge
 [license-url]: https://github.com/Superscriptus/SuperScript/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
+[linkedin-url]: https://www.linkedin.com/in/michaelchristen/
 [product-screenshot]: documentation/images/screenshot.png
