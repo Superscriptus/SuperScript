@@ -242,7 +242,12 @@ shipping dates in square brackets:
 
 ### Tests
 
-To run the unit tests...
+The repository is currently at 97% code coverage. To run the unit tests uses:
+```
+coverage run -m unittest discover && coverage report
+```
+For interactive html coverage report run ```coverage html -i``` and then open ```index.html``` in your browser.
+
 
 ### Model development
 
