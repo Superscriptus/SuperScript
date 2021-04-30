@@ -63,6 +63,7 @@ For now we exclude the shields...
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
+    <li><a href="#analysis">Analysis</a></li>
   </ol>
 </details>
 
@@ -213,12 +214,14 @@ A python script for running batch simulations is provided: [batch_run_simulation
 
 ### Analysis
 
-There are two analysis notebooks:
+There are two analysis notebooks and the data to run them are include in the repository at 
+[simulation_io](simulation_io):
 1. [initial_aws_simulations.ipynb](analysis/initial_aws_simulations.ipynb) explores early simulated data (pre-release).
-2. [testing_hypotheses.ipynb](analysis/testing_hypotheses.ipynb) explores early simulated data (pre-release).
+2. [testing_hypotheses.ipynb](analysis/testing_hypotheses.ipynb) explores batch simulation data the were produced using 
+release v0.1 of the model.
 
-The hypotheses are detailed in the [model specification document](documentation/model_specification.docx). And the next 
-project milestone will complete the investigation of these hypotheses. 
+The hypotheses are detailed in the [model specification document](documentation/model_specification.docx). The next 
+project milestone will expand the analysis to complete the investigation of these hypotheses. 
 
 ### Model development
 
