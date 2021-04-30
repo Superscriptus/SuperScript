@@ -1,4 +1,6 @@
 issue_tracker.txt
+superscript_model/TODO.txt
+documentation/model_specification.docx
 
 .idea/
 *.bak
@@ -111,7 +113,7 @@ celerybeat.pid
 
 # Environments
 superscriptenv
-testenv
+ssenv
 
 # Spyder project settings
 .spyderproject

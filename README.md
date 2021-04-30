@@ -11,7 +11,6 @@
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
 [![Contributors][contributors-shield]][contributors-url]
-[![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
@@ -223,7 +222,7 @@ There are two analysis notebooks and the data to run them are include in the rep
 2. [testing_hypotheses.ipynb](analysis/testing_hypotheses.ipynb) explores batch simulation data the were produced using 
 release v0.1 of the model.
 
-The hypotheses are detailed in the [model specification document](documentation/model_specification.docx). The next 
+The hypotheses are detailed in the [model specification document](documentation/model_specification.pdf). The next 
 project milestone will expand the analysis to complete the investigation of these hypotheses. 
 
 ### Roadmap
@@ -252,7 +251,7 @@ For an interactive html coverage report run ```coverage html -i``` and then open
 ### Model development
 
 The [documentation](./documentation) folder contains a word document with the full 
-[model specification](documentation/model_specification.docx.bak).
+[model specification](documentation/model_specification.pdf).
 
 The directory [model_development](./model_development) contains Jupyter Notebooks relating to various stages of 
 development of the model, from initial experiments prior to coding to the model, through to integration tests and 
