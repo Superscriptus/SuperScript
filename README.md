@@ -204,7 +204,7 @@ size of simulation. **Add more on this**._
 Instructions for getting set up on AWS are provided in 
 [documentation/aws_instructions](documentation/aws_instructions.md) 
 and there is a python script provided for running these simulations: 
-[aws_run_simulations.py](./aws_run_simulation.py)
+[aws_run_simulations.py](simulation_scripts/aws_run_simulation.py)
 
 #### Running simulations locally
 
