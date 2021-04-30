@@ -217,7 +217,7 @@ _TODO: add details of the analysis scripts and what they do._
 ### Model development
 
 The [documentation](./documentation) folder contains a word document with the full 
-[model specification](documentation/model_specification.docx).
+[model specification](documentation/model_specification.docx.bak).
 
 The directory [model_development][./model_development] contains Jupyter Notebooks relating to various stages of 
 development of the model, from initial experiments prior to coding to the model, through to integration tests and 
