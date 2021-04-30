@@ -197,7 +197,8 @@ by default because it is slow to recompute the network layout on each timestep).
 saved for later analysis by setting the ```SAVE_NETWORK``` flag to ```True```.
 
 _Note: The parallel basinhopping optimisation (```ORGANISATION_STRATEGY = Basin```) can be very slow depending on the 
-size of simulation. **Add more on this**._
+size of simulation. For real-time visualisation it is best to use ```Random``` or ```Basic```, although the teams 
+produced will not be as good._
 
 #### Running simulations on AWS
 
@@ -206,13 +207,18 @@ Instructions for getting set up on AWS are provided in
 and there is a python script provided for running these simulations: 
 [aws_run_simulations.py](aws_run_simulation.py)
 
-#### Running simulations locally
+#### Running batch simulations
 
-A python script for running batch simulations is provided: [xxx](xxx)
+A python script for running batch simulations is provided: [batch_run_simulation.py](batch_run_simulation.py)
 
 ### Analysis
 
-_TODO: add details of the analysis scripts and what they do._ 
+There are two analysis notebooks:
+1. [initial_aws_simulations.ipynb](analysis/initial_aws_simulations.ipynb) explores early simulated data (pre-release).
+2. [testing_hypotheses.ipynb](analysis/testing_hypotheses.ipynb) explores early simulated data (pre-release).
+
+The hypotheses are detailed in the [model specification document](documentation/model_specification.docx). And the next 
+project milestone will complete the investigation of these hypotheses. 
 
 ### Model development
 
