@@ -228,8 +228,7 @@ project milestone will expand the analysis to complete the investigation of thes
 
 ### Roadmap
 
-The current roadmap consists of the following milestones 
-(see [open issues](https://github.com/Superscriptus/SuperScript/issues) for details of milestone 1) with expected 
+The current roadmap consists of the following milestones  with expected
 shipping dates in square brackets:
 
 1.	Expand the current analysis to finish testing the initial hypotheses. [Q2 2021]
@@ -238,15 +237,16 @@ shipping dates in square brackets:
 4.	Edit social network to track more information about historical collaborations. [Q3 2021]
 5.	Add performance benchmarking (for optimisation routine). [Q3 2021]
 6.	Review model extensions and choose those to implement. [Q3 2021]
- 
+
+See [open issues](https://github.com/Superscriptus/SuperScript/issues) for details of milestone 1. 
 
 ### Tests
 
-The repository is currently at 97% code coverage. To run the unit tests uses:
+The repository is currently at 97% code coverage. To run the unit tests use:
 ```
 coverage run -m unittest discover && coverage report
 ```
-For interactive html coverage report run ```coverage html -i``` and then open ```index.html``` in your browser.
+For an interactive html coverage report run ```coverage html -i``` and then open ```index.html``` in your browser.
 
 
 ### Model development
