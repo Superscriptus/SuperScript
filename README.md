@@ -64,6 +64,9 @@ For now we exclude the shields...
     </li>
     <li><a href="#usage">Usage</a></li>
     <li><a href="#analysis">Analysis</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#tests">Tests</a></li>
+    <li><a href="#model-development">Model development</a></li>
   </ol>
 </details>
 
@@ -214,8 +217,8 @@ A python script for running batch simulations is provided: [batch_run_simulation
 
 ### Analysis
 
-There are two analysis notebooks and the data to run them are include in the repository at 
-[simulation_io](simulation_io):
+There are two analysis notebooks and the data to run them are include in the repository 
+(in [simulation_io/](simulation_io)):
 1. [initial_aws_simulations.ipynb](analysis/initial_aws_simulations.ipynb) explores early simulated data (pre-release).
 2. [testing_hypotheses.ipynb](analysis/testing_hypotheses.ipynb) explores batch simulation data the were produced using 
 release v0.1 of the model.
@@ -223,12 +226,30 @@ release v0.1 of the model.
 The hypotheses are detailed in the [model specification document](documentation/model_specification.docx). The next 
 project milestone will expand the analysis to complete the investigation of these hypotheses. 
 
+### Roadmap
+
+The current roadmap consists of the following milestones 
+(see [open issues](https://github.com/Superscriptus/SuperScript/issues) for details of milestone 1) with expected 
+shipping dates in square brackets:
+
+1.	Expand the current analysis to finish testing the initial hypotheses. [Q2 2021]
+2.	Complete unit testing framework to reach 100% (currently at 97%). [Q2 2021]
+3.	Alter training mechanism (and explore the 'rich get richer' effect). [Q3 2021]
+4.	Edit social network to track more information about historical collaborations. [Q3 2021]
+5.	Add performance benchmarking (for optimisation routine). [Q3 2021]
+6.	Review model extensions and choose those to implement. [Q3 2021]
+ 
+
+### Tests
+
+To run the unit tests...
+
 ### Model development
 
 The [documentation](./documentation) folder contains a word document with the full 
 [model specification](documentation/model_specification.docx.bak).
 
-The directory [model_development][./model_development] contains Jupyter Notebooks relating to various stages of 
+The directory [model_development](./model_development) contains Jupyter Notebooks relating to various stages of 
 development of the model, from initial experiments prior to coding to the model, through to integration tests and 
 performance benchmarking. These notebooks include:
 
@@ -249,7 +270,9 @@ allocation strategies to confirm that 'Basic' does improve over the random metho
 probability.    
 * [optimization_experiments_gekko.ipynb](model_development/optimization_experiments_gekko.ipynb): failed attempt to get 
 Gekko mixed-integer optimisation working (included for completeness).
-* [optimization_experiments_scipy.ipynb](model_development/optimization_experiments_scipy.ipynb): ... 
+* [optimization_experiments_scipy.ipynb](model_development/optimization_experiments_scipy.ipynb): experiments to get 
+SciPy optimisation up and running. 
+* Benchmarking notebook: to be added in future milestone. 
 
 
 
