@@ -16,15 +16,15 @@ import sys, os, shutil
 
 # Name for this batch of simulations:
 # (Note: should include date and code version number)
-BATCH_NAME = 'test_run_260321_v0.0'
+BATCH_NAME = 'new_skill_decay_project_per_step_2_dep_wl_03_110621_v1.0'
 
 # These global configuration values override config.py and will be
 # used in all the simulations:
-REPLICATE_COUNT = 1 # Number of replicate simulations to run
-STEPS = 2  # Number of time steps for each simulation
+REPLICATE_COUNT = 10 # Number of replicate simulations to run
+STEPS = 100  # Number of time steps for each simulation
 WORKER_COUNT = 100  # Total number of workers in simulation
 NEW_PROJECTS = 2  # Number of new projects created on each time step
-DEPARTMENTAL_WORKLOAD = 0.1  # Fraction of department capacity to keep free for dept work.
+DEPARTMENTAL_WORKLOAD = 0.3  # Fraction of department capacity to keep free for dept work.
 NUMBER_OF_PROCESSORS = 8  # Number of cores to use for parallel optimiser
 BUDGET_CONSTRAINT_FLAG = True
 TRAINING_FLAG = True 
@@ -88,7 +88,7 @@ SIMULATIONS = {
 if __name__ == "__main__":
 
     MODEL_DIR = './superscript_model'
-    SAVE_DIR = '../simulation_io/' + BATCH_NAME
+    SAVE_DIR = './simulation_io/' + BATCH_NAME
     os.mkdir(SAVE_DIR)
     sys.path.append(os.path.normpath(MODEL_DIR))
     from superscript_model import model
