@@ -1,0 +1,109 @@
+Simulation:  Random
+	 replicate:  0
+Took 1.10 seconds to run 100 steps.
+	 replicate:  1
+Took 222.51 seconds to run 100 steps.
+	 replicate:  2
+Took 226.92 seconds to run 100 steps.
+	 replicate:  3
+Took 232.50 seconds to run 100 steps.
+	 replicate:  4
+Took 232.35 seconds to run 100 steps.
+	 replicate:  5
+Took 232.99 seconds to run 100 steps.
+	 replicate:  6
+Took 232.62 seconds to run 100 steps.
+	 replicate:  7
+Took 230.60 seconds to run 100 steps.
+	 replicate:  8
+Took 232.65 seconds to run 100 steps.
+	 replicate:  9
+Took 231.11 seconds to run 100 steps.
+Simulation:  Basic
+	 replicate:  0
+Took 236.48 seconds to run 100 steps.
+	 replicate:  1
+Took 238.79 seconds to run 100 steps.
+	 replicate:  2
+Took 240.03 seconds to run 100 steps.
+	 replicate:  3
+Took 240.21 seconds to run 100 steps.
+	 replicate:  4
+Took 240.83 seconds to run 100 steps.
+	 replicate:  5
+Took 238.77 seconds to run 100 steps.
+	 replicate:  6
+Took 239.52 seconds to run 100 steps.
+	 replicate:  7
+Took 239.75 seconds to run 100 steps.
+	 replicate:  8
+Took 242.98 seconds to run 100 steps.
+	 replicate:  9
+Took 241.09 seconds to run 100 steps.
+Simulation:  Niter0
+	 replicate:  0
+Took 262.21 seconds to run 100 steps.
+	 replicate:  1
+Took 263.60 seconds to run 100 steps.
+	 replicate:  2
+Took 265.54 seconds to run 100 steps.
+	 replicate:  3
+Took 266.46 seconds to run 100 steps.
+	 replicate:  4
+Took 265.60 seconds to run 100 steps.
+	 replicate:  5
+Took 262.87 seconds to run 100 steps.
+	 replicate:  6
+Took 266.87 seconds to run 100 steps.
+	 replicate:  7
+Took 264.81 seconds to run 100 steps.
+	 replicate:  8
+Took 267.97 seconds to run 100 steps.
+	 replicate:  9
+Took 264.36 seconds to run 100 steps.
+Simulation:  Basin
+	 replicate:  0
+/home/expert/Documents/contracting/SS/simulations/new_simulations/SuperScript/ssenv/lib/python3.6/site-packages/numpy/core/fromnumeric.py:3373: RuntimeWarning: Mean of empty slice.
+  out=out, **kwargs)
+/home/expert/Documents/contracting/SS/simulations/new_simulations/SuperScript/ssenv/lib/python3.6/site-packages/numpy/core/_methods.py:170: RuntimeWarning: invalid value encountered in double_scalars
+  ret = ret.dtype.type(ret / rcount)
+Took 13900.63 seconds to run 100 steps.
+	 replicate:  1
+Took 14193.74 seconds to run 100 steps.
+	 replicate:  2
+Took 14066.55 seconds to run 100 steps.
+	 replicate:  3
+Took 14180.55 seconds to run 100 steps.
+	 replicate:  4
+Took 13986.45 seconds to run 100 steps.
+	 replicate:  5
+Took 13880.97 seconds to run 100 steps.
+	 replicate:  6
+Took 14022.94 seconds to run 100 steps.
+	 replicate:  7
+Took 14222.80 seconds to run 100 steps.
+	 replicate:  8
+Took 14057.85 seconds to run 100 steps.
+	 replicate:  9
+Took 13753.94 seconds to run 100 steps.
+Simulation:  Basin_w_flex
+	 replicate:  0
+Took 23830.30 seconds to run 100 steps.
+	 replicate:  1
+Took 22033.76 seconds to run 100 steps.
+	 replicate:  2
+Took 23772.88 seconds to run 100 steps.
+	 replicate:  3
+Took 23464.01 seconds to run 100 steps.
+	 replicate:  4
+Took 22619.92 seconds to run 100 steps.
+	 replicate:  5
+Took 23637.42 seconds to run 100 steps.
+	 replicate:  6
+Took 23279.96 seconds to run 100 steps.
+	 replicate:  7
+Took 23160.84 seconds to run 100 steps.
+	 replicate:  8
+Took 22741.75 seconds to run 100 steps.
+	 replicate:  9
+Took 23729.19 seconds to run 100 steps.
