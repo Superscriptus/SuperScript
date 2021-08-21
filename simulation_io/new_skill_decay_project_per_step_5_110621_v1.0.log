@@ -1,0 +1,105 @@
+Simulation:  Random
+	 replicate:  0
+Took 1.11 seconds to run 100 steps.
+	 replicate:  1
+Took 218.97 seconds to run 100 steps.
+	 replicate:  2
+Took 224.11 seconds to run 100 steps.
+	 replicate:  3
+Took 226.74 seconds to run 100 steps.
+	 replicate:  4
+Took 226.99 seconds to run 100 steps.
+	 replicate:  5
+Took 230.48 seconds to run 100 steps.
+	 replicate:  6
+Took 235.40 seconds to run 100 steps.
+	 replicate:  7
+Took 236.24 seconds to run 100 steps.
+	 replicate:  8
+Took 233.93 seconds to run 100 steps.
+	 replicate:  9
+Took 236.12 seconds to run 100 steps.
+Simulation:  Basic
+	 replicate:  0
+Took 235.45 seconds to run 100 steps.
+	 replicate:  1
+Took 236.72 seconds to run 100 steps.
+	 replicate:  2
+Took 235.64 seconds to run 100 steps.
+	 replicate:  3
+Took 237.32 seconds to run 100 steps.
+	 replicate:  4
+Took 236.49 seconds to run 100 steps.
+	 replicate:  5
+Took 237.62 seconds to run 100 steps.
+	 replicate:  6
+Took 235.79 seconds to run 100 steps.
+	 replicate:  7
+Took 235.85 seconds to run 100 steps.
+	 replicate:  8
+Took 239.63 seconds to run 100 steps.
+	 replicate:  9
+Took 236.81 seconds to run 100 steps.
+Simulation:  Niter0
+	 replicate:  0
+Took 249.71 seconds to run 100 steps.
+	 replicate:  1
+Took 247.21 seconds to run 100 steps.
+	 replicate:  2
+Took 247.65 seconds to run 100 steps.
+	 replicate:  3
+Took 249.65 seconds to run 100 steps.
+	 replicate:  4
+Took 251.21 seconds to run 100 steps.
+	 replicate:  5
+Took 249.51 seconds to run 100 steps.
+	 replicate:  6
+Took 245.10 seconds to run 100 steps.
+	 replicate:  7
+Took 252.43 seconds to run 100 steps.
+	 replicate:  8
+Took 250.70 seconds to run 100 steps.
+	 replicate:  9
+Took 249.80 seconds to run 100 steps.
+Simulation:  Basin
+	 replicate:  0
+Took 13118.69 seconds to run 100 steps.
+	 replicate:  1
+Took 13157.62 seconds to run 100 steps.
+	 replicate:  2
+Took 13233.11 seconds to run 100 steps.
+	 replicate:  3
+Took 13187.20 seconds to run 100 steps.
+	 replicate:  4
+Took 12944.51 seconds to run 100 steps.
+	 replicate:  5
+Took 13145.50 seconds to run 100 steps.
+	 replicate:  6
+Took 13046.02 seconds to run 100 steps.
+	 replicate:  7
+Took 13154.73 seconds to run 100 steps.
+	 replicate:  8
+Took 13119.81 seconds to run 100 steps.
+	 replicate:  9
+Took 12897.83 seconds to run 100 steps.
+Simulation:  Basin_w_flex
+	 replicate:  0
+Took 21832.77 seconds to run 100 steps.
+	 replicate:  1
+Took 22159.14 seconds to run 100 steps.
+	 replicate:  2
+Took 22055.73 seconds to run 100 steps.
+	 replicate:  3
+Took 21160.77 seconds to run 100 steps.
+	 replicate:  4
+Took 22369.80 seconds to run 100 steps.
+	 replicate:  5
+Took 22313.46 seconds to run 100 steps.
+	 replicate:  6
+Took 21029.73 seconds to run 100 steps.
+	 replicate:  7
+Took 21517.07 seconds to run 100 steps.
+	 replicate:  8
+Took 21676.71 seconds to run 100 steps.
+	 replicate:  9
+Took 21558.64 seconds to run 100 steps.

@@ -63,6 +63,7 @@ class TestWorker(unittest.TestCase):
         mock_model.replace_after_inactive_steps = (
             REPLACE_AFTER_INACTIVE_STEPS
         )
+        mock_model.p_budget_flexibility = 0.25
         worker = Worker(42, mock_model)
         project = Project(ProjectInventory(mock_allocator,
                                            model=mock_model),
@@ -90,10 +91,15 @@ class TestWorker(unittest.TestCase):
         self.assertTrue((skill_f >= 0.0) & (skill_f <= 5.0))
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_get_units_contributed(self, mock_inventory, mock_model):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_get_units_contributed(self, mock_allocator, mock_model):
         worker = Worker(42, mock_model)
-        project = Project(mock_inventory)
+        mock_model.p_budget_flexibility = 0.25
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
+                          project_id=42,
+                          project_length=2)
+
         worker.contributions.add_contribution(project, 'B')
         worker.contributions.add_contribution(project, 'C')
         worker.contributions.add_contribution(project, 'D')
@@ -102,10 +108,15 @@ class TestWorker(unittest.TestCase):
         )
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_contributes_less_than_full_time(self, mock_inventory, mock_model):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_contributes_less_than_full_time(self, mock_allocator, mock_model):
+        mock_model.p_budget_flexibility = 0.25
         worker = Worker(42, mock_model)
-        project = Project(mock_inventory)
+        worker.skills.hard_skills = dict(zip(HARD_SKILLS, [1, 2, 3, 4, 5]))
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
+                          project_id=42,
+                          project_length=2)
         worker.contributions.add_contribution(project, 'B')
         self.assertTrue(
             worker.contributions.contributes_less_than_full_time(0, 1)
@@ -131,11 +142,16 @@ class TestWorker(unittest.TestCase):
                              SKILL_DECAY_FACTOR * worker_skills[skill])
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_individual_chemistry(self, mock_inventory, mock_model):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_individual_chemistry(self, mock_allocator, mock_model):
+
+        mock_model.p_budget_flexibility = 0.25
         worker = Worker(42, mock_model)
         worker.skills.hard_skills = dict(zip(HARD_SKILLS, [1, 2, 3, 4, 5]))
-        project = Project(mock_inventory)
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
+                          project_id=42,
+                          project_length=2)
         project.requirements.hard_skills = {'A': {'units': 3, 'level': 4}}
         project.requirements.risk = worker.skills.ovr
         self.assertEqual(worker.individual_chemistry(project), 1)
@@ -192,17 +208,32 @@ class TestAllInStrategy(unittest.TestCase):
         self.assertEqual(strategy.name, 'test')
 
     @patch('superscript_model.model.Model')
-    @patch('superscript_model.project.ProjectInventory')
-    def test_bid(self, mock_inventory, mock_model):
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_bid(self, mock_allocator, mock_model):
+        mock_model.p_budget_flexibility = 0.25
+        mock_model.budget_functionality_flag = True
+        inventory = ProjectInventory(
+            mock_allocator,
+            model=mock_model
+        )
         worker = Worker(42, mock_model)
         strategy = AllInStrategy('test')
-        self.assertTrue(strategy.bid(Project(mock_inventory, 42, 5), worker))
+        self.assertTrue(strategy.bid(Project(
+            inventory,
+            project_id=42,
+            project_length=5
+        ), worker))
 
-    @patch('superscript_model.project.ProjectInventory')
-    def test_accept(self, mock_inventory):
-
+    @patch('superscript_model.model.SuperScriptModel')
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_accept(self, mock_allocator, mock_model):
+        mock_model.p_budget_flexibility = 0.25
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
+                          project_id=42,
+                          project_length=2)
         strategy = AllInStrategy('test')
-        self.assertTrue(strategy.accept(Project(mock_inventory, 42, 5)))
+        self.assertTrue(strategy.accept(project))
 
 
 class TestSkillMatrix(unittest.TestCase):

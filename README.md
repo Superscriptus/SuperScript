@@ -10,16 +10,12 @@
 *** for contributors-url, forks-url, etc. This is an optional, concise syntax you may use.
 *** https://www.markdownguide.org/basic-syntax/#reference-style-links
 -->
-
-<!--
-For now we exclude the shields...
 [![Contributors][contributors-shield]][contributors-url]
 [![Forks][forks-shield]][forks-url]
 [![Stargazers][stars-shield]][stars-url]
 [![Issues][issues-shield]][issues-url]
-[![MIT License][license-shield]][license-url]
+[![GNU APGLv3 License][license-shield]][license-url]
 [![LinkedIn][linkedin-shield]][linkedin-url]
--->
 
 <!-- PROJECT LOGO -->
 <br />
@@ -63,6 +59,10 @@ For now we exclude the shields...
       </ul>
     </li>
     <li><a href="#usage">Usage</a></li>
+    <li><a href="#analysis">Analysis</a></li>
+    <li><a href="#roadmap">Roadmap</a></li>
+    <li><a href="#tests">Tests</a></li>
+    <li><a href="#model-development">Model development</a></li>
   </ol>
 </details>
 
@@ -197,29 +197,60 @@ by default because it is slow to recompute the network layout on each timestep).
 saved for later analysis by setting the ```SAVE_NETWORK``` flag to ```True```.
 
 _Note: The parallel basinhopping optimisation (```ORGANISATION_STRATEGY = Basin```) can be very slow depending on the 
-size of simulation. **Add more on this**._
+size of simulation. For real-time visualisation it is best to use ```Random``` or ```Basic```, although the teams 
+produced will not be as good._
 
 #### Running simulations on AWS
 
 Instructions for getting set up on AWS are provided in 
 [documentation/aws_instructions](documentation/aws_instructions.md) 
 and there is a python script provided for running these simulations: 
-[aws_run_simulations.py](./aws_run_simulation.py)
+[aws_run_simulations.py](aws_run_simulation.py)
 
-#### Running simulations locally
+#### Running batch simulations
 
-A python script for running batch simulations is provided: [xxx](xxx)
+A python script for running batch simulations is provided: [batch_run_simulation.py](batch_run_simulation.py)
 
 ### Analysis
 
-_TODO: add details of the analysis scripts and what they do._ 
+There are two analysis notebooks and the data to run them are include in the repository 
+(in [simulation_io/](simulation_io)):
+1. [initial_aws_simulations.ipynb](analysis/initial_aws_simulations.ipynb) explores early simulated data (pre-release).
+2. [testing_hypotheses.ipynb](analysis/testing_hypotheses.ipynb) explores batch simulation data the were produced using 
+release v0.1 of the model.
+
+The hypotheses are detailed in the [model specification document](documentation/model_specification.pdf). The next 
+project milestone will expand the analysis to complete the investigation of these hypotheses. 
+
+### Roadmap
+
+The current roadmap consists of the following milestones  with expected
+shipping dates in square brackets:
+
+1.	Expand the current analysis to finish testing the initial hypotheses. [Q2 2021]
+2.	Complete unit testing framework to reach 100% (currently at 97%). [Q2 2021]
+3.	Alter training mechanism (and explore the 'rich get richer' effect). [Q3 2021]
+4.	Edit social network to track more information about historical collaborations. [Q3 2021]
+5.	Add performance benchmarking (for optimisation routine). [Q3 2021]
+6.	Review model extensions and choose those to implement. [Q3 2021]
+
+See [open issues](https://github.com/Superscriptus/SuperScript/issues) for details of milestone 1. 
+
+### Tests
+
+The repository is currently at 97% code coverage. To run the unit tests use:
+```
+coverage run -m unittest discover && coverage report
+```
+For an interactive html coverage report run ```coverage html -i``` and then open ```index.html``` in your browser.
+
 
 ### Model development
 
 The [documentation](./documentation) folder contains a word document with the full 
-[model specification](documentation/model_specification.docx).
+[model specification](documentation/model_specification.pdf).
 
-The directory [model_development][./model_development] contains Jupyter Notebooks relating to various stages of 
+The directory [model_development](./model_development) contains Jupyter Notebooks relating to various stages of 
 development of the model, from initial experiments prior to coding to the model, through to integration tests and 
 performance benchmarking. These notebooks include:
 
@@ -240,7 +271,9 @@ allocation strategies to confirm that 'Basic' does improve over the random metho
 probability.    
 * [optimization_experiments_gekko.ipynb](model_development/optimization_experiments_gekko.ipynb): failed attempt to get 
 Gekko mixed-integer optimisation working (included for completeness).
-* [optimization_experiments_scipy.ipynb](model_development/optimization_experiments_scipy.ipynb): ... 
+* [optimization_experiments_scipy.ipynb](model_development/optimization_experiments_scipy.ipynb): experiments to get 
+SciPy optimisation up and running. 
+* Benchmarking notebook: to be added in future milestone. 
 
 
 
@@ -275,16 +308,16 @@ Project Link: [https://github.com/your_username/repo_name](https://github.com/yo
 
 <!-- MARKDOWN LINKS & IMAGES -->
 <!-- https://www.markdownguide.org/basic-syntax/#reference-style-links -->
-[contributors-shield]: https://img.shields.io/github/contributors/othneildrew/Best-README-Template.svg?style=for-the-badge
-[contributors-url]: https://github.com/othneildrew/Best-README-Template/graphs/contributors
-[forks-shield]: https://img.shields.io/github/forks/othneildrew/Best-README-Template.svg?style=for-the-badge
-[forks-url]: https://github.com/othneildrew/Best-README-Template/network/members
-[stars-shield]: https://img.shields.io/github/stars/othneildrew/Best-README-Template.svg?style=for-the-badge
-[stars-url]: https://github.com/othneildrew/Best-README-Template/stargazers
-[issues-shield]: https://img.shields.io/github/issues/othneildrew/Best-README-Template.svg?style=for-the-badge
-[issues-url]: https://github.com/othneildrew/Best-README-Template/issues
-[license-shield]: https://img.shields.io/github/license/othneildrew/Best-README-Template.svg?style=for-the-badge
-[license-url]: https://github.com/othneildrew/Best-README-Template/blob/master/LICENSE.txt
+[contributors-shield]: https://img.shields.io/github/contributors/Superscriptus/SuperScript.svg?style=for-the-badge
+[contributors-url]: https://github.com/Superscriptus/SuperScript/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/Superscriptus/SuperScript.svg?style=for-the-badge
+[forks-url]: https://github.com/Superscriptus/SuperScript/network/members
+[stars-shield]: https://img.shields.io/github/stars/Superscriptus/SuperScript.svg?style=for-the-badge
+[stars-url]: https://github.com/Superscriptus/SuperScript/stargazers
+[issues-shield]: https://img.shields.io/github/issues/Superscriptus/SuperScript.svg?style=for-the-badge
+[issues-url]: https://github.com/Superscriptus/SuperScript/issues
+[license-shield]: https://img.shields.io/github/license/Superscriptus/SuperScript.svg?style=for-the-badge
+[license-url]: https://github.com/Superscriptus/SuperScript/blob/master/LICENSE.txt
 [linkedin-shield]: https://img.shields.io/badge/-LinkedIn-black.svg?style=for-the-badge&logo=linkedin&colorB=555
-[linkedin-url]: https://linkedin.com/in/othneildrew
+[linkedin-url]: https://www.linkedin.com/in/michaelchristen/
 [product-screenshot]: documentation/images/screenshot.png

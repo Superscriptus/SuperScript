@@ -1,12 +1,23 @@
+"""
+SuperScript AWS simulation runner.
+===========
+
+This script was used to run single simulation on AWS.
+
+Note that the batch_run_simulation.py script can be used on AWS also to run batch simulations.
+
+Usage: python aws_run_simulation.py ./simulation_io 100 100 2
+"""
+
 import time
 import pickle
-import sys, os
+import sys
+import os
 
-## Usage: python aws_run_simulation.py ./simulation_io 100 100 2
 
 if __name__ == "__main__":
 
-    MODEL_DIR = os.path.realpath(os.path.dirname('./superscript_model'))
+    MODEL_DIR = os.path.realpath(os.path.dirname('superscript_model'))
     sys.path.append(os.path.normpath(MODEL_DIR))
     from superscript_model import model
 

@@ -1,3 +1,13 @@
+"""
+SuperScript utilities module.
+===========
+
+Helper method for use throughout the code.
+
+Currently just a Random number generation class.
+
+"""
+
 import random
 import numpy as np
 
