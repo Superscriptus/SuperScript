@@ -31,7 +31,7 @@ P_HARD_SKILL = 0.8  # Probability that each hard skill exists (i.e. is non-zero)
 WORKER_OVR_MULTIPLIER = 20  # Multiplier for calculating worker OVR.
 WORKER_SUCCESS_HISTORY_LENGTH = 4  # Number of previous projects to track in social network.
 WORKER_SUCCESS_HISTORY_THRESHOLD = 0.75  # Required successful fraction of tracked projects to produce 'momentum'
-SKILL_DECAY_FACTOR = 0.95  # Decay multiplier for unused skills.
+SKILL_DECAY_FACTOR = 0.99  # Decay multiplier for unused skills.
 # Distribution parameters for peer assessment (success and fail):
 PEER_ASSESSMENT_SUCCESS_MEAN = 1.05
 PEER_ASSESSMENT_SUCCESS_STDEV = 0.2
