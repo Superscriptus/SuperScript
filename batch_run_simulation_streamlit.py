@@ -231,8 +231,13 @@ def run_sim(parameters):
 
 
 if __name__ == "__main__":
-    pool_obj = multiprocessing.Pool(4)
+
+    begin = time.time()
+
+    pool_obj = multiprocessing.Pool(6)
     run_times = pool_obj.map(run_sim, combinations)
+
+    all_run_time = time.time() - begin
 
     with open('./simulation_io/streamlit/main.log', 'a') as outfile:
 
@@ -242,3 +247,7 @@ if __name__ == "__main__":
 
         outfile.write("\nSum: " + str(np.nansum(run_times)))
         outfile.write("\nNaNCount: " + str(sum(np.isnan(run_times))))
+        outfile.write("\nAll run time: " + str(all_run_time))
+
+
+
