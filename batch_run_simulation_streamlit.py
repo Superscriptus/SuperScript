@@ -26,7 +26,7 @@ from superscript_model import model
 # These global configuration values override config.py and will be
 # used in all the simulations:
 REPLICATE_COUNT = 1  # Number of replicate simulations to run
-STEPS = 1  # Number of time steps for each simulation
+STEPS = 100  # Number of time steps for each simulation
 WORKER_COUNT = 100  # Total number of workers in simulation
 NUMBER_OF_PROCESSORS = 8  # Number of cores to use for parallel optimiser
 P_BUDGET_FLEXIBILITY = 0.25
@@ -177,7 +177,8 @@ def run_sim(parameters):
                     ),
                     save_projects=save_projects,
                     load_projects=load_projects,
-                    io_dir=sim_io_dir
+                    io_dir=sim_io_dir,
+                    skill_decay_factor=skill_decay
                 )
 
                 start_time = time.time()
