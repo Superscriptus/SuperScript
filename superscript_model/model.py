@@ -52,7 +52,8 @@ from .config import (PROJECT_LENGTH,
                      NUMBER_OF_BASIN_HOPS,
                      NUMBER_OF_PROCESSORS,
                      P_BUDGET_FLEXIBILITY,
-                     MAX_BUDGET_INCREASE)
+                     MAX_BUDGET_INCREASE,
+                     SKILL_DECAY_FACTOR)
 
 
 class SuperScriptModel(Model):
@@ -166,6 +167,8 @@ class SuperScriptModel(Model):
         datacollector: tracking.SSDataCollector
             Leverages mesa functionality to save simulation data for
             later analysis.
+        skill_decay_factor: float
+            Multiplicative skill decay for unused hard skills
     """
 
     def __init__(self, worker_count=WORKER_COUNT,
@@ -196,7 +199,8 @@ class SuperScriptModel(Model):
                  number_of_processors=NUMBER_OF_PROCESSORS,
                  number_of_basin_hops=NUMBER_OF_BASIN_HOPS,
                  p_budget_flexibility=P_BUDGET_FLEXIBILITY,
-                 max_budget_increase=MAX_BUDGET_INCREASE):
+                 max_budget_increase=MAX_BUDGET_INCREASE,
+                 skill_decay_factor=SKILL_DECAY_FACTOR):
 
         self.worker_count = worker_count
         self.new_projects_per_timestep = new_projects_per_timestep
@@ -251,13 +255,17 @@ class SuperScriptModel(Model):
                 di, workload=self.departmental_workload
             )
 
+        self.skill_decay_factor = skill_decay_factor
         workers_per_department = worker_count / department_count
         assert workers_per_department * department_count == worker_count
 
         di = 0
         assigned_to_di = 0
         for i in range(self.worker_count):
-            w = Worker(i, self, self.departments[di])
+            w = Worker(
+                i, self, self.departments[di],
+                skill_decay_factor=self.skill_decay_factor
+            )
             self.schedule.add(w)
 
             assigned_to_di += 1

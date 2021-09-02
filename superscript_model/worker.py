@@ -77,14 +77,15 @@ class Worker(Agent):
     """
 
     def __init__(self, worker_id: int,
-                 model, department=Department(0)):
+                 model, department=Department(0),
+                 skill_decay_factor=SKILL_DECAY_FACTOR):
         """
         Create new worker in specified department and call base class
         constructor to add worker(agent) to scheduler.
         """
         super().__init__(worker_id, model)
         self.worker_id = worker_id
-        self.skills = SkillMatrix()
+        self.skills = SkillMatrix(skill_decay_factor=skill_decay_factor)
         self.department = department
         self.department.add_worker()
 
