@@ -3,11 +3,10 @@ SuperScript local simulation batch runner.
 ===========
 
 This script runs a batch simulations for all the parameter combinations that will be displayed in the
-Streamlit application. Their data are saved to disk at: simulation_io/<BATCH_NAME>
+Streamlit application.
 
-It is best to pipe the standard output to a log file, as shown below.
-
-Usage:  python batch_run_simulation_all.py >> simulation_io/<BATCH_NAME>.log
+Data are saved to disk at: simulation_io/streamlit/<BATCH_NAME> and log files are produced for each
+simulation and for the batch (main.log).
 """
 
 
@@ -18,8 +17,8 @@ import sys
 import time
 import itertools
 import multiprocessing
+import numpy as np
 
-#BATCH_NAME = 'new_skill_decay_project_per_step_2_dep_wl_03_110621_v1.0'
 MODEL_DIR = './superscript_model'
 sys.path.append(os.path.normpath(MODEL_DIR))
 from superscript_model import model
@@ -27,7 +26,7 @@ from superscript_model import model
 # These global configuration values override config.py and will be
 # used in all the simulations:
 REPLICATE_COUNT = 1  # Number of replicate simulations to run
-STEPS = 100  # Number of time steps for each simulation
+STEPS = 1  # Number of time steps for each simulation
 WORKER_COUNT = 100  # Total number of workers in simulation
 NUMBER_OF_PROCESSORS = 8  # Number of cores to use for parallel optimiser
 P_BUDGET_FLEXIBILITY = 0.25
@@ -92,36 +91,46 @@ TL = [0.1, 0.3, 0.0, 2.0]
 BF = [0, 1]
 
 combinations = list(itertools.product(PPS, SD, DW, TL, BF))
-#print(combinations)
-#print(len(combinations))
 
 
-def print_sim(params):
+def print_log(text, batch_name, save_dir):
 
-    print("PPS = ", params[0])
-    print("SD = ", params[1])
-    print("DW = ", params[2])
-    print("TL = ", params[3])
-    print("BF = ", params[4])
+    with open(os.path.join(save_dir, batch_name + '.log'), 'a') as outfile:
+        outfile.write(text)
 
 
-def run_sim(batch_name, batch_id, parameters):
+def print_main_log(text):
+    with open('./simulation_io/streamlit/main.log', 'a') as outfile:
+        outfile.write(text)
 
-    save_dir = './simulation_io/' + batch_name
-    os.mkdir(save_dir)
+
+def run_sim(parameters):
+
+    total_time = 0
 
     new_projects = parameters[0]
     skill_decay = parameters[1]
     departmental_workload = parameters[2]
-    training_load = 0.1 if parameters[3]==2.0 else parameters[3]
-    training_flag = False if training_load==0.0 else True
+    training_load = 0.1 if parameters[3] == 2.0 else parameters[3]
+    training_boost = True if parameters[3] == 2.0 else False
+    training_flag = False if training_load == 0.0 else True
     budget_functionality = parameters[4]
+
+    batch_name = (
+            'pps_%d_sd_%.3f_dw_%.1f_tl_%.1f_tf_%d_tb_%d_bf_%d_010921_v1.1'
+            % (
+                new_projects, skill_decay, departmental_workload,
+                training_load, training_flag, training_boost, budget_functionality
+            )
+    )
+    save_dir = './simulation_io/streamlit/' + batch_name
+    os.mkdir(save_dir)
 
     for sim_type in SIMULATIONS.keys():
 
         sim_io_dir = save_dir + '/' + sim_type
         os.mkdir(sim_io_dir)
-        print("Simulation: ", sim_type)
+        print_log("\nSimulation: " + sim_type, batch_name, save_dir)
 
         if sim_type != 'Random':
             shutil.copyfile(
@@ -130,7 +139,7 @@ def run_sim(batch_name, batch_id, parameters):
             )
 
         for ri in range(REPLICATE_COUNT):
-            print("\t replicate: ", ri)
+            print_log("\t replicate: " + str(ri), batch_name, save_dir)
 
             if sim_type == 'Random' and ri == 0:
                 save_projects = True
@@ -172,14 +181,19 @@ def run_sim(batch_name, batch_id, parameters):
                 )
 
                 start_time = time.time()
-                abm.run_model(STEPS)
-                # abm.run_model(50)
-                # abm.trainer.training_boost()
-                # abm.run_model(50)
+
+                if training_boost:
+                    abm.run_model(int(np.ceil(STEPS/2)))
+                    abm.trainer.training_boost()
+                    abm.run_model(int(np.ceil(STEPS/2)))
+                else:
+                    abm.run_model(STEPS)
+
                 elapsed_time = time.time() - start_time
-                print(
+                print_log(
                     "Took %.2f seconds to run %d steps."
-                    % (elapsed_time, STEPS)
+                    % (elapsed_time, STEPS),
+                    batch_name, save_dir
                 )
 
                 tracked = abm.datacollector.get_model_vars_dataframe()
@@ -206,14 +220,24 @@ def run_sim(batch_name, batch_id, parameters):
 
                     pickle.dump(agents, ofile)
 
-            except:
-                print("Could not complete simulation.")
+                total_time += elapsed_time
 
+            except Exception as e:
+                print_main_log("\nCould not complete simulation: " + batch_name)
+                print_main_log("\n" + str(e))
 
-pool_obj = multiprocessing.Pool(4)
-answer = pool_obj.map(print_sim, combinations)
-#print(answer)
+    return total_time
 
 
 if __name__ == "__main__":
+    pool_obj = multiprocessing.Pool(4)
+    run_times = pool_obj.map(run_sim, combinations)
 
+    with open('./simulation_io/streamlit/main.log', 'a') as outfile:
+
+        outfile.write("\n")
+        for t in run_times:
+            outfile.write(str(t))
+
+        outfile.write("\nSum: " + str(np.nansum(run_times)))
+        outfile.write("\nNaNCount: " + str(sum(np.isnan(run_times))))

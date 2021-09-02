@@ -1167,18 +1167,21 @@ class Trainer:
         is below median, making them equal to the thrid quartile value.
 
         Note:
+            If the skill_quartiles have not been set, then the method does nothing.
+
             This method can be called externally as an intervention
             during simulation to test the effects of training.
         """
-        for worker in self.model.schedule.agents:
-            for skill in self.hard_skills:
-                if (
-                        worker.get_skill(skill)
-                        < self.skill_quartiles[skill][1]
-                ):
-                    worker.skills.hard_skills[skill] = (
-                        self.skill_quartiles[skill][2]
-                    )
+        if self.skill_quartiles:
+            for worker in self.model.schedule.agents:
+                for skill in self.hard_skills:
+                    if (
+                            worker.get_skill(skill)
+                            < self.skill_quartiles[skill][1]
+                    ):
+                        worker.skills.hard_skills[skill] = (
+                            self.skill_quartiles[skill][2]
+                        )
 
 
 class Department:
