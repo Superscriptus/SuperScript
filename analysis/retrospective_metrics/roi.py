@@ -10,6 +10,7 @@ will be included as standard.
 
 import pandas as pd
 import pickle
+import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -125,7 +126,6 @@ def calculate_instantaneous_roi(worker_data, project_data):
     reserve = []  # for instances where it appears that project finishes at timestep t, but it is logged at t+1
 
     for t in range(1, 101):
-        print(t)
 
         workers_present_at_t = worker_data.loc[t, :].index
         roi_worker_dict = {
@@ -170,73 +170,123 @@ def calculate_instantaneous_roi(worker_data, project_data):
     return roi
 
 
+def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1):
+
+    PPS = [1, 2, 3, 5, 10]
+    SD = [0.95, 0.99, 0.995]
+    DW = [0.1, 0.3]
+    TL = [0.1, 0.3, 0.0, 2.0]
+    BF = [0, 1]
+
+    combinations = list(itertools.product(PPS, SD, DW, TL, BF))
+
+    for pi, parameters in enumerate(combinations):
+        print(pi, parameters)
+
+        new_projects = parameters[0]
+        skill_decay = parameters[1]
+        departmental_workload = parameters[2]
+        training_load = 0.1 if parameters[3] == 2.0 else parameters[3]
+        training_boost = True if parameters[3] == 2.0 else False
+        training_flag = False if training_load == 0.0 else True
+        budget_functionality = parameters[4]
+
+        batch_name = (
+                'pps_%d_sd_%.3f_dw_%.1f_tl_%.1f_tf_%d_tb_%d_bf_%d_010921_v1.1'
+                % (
+                    new_projects, skill_decay, departmental_workload,
+                    training_load, training_flag, training_boost, budget_functionality
+                )
+        )
+
+        this_path = sim_path + batch_name
+
+        for optimiser in ['Basin', 'Basin_w_flex', 'Niter0', 'Random']:
+            for r in range(replicate_count):
+                agents_f = this_path + '/' + optimiser + '/agents_vars_rep_%d.pickle' % r
+                projects_f = this_path + '/' + optimiser + '/projects_table_rep_%d.pickle' % r
+
+                try:
+                    agents = load_data(agents_f)
+                    projects = load_data(projects_f)
+
+                    roi_list = calculate_instantaneous_roi(agents, projects)
+
+                    with open(this_path + '/' + optimiser + '/roi_rep_%d.pickle' % r, 'wb') as out_file:
+                        pickle.dump(roi_list, out_file)
+
+                except:
+                    print("Could not produce ROI for rep %d of : " % r, this_path + optimiser)
+
+
 if __name__ == "__main__":
 
-    replicate = 0
-
-    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
-    # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
-
-    agents = load_data(agents_f)
-    projects = load_data(projects_f)
-
-    #print(agents.head())
-    # print(projects.head())
-    #print(projects.columns)
-    # print(len(projects))
-    # print(agents.columns)
+    run_roi_for_all_simulations()
+    # replicate = 0
     #
-    # print(get_projects_for_worker(4, 1, agents))
-    # print(get_projects_for_worker(4, 4, agents))
-    # print(get_projects_for_worker(4, 5, agents))
-
-    # roi_tot_r = calculate_total_cummulative_roi(agents, projects)
-    roi_r = calculate_instantaneous_roi(agents, projects)
-
-    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/agents_vars_rep_%d.pickle' % replicate
-    projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/projects_table_rep_%d.pickle' % replicate
-    # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Basin_w_flex/agents_vars_rep_%d.pickle' % replicate
-    # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Basin_w_flex/projects_table_rep_%d.pickle' % replicate
-
-    agents = load_data(agents_f)
-    projects = load_data(projects_f)
-
-    # print(agents.head())
-    # print(projects.head())
-    # print(projects.columns)
-    # print(len(projects))
-    # print(agents.columns)
+    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+    # # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
     #
-    # print(get_projects_for_worker(4, 1, agents))
-    # print(get_projects_for_worker(4, 4, agents))
-    # print(get_projects_for_worker(4, 5, agents))
-
-    # roi_tot_bwf = calculate_total_cummulative_roi(agents, projects)
-    roi_bwf = calculate_instantaneous_roi(agents, projects)
-
-
-    def movingaverage(interval, window_size):
-        window = np.ones(int(window_size)) / float(window_size)
-        return np.convolve(interval, window, 'same')
-
-    # plt.plot(list(roi_tot_bwf.values()), label='Basin_w_flex')
-    # plt.plot(list(roi_tot_r.values()), label='Random')
-    plt.plot(roi_bwf, 'bo--', label='Basin_w_flex', linewidth=1)
-    plt.plot(roi_r, 'go--', label='Random', linewidth=1)
-
-    x_av = movingaverage(roi_r, window_size=7)
-    plt.plot(x_av, c='g', linewidth=2)
-
-    x_av = movingaverage(roi_bwf, window_size=7)
-    plt.plot(x_av, c='b', linewidth=2)
-
-    plt.legend()
-    plt.title('Cumulative Total Return on Investment')
-    plt.xlabel('time')
-    plt.ylabel('cumulative ROI')
-    plt.show()
-
-
-
+    # agents = load_data(agents_f)
+    # projects = load_data(projects_f)
+    #
+    # #print(agents.head())
+    # # print(projects.head())
+    # #print(projects.columns)
+    # # print(len(projects))
+    # # print(agents.columns)
+    # #
+    # # print(get_projects_for_worker(4, 1, agents))
+    # # print(get_projects_for_worker(4, 4, agents))
+    # # print(get_projects_for_worker(4, 5, agents))
+    #
+    # # roi_tot_r = calculate_total_cummulative_roi(agents, projects)
+    # roi_r = calculate_instantaneous_roi(agents, projects)
+    #
+    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/agents_vars_rep_%d.pickle' % replicate
+    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/projects_table_rep_%d.pickle' % replicate
+    # # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Basin_w_flex/agents_vars_rep_%d.pickle' % replicate
+    # # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Basin_w_flex/projects_table_rep_%d.pickle' % replicate
+    #
+    # agents = load_data(agents_f)
+    # projects = load_data(projects_f)
+    #
+    # # print(agents.head())
+    # # print(projects.head())
+    # # print(projects.columns)
+    # # print(len(projects))
+    # # print(agents.columns)
+    # #
+    # # print(get_projects_for_worker(4, 1, agents))
+    # # print(get_projects_for_worker(4, 4, agents))
+    # # print(get_projects_for_worker(4, 5, agents))
+    #
+    # # roi_tot_bwf = calculate_total_cummulative_roi(agents, projects)
+    # roi_bwf = calculate_instantaneous_roi(agents, projects)
+    #
+    #
+    # def movingaverage(interval, window_size):
+    #     window = np.ones(int(window_size)) / float(window_size)
+    #     return np.convolve(interval, window, 'same')
+    #
+    # # plt.plot(list(roi_tot_bwf.values()), label='Basin_w_flex')
+    # # plt.plot(list(roi_tot_r.values()), label='Random')
+    # plt.plot(roi_bwf, 'bo--', label='Basin_w_flex', linewidth=1)
+    # plt.plot(roi_r, 'go--', label='Random', linewidth=1)
+    #
+    # x_av = movingaverage(roi_r, window_size=7)
+    # plt.plot(x_av, c='g', linewidth=2)
+    #
+    # x_av = movingaverage(roi_bwf, window_size=7)
+    # plt.plot(x_av, c='b', linewidth=2)
+    #
+    # plt.legend()
+    # plt.title('Cumulative Total Return on Investment')
+    # plt.xlabel('time')
+    # plt.ylabel('cumulative ROI')
+    # plt.show()
+    #
+    #
+    #
