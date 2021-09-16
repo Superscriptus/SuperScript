@@ -191,7 +191,7 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
                         pickle.dump(roi_list, out_file)
 
                 except:
-                    print("Could not produce ROI for rep %d of : " % r, this_path + optimiser)
+                    print("Could not produce ROI for rep %d of : " % r, this_path + '/' + optimiser)
 
 
 if __name__ == "__main__":
