@@ -4,6 +4,9 @@ SuperScript retrospective metric: ROI.
 
 This script calculates the return on investment metric for a given simulation, using the output pickle files.
 
+When multiple projects finish one the same timestep, the return for an individual worker is averaged over their
+projects.
+
 Note: this is necessary at v1.1 as ROI calculation is not included in the main code. In a future version ROI tracking
 will be included as standard.
 """
@@ -74,50 +77,11 @@ def get_project_status(pid, project_data):
     return project_data.loc[pid].success
 
 
-def get_return(outcome, return_dict={True: 25, False: 5}):
+def get_return(outcome, return_dict={True: 0.25, False: 0.05}):
     if outcome is None:
         return None
     else:
         return return_dict[outcome]
-
-
-def calculate_total_cummulative_roi(worker_data, project_data):
-
-    roi_total_dict = dict()
-
-    for t in range(1, 101):
-        print(t)
-
-        reserve = []
-        roi_total_dict[t] = 0
-        if t > 1:
-            roi_total_dict[t] += roi_total_dict[t - 1]
-
-        completed = completed_projects(t, worker_data)
-        if completed is not None:
-            status = [get_return(get_project_status(p, project_data)) for p in completed_projects(t, worker_data)]
-        else:
-            status = None
-        # print(completed_projects(t, agents), status)
-
-        if completed is not None and len(completed) > 0:
-
-            completed.extend(reserve)
-            reserve = []
-            for p in completed:
-                try:
-                    status = get_return(get_project_status(p, project_data))
-                    p_worker = get_workers_for_project(p, t - 1, worker_data)
-
-                    for w in p_worker:
-                        roi_total_dict[t] += status
-
-                except:
-                    reserve.append(p)
-
-                # print(get_workers_for_project(p, t-1, agents))
-
-    return roi_total_dict
 
 
 def calculate_instantaneous_roi(worker_data, project_data):
@@ -132,7 +96,10 @@ def calculate_instantaneous_roi(worker_data, project_data):
             w: 0
             for w in workers_present_at_t
         }
-
+        project_count_dict = {
+            w: 0
+            for w in workers_present_at_t
+        }
         completed = completed_projects(t, worker_data)
 
         if len(reserve) > 0:
@@ -144,6 +111,7 @@ def calculate_instantaneous_roi(worker_data, project_data):
 
                     for w in p_worker:
                         roi_worker_dict[w] += status
+                        project_count_dict[w] += 1
 
                 except:
                     print("Can find project %d on second attempt." % p)
@@ -160,11 +128,18 @@ def calculate_instantaneous_roi(worker_data, project_data):
 
                     for w in p_worker:
                         roi_worker_dict[w] += status
+                        project_count_dict[w] += 1
 
                 except:
                     print("Can find project %d on first attempt." % p)
                     reserve.append(p)
 
+        roi_worker_dict = {
+            w: roi_worker_dict[w] / project_count_dict[w]
+            if project_count_dict[w] > 0
+            else 0
+            for w in roi_worker_dict.keys()
+        }
         roi.append(np.mean(list(roi_worker_dict.values())))
 
     return roi
@@ -222,6 +197,7 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
 if __name__ == "__main__":
 
     run_roi_for_all_simulations()
+
     # replicate = 0
     #
     # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
