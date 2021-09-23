@@ -15,6 +15,7 @@ import pickle
 import itertools
 import numpy as np
 import networkx as nx
+from pyvis.network import Network
 from itertools import combinations
 import matplotlib.pyplot as plt
 
@@ -89,9 +90,9 @@ def update_graph(worker_data, project_data, t, p, G):
         for pair in pairs:
 
             if (pair[0], pair[1]) not in G.edges():
-                G.add_edge(pair[0], pair[1], weight=1)
+                G.add_edge(pair[0], pair[1], width=1)
             else:
-                G[pair[0]][pair[1]]['weight'] += 1
+                G[pair[0]][pair[1]]['width'] += 1
 
     return G
 
@@ -222,8 +223,12 @@ if __name__ == "__main__":
     # print(agents.loc[~agents.contributes.isna()].tail())
     #
     G = calculate_network(agents, projects, None, replicate, save_net=False, plot_net=False)
-    nx.draw(G)
-    plt.show()
+
+    G[199][123]['width'] += 10
+
+    nt = Network('500px', '500px')
+    nt.from_nx(G)
+    nt.show('nx.html')
     # #
     # # print(get_projects_for_worker(4, 1, agents))
     # # print(get_projects_for_worker(4, 4, agents))
