@@ -105,6 +105,11 @@ def calculate_network(worker_data, project_data, directory_path,
     for t in range(1, 101):
 
         workers_present_at_t = worker_data.loc[t, :].index
+
+        G.add_nodes_from(workers_present_at_t)
+        removed_workers = [n for n in list(G.nodes) if n not in workers_present_at_t]
+        G.remove_nodes_from(removed_workers)
+
         roi_worker_dict = {
             w: 0
             for w in workers_present_at_t
@@ -216,8 +221,9 @@ if __name__ == "__main__":
     # print(agents.columns)
     # print(agents.loc[~agents.contributes.isna()].tail())
     #
-    G = calculate_network(agents, projects, None, replicate, save_net=False, plot_net=True)
-
+    G = calculate_network(agents, projects, None, replicate, save_net=False, plot_net=False)
+    nx.draw(G)
+    plt.show()
     # #
     # # print(get_projects_for_worker(4, 1, agents))
     # # print(get_projects_for_worker(4, 4, agents))
