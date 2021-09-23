@@ -14,6 +14,8 @@ import pandas as pd
 import pickle
 import itertools
 import numpy as np
+import networkx as nx
+from itertools import combinations
 import matplotlib.pyplot as plt
 
 HARD_SKILLS = ['A', 'B', 'C', 'D', 'E']
@@ -76,17 +78,26 @@ def get_project_status(pid, project_data):
     return project_data.loc[pid].success
 
 
-def get_return(outcome, return_dict={True: 0.25, False: 0.05}):
-    if outcome is None:
-        return None
-    else:
-        return return_dict[outcome]
+def update_graph(worker_data, project_data, t, p, G):
+
+    status = get_project_status(p, project_data)
+    p_worker = get_workers_for_project(p, t - 1, worker_data)
+
+    pairs = list(combinations(p_worker))
+    for pair in pairs:
+
+        if (pair[0], pair[1]) not in G.edges():
+            G.add_edge(pair[0], pair[1], weight=1)
+        else:
+            G[pair[0]][pair[1]]['weight'] += 1
+
+    return G
 
 
-def calculate_instantaneous_roi(worker_data, project_data):
+def calculate_network(worker_data, project_data, directory_path, rep):
 
-    roi = []
     reserve = []  # for instances where it appears that project finishes at timestep t, but it is logged at t+1
+    G = nx.graph()
 
     for t in range(1, 101):
 
@@ -105,12 +116,7 @@ def calculate_instantaneous_roi(worker_data, project_data):
             for p in reserve:
 
                 try:
-                    status = get_return(get_project_status(p, project_data))
-                    p_worker = get_workers_for_project(p, t - 1, worker_data)
-
-                    for w in p_worker:
-                        roi_worker_dict[w] += status
-                        project_count_dict[w] += 1
+                    G = update_graph(worker_data, project_data, t, p, G)
 
                 except:
                     print("Can find project %d on second attempt." % p)
@@ -121,26 +127,16 @@ def calculate_instantaneous_roi(worker_data, project_data):
             for p in completed:
 
                 try:
-                    status = get_return(get_project_status(p, project_data))
-                    p_worker = get_workers_for_project(p, t - 1, worker_data)
-
-                    for w in p_worker:
-                        roi_worker_dict[w] += status
-                        project_count_dict[w] += 1
+                    G = update_graph(worker_data, project_data, t, p, G)
 
                 except:
                     print("Can find project %d on first attempt." % p)
                     reserve.append(p)
 
-        roi_worker_dict = {
-            w: roi_worker_dict[w] / project_count_dict[w]
-            if project_count_dict[w] > 0
-            else 0
-            for w in roi_worker_dict.keys()
-        }
-        roi.append(np.mean(list(roi_worker_dict.values())))
+        file_path = directory_path + '/network_rep_%d_timestep_%d.adjlist' % (rep, t)
+        nx.write_multiline_adjlist(G, file_path)
 
-    return roi
+    return G
 
 
 def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1):
@@ -183,7 +179,7 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
                     agents = load_data(agents_f)
                     projects = load_data(projects_f)
 
-                    roi_list = calculate_instantaneous_roi(agents, projects)
+                    roi_list = calculate_network(agents, projects)
 
                     with open(this_path + '/' + optimiser + '/roi_rep_%d.pickle' % r, 'wb') as out_file:
                         pickle.dump(roi_list, out_file)
