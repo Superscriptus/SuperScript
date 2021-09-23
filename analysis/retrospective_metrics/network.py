@@ -81,23 +81,26 @@ def get_project_status(pid, project_data):
 def update_graph(worker_data, project_data, t, p, G):
 
     status = get_project_status(p, project_data)
-    p_worker = get_workers_for_project(p, t - 1, worker_data)
 
-    pairs = list(combinations(p_worker))
-    for pair in pairs:
+    if status:
+        p_worker = get_workers_for_project(p, t - 1, worker_data)
 
-        if (pair[0], pair[1]) not in G.edges():
-            G.add_edge(pair[0], pair[1], weight=1)
-        else:
-            G[pair[0]][pair[1]]['weight'] += 1
+        pairs = list(combinations(p_worker, 2))
+        for pair in pairs:
+
+            if (pair[0], pair[1]) not in G.edges():
+                G.add_edge(pair[0], pair[1], weight=1)
+            else:
+                G[pair[0]][pair[1]]['weight'] += 1
 
     return G
 
 
-def calculate_network(worker_data, project_data, directory_path, rep):
+def calculate_network(worker_data, project_data, directory_path,
+                      rep, save_net=True, plot_net=False):
 
     reserve = []  # for instances where it appears that project finishes at timestep t, but it is logged at t+1
-    G = nx.graph()
+    G = nx.Graph()
 
     for t in range(1, 101):
 
@@ -133,8 +136,12 @@ def calculate_network(worker_data, project_data, directory_path, rep):
                     print("Can find project %d on first attempt." % p)
                     reserve.append(p)
 
-        file_path = directory_path + '/network_rep_%d_timestep_%d.adjlist' % (rep, t)
-        nx.write_multiline_adjlist(G, file_path)
+        if save_net:
+            file_path = directory_path + '/network_rep_%d_timestep_%d.adjlist' % (rep, t)
+            nx.write_multiline_adjlist(G, file_path)
+        if plot_net:
+            nx.draw(G)
+            plt.show()
 
     return G
 
@@ -202,13 +209,15 @@ if __name__ == "__main__":
     agents = load_data(agents_f)
     projects = load_data(projects_f)
 
-    print(agents.tail())
-    print(projects.tail())
-    print(projects.columns)
-    print(len(projects))
-    print(agents.columns)
+    # print(agents.tail())
+    # print(projects.tail())
+    # print(projects.columns)
+    # print(len(projects))
+    # print(agents.columns)
+    # print(agents.loc[~agents.contributes.isna()].tail())
+    #
+    G = calculate_network(agents, projects, None, replicate, save_net=False, plot_net=True)
 
-    print(agents.loc[~agents.contributes.isna()].tail())
     # #
     # # print(get_projects_for_worker(4, 1, agents))
     # # print(get_projects_for_worker(4, 4, agents))
