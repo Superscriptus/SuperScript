@@ -1,14 +1,13 @@
 """
-SuperScript retrospective metric: ROI.
+SuperScript retrospective metric: Network of successful collaborations.
 ===========
 
-This script calculates the return on investment metric for a given simulation, using the output pickle files.
+This script reconstructs the network of historical successful collaborations at each timestep,
+ using the output pickle files. So each edge weight gives the number of times that pair of workers
+ have successfully worked on a project together up to that timestep.
 
-When multiple projects finish one the same timestep, the return for an individual worker is averaged over their
-projects.
-
-Note: this is necessary at v1.1 as ROI calculation is not included in the main code. In a future version ROI tracking
-will be included as standard.
+Note: this is necessary at v1.1 as the gpickle network output is too disk-space intensive to save the network at every
+timestep for a large batch of simulations.
 """
 
 import pandas as pd
@@ -195,23 +194,25 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
 
 if __name__ == "__main__":
 
-    run_roi_for_all_simulations()
+    #run_roi_for_all_simulations()
 
-    # replicate = 0
-    #
-    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+    replicate = 0
+
+    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
     # # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
     # # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
     #
-    # agents = load_data(agents_f)
-    # projects = load_data(projects_f)
-    #
-    # #print(agents.head())
-    # # print(projects.head())
-    # #print(projects.columns)
-    # # print(len(projects))
-    # # print(agents.columns)
+    agents = load_data(agents_f)
+    projects = load_data(projects_f)
+
+    print(agents.tail())
+    print(projects.tail())
+    print(projects.columns)
+    print(len(projects))
+    print(agents.columns)
+
+    print(agents.loc[~agents.contributes.isna()].tail())
     # #
     # # print(get_projects_for_worker(4, 1, agents))
     # # print(get_projects_for_worker(4, 4, agents))
