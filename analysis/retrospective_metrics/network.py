@@ -152,7 +152,7 @@ def calculate_network(worker_data, project_data, directory_path,
     return G
 
 
-def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1):
+def run_network_reconstruction_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1):
 
     PPS = [1, 2, 3, 5, 10]
     SD = [0.95, 0.99, 0.995]
@@ -192,93 +192,47 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
                     agents = load_data(agents_f)
                     projects = load_data(projects_f)
 
-                    roi_list = calculate_network(agents, projects)
-
-                    with open(this_path + '/' + optimiser + '/roi_rep_%d.pickle' % r, 'wb') as out_file:
-                        pickle.dump(roi_list, out_file)
+                    G = calculate_network(
+                        agents, projects,
+                        directory_path=this_path + '/' + optimiser,
+                        rep=r,
+                        save_net=True,
+                        plot_net=False
+                    )
 
                 except:
-                    print("Could not produce ROI for rep %d of : " % r, this_path + '/' + optimiser)
+                    print("Could not reconstruct network for rep %d of : " % r, this_path + '/' + optimiser)
 
 
 if __name__ == "__main__":
 
-    #run_roi_for_all_simulations()
+    run_network_reconstruction_for_all_simulations()
 
-    replicate = 0
-
-    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
-    # # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    # # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+    # replicate = 0
     #
-    agents = load_data(agents_f)
-    projects = load_data(projects_f)
-
-    # print(agents.tail())
-    # print(projects.tail())
-    # print(projects.columns)
-    # print(len(projects))
-    # print(agents.columns)
-    # print(agents.loc[~agents.contributes.isna()].tail())
-    #
-    G = calculate_network(agents, projects, None, replicate, save_net=False, plot_net=False)
-
-    G[199][123]['width'] += 10
-
-    nt = Network('500px', '500px')
-    nt.from_nx(G)
-    nt.show('nx.html')
+    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+    # # # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # # # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
     # #
-    # # print(get_projects_for_worker(4, 1, agents))
-    # # print(get_projects_for_worker(4, 4, agents))
-    # # print(get_projects_for_worker(4, 5, agents))
-    #
-    # # roi_tot_r = calculate_total_cummulative_roi(agents, projects)
-    # roi_r = calculate_instantaneous_roi(agents, projects)
-    #
-    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/agents_vars_rep_%d.pickle' % replicate
-    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/projects_table_rep_%d.pickle' % replicate
-    # # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Basin_w_flex/agents_vars_rep_%d.pickle' % replicate
-    # # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Basin_w_flex/projects_table_rep_%d.pickle' % replicate
-    #
     # agents = load_data(agents_f)
     # projects = load_data(projects_f)
     #
-    # # print(agents.head())
-    # # print(projects.head())
+    # # print(agents.tail())
+    # # print(projects.tail())
     # # print(projects.columns)
     # # print(len(projects))
     # # print(agents.columns)
+    # # print(agents.loc[~agents.contributes.isna()].tail())
     # #
-    # # print(get_projects_for_worker(4, 1, agents))
-    # # print(get_projects_for_worker(4, 4, agents))
-    # # print(get_projects_for_worker(4, 5, agents))
+    # G = calculate_network(
+    #     agents, projects, '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/',
+    #     replicate, save_net=True, plot_net=False
+    # )
     #
-    # # roi_tot_bwf = calculate_total_cummulative_roi(agents, projects)
-    # roi_bwf = calculate_instantaneous_roi(agents, projects)
+    # G[199][123]['width'] += 10
     #
-    #
-    # def movingaverage(interval, window_size):
-    #     window = np.ones(int(window_size)) / float(window_size)
-    #     return np.convolve(interval, window, 'same')
-    #
-    # # plt.plot(list(roi_tot_bwf.values()), label='Basin_w_flex')
-    # # plt.plot(list(roi_tot_r.values()), label='Random')
-    # plt.plot(roi_bwf, 'bo--', label='Basin_w_flex', linewidth=1)
-    # plt.plot(roi_r, 'go--', label='Random', linewidth=1)
-    #
-    # x_av = movingaverage(roi_r, window_size=7)
-    # plt.plot(x_av, c='g', linewidth=2)
-    #
-    # x_av = movingaverage(roi_bwf, window_size=7)
-    # plt.plot(x_av, c='b', linewidth=2)
-    #
-    # plt.legend()
-    # plt.title('Cumulative Total Return on Investment')
-    # plt.xlabel('time')
-    # plt.ylabel('cumulative ROI')
-    # plt.show()
-    #
-    #
+    # nt = Network('500px', '500px')
+    # nt.from_nx(G)
+    # nt.show('nx.html')
     #
