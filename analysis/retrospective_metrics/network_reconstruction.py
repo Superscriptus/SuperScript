@@ -111,14 +111,6 @@ def calculate_network(worker_data, project_data, directory_path,
         removed_workers = [n for n in list(G.nodes) if n not in workers_present_at_t]
         G.remove_nodes_from(removed_workers)
 
-        roi_worker_dict = {
-            w: 0
-            for w in workers_present_at_t
-        }
-        project_count_dict = {
-            w: 0
-            for w in workers_present_at_t
-        }
         completed = completed_projects(t, worker_data)
 
         if len(reserve) > 0:
