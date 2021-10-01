@@ -7,6 +7,12 @@ This script calculates the return on investment metric for a given simulation, u
 When multiple projects finish one the same timestep, the return for an individual worker is averaged over their
 projects.
 
+This version of the ROI calculation was updated on 29/09/21.
+The previous version can be used by setting legacy=True, and did not include:
+- return for active workers during projects
+- return for training workers
+- return for departmental workers
+
 Note: this is necessary at v1.1 as ROI calculation is not included in the main code. In a future version ROI tracking
 will be included as standard.
 """
@@ -73,18 +79,70 @@ def completed_projects(timestep, worker_data):
         return None
 
 
+def training_workers(timestep, worker_data):
+
+    workers = worker_data.loc[timestep, :]
+    workers = workers[workers['training_remaining'] > 0].index
+    return list(set(workers))
+
+
 def get_project_status(pid, project_data):
     return project_data.loc[pid].success
 
 
-def get_return(outcome, return_dict={True: 0.25, False: 0.05}):
+def get_return(outcome, return_dict={True: 50, False: 10}):
     if outcome is None:
         return None
     else:
         return return_dict[outcome]
 
 
-def calculate_instantaneous_roi(worker_data, project_data):
+def add_projects_to_worker_roi_dict(
+        project_list, project_data, worker_data, return_dict, t,
+        roi_worker_dict, project_count_dict,
+        get_status=get_project_status,
+        add_to_reserve_list=False,
+        error_message=""
+):
+    reserve_list = []
+    if project_list is not None and len(project_list) > 0:
+
+        for p in project_list:
+
+            try:
+                return_value = get_return(
+                    get_status(p, project_data),
+                    return_dict=return_dict
+                )
+                p_worker = get_workers_for_project(p, t, worker_data)
+
+                for w in p_worker:
+                    roi_worker_dict[w] += return_value
+                    project_count_dict[w] += 1
+
+            except:
+                print(error_message)
+                if add_to_reserve_list:
+                    reserve_list.append(p)
+
+    return roi_worker_dict, project_count_dict, reserve_list
+
+
+def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl=0.1):
+
+    if legacy:
+        return_dict = {
+            True: 25,
+            False: 5
+        }
+    else:
+        return_dict = {
+            True: 50,
+            False: 10,
+            'active': 5,
+            'train': 5,
+            'dept': 10
+        }
 
     roi = []
     reserve = []  # for instances where it appears that project finishes at timestep t, but it is logged at t+1
@@ -100,38 +158,33 @@ def calculate_instantaneous_roi(worker_data, project_data):
             w: 0
             for w in workers_present_at_t
         }
+        trainers = training_workers(t, worker_data)
+        active_projects = get_running_projects(t, worker_data)
         completed = completed_projects(t, worker_data)
 
-        if len(reserve) > 0:
-            for p in reserve:
+        roi_worker_dict, project_count_dict, _ = add_projects_to_worker_roi_dict(
+            reserve, project_data, worker_data, return_dict, t-1,
+            roi_worker_dict, project_count_dict,
+            error_message="Can't find project on second attempt."
+        )
 
-                try:
-                    status = get_return(get_project_status(p, project_data))
-                    p_worker = get_workers_for_project(p, t - 1, worker_data)
+        roi_worker_dict, project_count_dict, _ = add_projects_to_worker_roi_dict(
+            active_projects, project_data, worker_data, return_dict, t,
+            roi_worker_dict, project_count_dict,
+            get_status=lambda x, y: 'active',
+            error_message="Can't find active project."
+        )
 
-                    for w in p_worker:
-                        roi_worker_dict[w] += status
-                        project_count_dict[w] += 1
+        roi_worker_dict, project_count_dict, reserve = add_projects_to_worker_roi_dict(
+            completed, project_data, worker_data, return_dict, t-1,
+            roi_worker_dict, project_count_dict,
+            add_to_reserve_list=True,
+            error_message="Can't find project on first attempt"
+        )
 
-                except:
-                    print("Can find project %d on second attempt." % p)
-
-        if completed is not None and len(completed) > 0:
-
-            reserve = []
-            for p in completed:
-
-                try:
-                    status = get_return(get_project_status(p, project_data))
-                    p_worker = get_workers_for_project(p, t - 1, worker_data)
-
-                    for w in p_worker:
-                        roi_worker_dict[w] += status
-                        project_count_dict[w] += 1
-
-                except:
-                    print("Can find project %d on first attempt." % p)
-                    reserve.append(p)
+        # for tr in trainers:
+        #     roi_worker_dict[t] += return_dict['train']
+        # int(len(workers_present_at_t) * dept_wl)
 
         roi_worker_dict = {
             w: roi_worker_dict[w] / project_count_dict[w]
@@ -195,20 +248,20 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
 
 if __name__ == "__main__":
 
-    run_roi_for_all_simulations()
+    # run_roi_for_all_simulations()
 
-    # replicate = 0
+    replicate = 0
     #
-    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
-    # # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    # # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
-    #
-    # agents = load_data(agents_f)
-    # projects = load_data(projects_f)
-    #
-    # #print(agents.head())
-    # # print(projects.head())
+    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+    # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+
+    agents = load_data(agents_f)
+    projects = load_data(projects_f)
+
+    # print(agents.head())
+    # print(projects.head())
     # #print(projects.columns)
     # # print(len(projects))
     # # print(agents.columns)
@@ -218,7 +271,8 @@ if __name__ == "__main__":
     # # print(get_projects_for_worker(4, 5, agents))
     #
     # # roi_tot_r = calculate_total_cummulative_roi(agents, projects)
-    # roi_r = calculate_instantaneous_roi(agents, projects)
+    roi_r = calculate_instantaneous_roi(agents, projects)
+    print(roi_r)
     #
     # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/agents_vars_rep_%d.pickle' % replicate
     # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/projects_table_rep_%d.pickle' % replicate
