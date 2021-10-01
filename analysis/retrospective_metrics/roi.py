@@ -83,6 +83,7 @@ def training_workers(timestep, worker_data):
 
     workers = worker_data.loc[timestep, :]
     workers = workers[workers['training_remaining'] > 0].index
+
     return list(set(workers))
 
 
@@ -121,7 +122,7 @@ def add_projects_to_worker_roi_dict(
                     project_count_dict[w] += 1
 
             except:
-                print(error_message)
+                print(error_message % p)
                 if add_to_reserve_list:
                     reserve_list.append(p)
 
@@ -165,26 +166,36 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
         roi_worker_dict, project_count_dict, _ = add_projects_to_worker_roi_dict(
             reserve, project_data, worker_data, return_dict, t-1,
             roi_worker_dict, project_count_dict,
-            error_message="Can't find project on second attempt."
+            error_message="Can't find project %d on second attempt."
         )
 
         roi_worker_dict, project_count_dict, _ = add_projects_to_worker_roi_dict(
             active_projects, project_data, worker_data, return_dict, t,
             roi_worker_dict, project_count_dict,
             get_status=lambda x, y: 'active',
-            error_message="Can't find active project."
+            error_message="Can't find active project %d."
         )
 
         roi_worker_dict, project_count_dict, reserve = add_projects_to_worker_roi_dict(
             completed, project_data, worker_data, return_dict, t-1,
             roi_worker_dict, project_count_dict,
             add_to_reserve_list=True,
-            error_message="Can't find project on first attempt"
+            error_message="Can't find project %d on first attempt"
         )
 
-        # for tr in trainers:
-        #     roi_worker_dict[t] += return_dict['train']
-        # int(len(workers_present_at_t) * dept_wl)
+        for tr in trainers:
+            roi_worker_dict[tr] += return_dict['train']
+            project_count_dict[tr] += 1
+
+        departmental_worker_count = int(len(workers_present_at_t) * dept_wl)
+        departmental_workers = [w for w in workers_present_at_t if roi_worker_dict[w] == 0]
+        if len(departmental_workers) < departmental_worker_count:
+            print("Not enough D workers!")
+            departmental_workers.append(set(workers_present_at_t) - set(departmental_workers))
+        else:
+            for d in range(departmental_worker_count):
+                roi_worker_dict[departmental_workers[d]] += return_dict['dept']
+                project_count_dict[departmental_workers[d]] += 1
 
         roi_worker_dict = {
             w: roi_worker_dict[w] / project_count_dict[w]
