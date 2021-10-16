@@ -259,17 +259,17 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
 
 if __name__ == "__main__":
 
-    # run_roi_for_all_simulations()
+    run_roi_for_all_simulations()
 
-    replicate = 0
+    # replicate = 0
     #
-    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
     # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
     # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
 
-    agents = load_data(agents_f)
-    projects = load_data(projects_f)
+    # agents = load_data(agents_f)
+    # projects = load_data(projects_f)
 
     # print(agents.head())
     # print(projects.head())
@@ -282,8 +282,8 @@ if __name__ == "__main__":
     # # print(get_projects_for_worker(4, 5, agents))
     #
     # # roi_tot_r = calculate_total_cummulative_roi(agents, projects)
-    roi_r = calculate_instantaneous_roi(agents, projects)
-    print(roi_r)
+    # roi_r = calculate_instantaneous_roi(agents, projects)
+    # print(roi_r)
     #
     # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/agents_vars_rep_%d.pickle' % replicate
     # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Basin_w_flex/projects_table_rep_%d.pickle' % replicate
