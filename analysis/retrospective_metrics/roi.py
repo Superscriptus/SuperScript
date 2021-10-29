@@ -52,14 +52,31 @@ def get_projects_for_worker(worker_id, timestep, worker_data):
         return []
 
 
-def get_workers_for_project(pid, timestep, worker_data):
+def get_worker_contributions(worker_id, timestep, worker_data):
+
+    contributions = worker_data.loc[timestep, worker_id].contributes
+    if contributions is not None:
+        contributions = [contributions[skill] for skill in HARD_SKILLS]
+        worker_projects = [item for sublist in contributions for item in sublist]
+
+        worker_contributions = {
+            project: worker_projects.count(project)
+            for project in list(set(worker_projects))
+        }
+    else:
+        worker_contributions = {}
+
+    return worker_contributions
+
+
+def get_contributions_to_project(pid, timestep, worker_data):
     workers_present = worker_data.loc[timestep, :].index
 
-    workers = []
+    workers = {}
     for worker_id in workers_present:
-        worker_projects = get_projects_for_worker(worker_id, timestep, worker_data)
-        if pid in worker_projects:
-            workers.append(worker_id)
+        worker_contributions = get_worker_contributions(worker_id, timestep, worker_data)
+        if pid in worker_contributions.keys():
+            workers[worker_id] = worker_contributions[pid]
 
     return workers
 
@@ -120,11 +137,11 @@ def add_projects_to_worker_roi_dict(
                     get_status(p, project_data),
                     return_dict=return_dict
                 )
-                p_worker = get_workers_for_project(p, t, worker_data)
+                p_worker = get_contributions_to_project(p, t, worker_data)
 
                 for w in p_worker:
-                    roi_worker_dict[w] += return_value
-                    project_count_dict[w] += 1
+                    roi_worker_dict[w] += return_value * p_worker[w]
+                    project_count_dict[w] += p_worker[w]
 
             except:
                 print(error_message % p)
@@ -190,7 +207,7 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
 
         for tr in trainers:
             roi_worker_dict[tr] += return_dict['train']
-            unit_count_dict[tr] += 1
+            unit_count_dict[tr] += 10
 
         departmental_worker_count = int(len(workers_present_at_t) * dept_wl)
         departmental_workers = [w for w in workers_present_at_t if roi_worker_dict[w] == 0]
@@ -206,8 +223,9 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
             unit_count_dict[departmental_workers[d]] += 1
 
         for units in unit_count_dict.values():
-            if units > 0:
-                assert units == 10
+            if units > 0 and units != 10:
+                print(units)
+                # assert units == 10
 
         roi_worker_dict = {
             w: roi_worker_dict[w] / unit_count_dict[w]
@@ -318,19 +336,20 @@ def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_co
 
 if __name__ == "__main__":
 
-    run_roi_for_all_simulations()
+    # run_roi_for_all_simulations()
     # run_roi_for_preset_e()
 
-    # replicate = 0
+    replicate = 0
     #
-    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
     # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
     # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
 
-    # agents = load_data(agents_f)
-    # projects = load_data(projects_f)
+    agents = load_data(agents_f)
+    projects = load_data(projects_f)
 
+    print(calculate_instantaneous_roi(agents, projects))
     # print(agents.head())
     # print(projects.head())
     # #print(projects.columns)
