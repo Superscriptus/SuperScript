@@ -4,14 +4,17 @@ SuperScript retrospective metric: ROI.
 
 This script calculates the return on investment metric for a given simulation, using the output pickle files.
 
-When multiple projects finish one the same timestep, the return for an individual worker is averaged over their
-projects.
+On each timestep a worker's ROI is the weighted average of the return for their various activities, weighted by
+the number of units that they spend on each activity. (Training is handled differently because training is blocking so
+a worker on training commits all 10 of their units to training and the weighted mean is redundant).
 
-This version of the ROI calculation was updated on 29/09/21.1
-The previous version can be used by setting legacy=True, and did not include:
-- return for active workers during projects
-- return for training workers
-- return for departmental workers
+The returns are:
+
+    Project success (on completion): 50,
+    Project fail (on completion): 10,
+    Active project: 5,
+    Training: 5,
+    Departmental work: 10
 
 Note: this is necessary at v1.1 as ROI calculation is not included in the main code. In a future version ROI tracking
 will be included as standard.
@@ -157,7 +160,7 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
             w: 0
             for w in workers_present_at_t
         }
-        project_count_dict = {
+        unit_count_dict = {
             w: 0
             for w in workers_present_at_t
         }
@@ -165,29 +168,29 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
         active_projects = get_running_projects(t, worker_data)
         completed = completed_projects(t, worker_data)
 
-        roi_worker_dict, project_count_dict, _ = add_projects_to_worker_roi_dict(
+        roi_worker_dict, unit_count_dict, _ = add_projects_to_worker_roi_dict(
             reserve, project_data, worker_data, return_dict, t-1,
-            roi_worker_dict, project_count_dict,
+            roi_worker_dict, unit_count_dict,
             error_message="Can't find project %d on second attempt."
         )
 
-        roi_worker_dict, project_count_dict, _ = add_projects_to_worker_roi_dict(
+        roi_worker_dict, unit_count_dict, _ = add_projects_to_worker_roi_dict(
             active_projects, project_data, worker_data, return_dict, t,
-            roi_worker_dict, project_count_dict,
+            roi_worker_dict, unit_count_dict,
             get_status=lambda x, y: 'active',
             error_message="Can't find active project %d."
         )
 
-        roi_worker_dict, project_count_dict, reserve = add_projects_to_worker_roi_dict(
+        roi_worker_dict, unit_count_dict, reserve = add_projects_to_worker_roi_dict(
             completed, project_data, worker_data, return_dict, t-1,
-            roi_worker_dict, project_count_dict,
+            roi_worker_dict, unit_count_dict,
             add_to_reserve_list=True,
             error_message="Can't find project %d on first attempt"
         )
 
         for tr in trainers:
             roi_worker_dict[tr] += return_dict['train']
-            project_count_dict[tr] += 1
+            unit_count_dict[tr] += 1
 
         departmental_worker_count = int(len(workers_present_at_t) * dept_wl)
         departmental_workers = [w for w in workers_present_at_t if roi_worker_dict[w] == 0]
@@ -197,14 +200,18 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
         # else:
         #     for d in range(departmental_worker_count):
         #         roi_worker_dict[departmental_workers[d]] += return_dict['dept']
-        #         project_count_dict[departmental_workers[d]] += 1
+        #         unit_count_dict[departmental_workers[d]] += 1
         for d in range(departmental_worker_count):
             roi_worker_dict[departmental_workers[d]] += return_dict['dept']
-            project_count_dict[departmental_workers[d]] += 1
+            unit_count_dict[departmental_workers[d]] += 1
+
+        for units in unit_count_dict.values():
+            if units > 0:
+                assert units == 10
 
         roi_worker_dict = {
-            w: roi_worker_dict[w] / project_count_dict[w]
-            if project_count_dict[w] > 0
+            w: roi_worker_dict[w] / unit_count_dict[w]
+            if unit_count_dict[w] > 0
             else 0
             for w in roi_worker_dict.keys()
         }
