@@ -7,7 +7,7 @@ This script calculates the return on investment metric for a given simulation, u
 When multiple projects finish one the same timestep, the return for an individual worker is averaged over their
 projects.
 
-This version of the ROI calculation was updated on 29/09/21.
+This version of the ROI calculation was updated on 29/09/21.1
 The previous version can be used by setting legacy=True, and did not include:
 - return for active workers during projects
 - return for training workers
@@ -95,6 +95,8 @@ def get_return(outcome, return_dict={True: 50, False: 10}):
     if outcome is None:
         return None
     else:
+        if return_dict[outcome] == 50:
+            print(50)
         return return_dict[outcome]
 
 
@@ -191,11 +193,14 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
         departmental_workers = [w for w in workers_present_at_t if roi_worker_dict[w] == 0]
         if len(departmental_workers) < departmental_worker_count:
             print("Not enough D workers!")
-            departmental_workers.append(set(workers_present_at_t) - set(departmental_workers))
-        else:
-            for d in range(departmental_worker_count):
-                roi_worker_dict[departmental_workers[d]] += return_dict['dept']
-                project_count_dict[departmental_workers[d]] += 1
+            departmental_workers.extend(list(set(workers_present_at_t) - set(departmental_workers)))
+        # else:
+        #     for d in range(departmental_worker_count):
+        #         roi_worker_dict[departmental_workers[d]] += return_dict['dept']
+        #         project_count_dict[departmental_workers[d]] += 1
+        for d in range(departmental_worker_count):
+            roi_worker_dict[departmental_workers[d]] += return_dict['dept']
+            project_count_dict[departmental_workers[d]] += 1
 
         roi_worker_dict = {
             w: roi_worker_dict[w] / project_count_dict[w]
@@ -203,6 +208,7 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
             else 0
             for w in roi_worker_dict.keys()
         }
+        print("Many zeros: ", sum([1 for i in list(roi_worker_dict.values()) if i == 0]) )
         roi.append(np.mean(list(roi_worker_dict.values())))
 
     return roi
@@ -256,10 +262,57 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
                 except:
                     print("Could not produce ROI for rep %d of : " % r, this_path + '/' + optimiser)
 
+def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=1):
+
+    combinations = [
+        [3, 0.95, 0.1, 0.1, 1],
+        [3, 0.99, 0.1, 0.1, 1],
+        [3, 0.995, 0.1, 0.1, 1],
+        [3, 0.995, 0.1, 0.0, 1],
+        [3, 0.995, 0.1, 0.3, 1],
+        [3, 0.995, 0.1, 2.0, 1]
+    ]
+
+    for pi, parameters in enumerate(combinations):
+        print(pi, parameters)
+
+        new_projects = parameters[0]
+        skill_decay = parameters[1]
+        departmental_workload = parameters[2]
+        training_load = 0.1 if parameters[3] == 2.0 else parameters[3]
+        training_boost = True if parameters[3] == 2.0 else False
+        training_flag = False if training_load == 0.0 else True
+        budget_functionality = parameters[4]
+
+        batch_name = (
+                'preset_E_sd_%.3f_tl_%.1f_tf_%d_tb_%d_251021_v1.1'
+                % (skill_decay, training_load, training_flag, training_boost)
+        )
+
+        this_path = sim_path + batch_name
+
+        for optimiser in ['Basin', 'Basin_w_flex', 'Random']:
+            for r in range(replicate_count):
+                agents_f = this_path + '/' + optimiser + '/agents_vars_rep_%d.pickle' % r
+                projects_f = this_path + '/' + optimiser + '/projects_table_rep_%d.pickle' % r
+
+                try:
+                    agents = load_data(agents_f)
+                    projects = load_data(projects_f)
+
+                    roi_list = calculate_instantaneous_roi(agents, projects)
+
+                    with open(this_path + '/' + optimiser + '/roi_rep_%d.pickle' % r, 'wb') as out_file:
+                        pickle.dump(roi_list, out_file)
+
+                except:
+                    print("Could not produce ROI for rep %d of : " % r, this_path + '/' + optimiser)
+
 
 if __name__ == "__main__":
 
     run_roi_for_all_simulations()
+    # run_roi_for_preset_e()
 
     # replicate = 0
     #

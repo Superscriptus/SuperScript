@@ -196,9 +196,60 @@ def run_network_reconstruction_for_all_simulations(sim_path='../../simulation_io
                     print("Could not reconstruct network for rep %d of : " % r, this_path + '/' + optimiser)
 
 
+def run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=1):
+
+    combinations = [
+        [3, 0.95, 0.1, 0.1, 1],
+        [3, 0.99, 0.1, 0.1, 1],
+        [3, 0.995, 0.1, 0.1, 1],
+        [3, 0.995, 0.1, 0.0, 1],
+        [3, 0.995, 0.1, 0.3, 1],
+        [3, 0.995, 0.1, 2.0, 1]
+    ]
+
+    for pi, parameters in enumerate(combinations):
+        print(pi, parameters)
+
+        new_projects = parameters[0]
+        skill_decay = parameters[1]
+        departmental_workload = parameters[2]
+        training_load = 0.1 if parameters[3] == 2.0 else parameters[3]
+        training_boost = True if parameters[3] == 2.0 else False
+        training_flag = False if training_load == 0.0 else True
+        budget_functionality = parameters[4]
+
+        batch_name = (
+                'preset_E_sd_%.3f_tl_%.1f_tf_%d_tb_%d_251021_v1.1'
+                % (skill_decay, training_load, training_flag, training_boost)
+        )
+
+        this_path = sim_path + batch_name
+
+        for optimiser in ['Basin', 'Basin_w_flex', 'Random']:
+            for r in range(replicate_count):
+                agents_f = this_path + '/' + optimiser + '/agents_vars_rep_%d.pickle' % r
+                projects_f = this_path + '/' + optimiser + '/projects_table_rep_%d.pickle' % r
+
+                try:
+                    agents = load_data(agents_f)
+                    projects = load_data(projects_f)
+
+                    G = calculate_network(
+                        agents, projects,
+                        directory_path=this_path + '/' + optimiser,
+                        rep=r,
+                        save_net=True,
+                        plot_net=False
+                    )
+
+                except:
+                    print("Could not reconstruct network for rep %d of : " % r, this_path + '/' + optimiser)
+
+
 if __name__ == "__main__":
 
-    run_network_reconstruction_for_all_simulations()
+    # run_network_reconstruction_for_all_simulations()
+    run_network_reconstruction_for_preset_e()
 
     # replicate = 0
     #
