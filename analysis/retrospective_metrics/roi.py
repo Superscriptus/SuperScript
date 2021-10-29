@@ -149,7 +149,10 @@ def add_projects_to_worker_roi_dict(
     return roi_worker_dict, project_count_dict, reserve_list
 
 
-def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl=0.1, units_per_fte=10):
+def calculate_instantaneous_roi(
+        worker_data, project_data, legacy=False,
+        dept_wl=0.1, units_per_fte=10, verbose=False
+):
 
     if legacy:
         return_dict = {
@@ -204,7 +207,7 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
         )
 
         for tr in trainers:
-            if roi_worker_dict[tr] != 0:
+            if roi_worker_dict[tr] != 0 and verbose:
                 print("Trainer already on project work!")  # This is due to timestep offset (see github issue #16).
 
             roi_worker_dict[tr] += return_dict['train']
@@ -253,7 +256,7 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
     return roi
 
 
-def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1):
+def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1, verbose=False):
 
     PPS = [1, 2, 3, 5, 10]
     SD = [0.95, 0.99, 0.995]
@@ -293,7 +296,7 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
                     agents = load_data(agents_f)
                     projects = load_data(projects_f)
 
-                    roi_list = calculate_instantaneous_roi(agents, projects)
+                    roi_list = calculate_instantaneous_roi(agents, projects, verbose)
 
                     with open(this_path + '/' + optimiser + '/roi_rep_%d.pickle' % r, 'wb') as out_file:
                         pickle.dump(roi_list, out_file)
@@ -301,7 +304,8 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
                 except:
                     print("Could not produce ROI for rep %d of : " % r, this_path + '/' + optimiser)
 
-def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=1):
+
+def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=1, verbose=False):
 
     combinations = [
         [3, 0.95, 0.1, 0.1, 1],
@@ -339,7 +343,7 @@ def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_co
                     agents = load_data(agents_f)
                     projects = load_data(projects_f)
 
-                    roi_list = calculate_instantaneous_roi(agents, projects)
+                    roi_list = calculate_instantaneous_roi(agents, projects, verbose)
 
                     with open(this_path + '/' + optimiser + '/roi_rep_%d.pickle' % r, 'wb') as out_file:
                         pickle.dump(roi_list, out_file)
@@ -350,20 +354,21 @@ def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_co
 
 if __name__ == "__main__":
 
-    # run_roi_for_all_simulations()
-    # run_roi_for_preset_e()
+    run_roi_for_all_simulations(verbose=False)
+    run_roi_for_preset_e(verbose=False)
 
-    replicate = 0
+    # replicate = 0
+    # #
+    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
+    # # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
     #
-    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
-    # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
-
-    agents = load_data(agents_f)
-    projects = load_data(projects_f)
-
-    print(calculate_instantaneous_roi(agents, projects))
+    # agents = load_data(agents_f)
+    # projects = load_data(projects_f)
+    #
+    # print(calculate_instantaneous_roi(agents, projects))
+    #
     # print(agents.head())
     # print(projects.head())
     # #print(projects.columns)
