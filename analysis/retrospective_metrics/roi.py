@@ -115,8 +115,6 @@ def get_return(outcome, return_dict={True: 50, False: 10}):
     if outcome is None:
         return None
     else:
-        if return_dict[outcome] == 50:
-            print(50)
         return return_dict[outcome]
 
 
@@ -151,7 +149,7 @@ def add_projects_to_worker_roi_dict(
     return roi_worker_dict, project_count_dict, reserve_list
 
 
-def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl=0.1):
+def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl=0.1, units_per_fte=10):
 
     if legacy:
         return_dict = {
@@ -206,26 +204,43 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
         )
 
         for tr in trainers:
+            if roi_worker_dict[tr] != 0:
+                print("Trainer already on project work!")  # This is due to timestep offset (see github issue #16).
+
             roi_worker_dict[tr] += return_dict['train']
             unit_count_dict[tr] += 10
 
-        departmental_worker_count = int(len(workers_present_at_t) * dept_wl)
-        departmental_workers = [w for w in workers_present_at_t if roi_worker_dict[w] == 0]
-        if len(departmental_workers) < departmental_worker_count:
-            print("Not enough D workers!")
-            departmental_workers.extend(list(set(workers_present_at_t) - set(departmental_workers)))
+        departmental_unit_count = int(len(workers_present_at_t) * dept_wl * units_per_fte)
+        units_added = 0
+        workers_checked = 0
+
+        for worker in unit_count_dict.keys():
+            workers_checked += 1
+
+            while unit_count_dict[worker] < units_per_fte and units_added < departmental_unit_count:
+                roi_worker_dict[worker] += return_dict['dept']
+                unit_count_dict[worker] += 1
+                units_added += 1
+
+                if workers_checked == len(unit_count_dict):
+                    print("Warning: Could not assign full departmental workload!")
+                    break
+
+        # departmental_workers = [w for w in workers_present_at_t if roi_worker_dict[w] == 0]
+        # if len(departmental_workers) < departmental_worker_count:
+        #     print("Not enough D workers!")
+        #     departmental_workers.extend(list(set(workers_present_at_t) - set(departmental_workers)))
         # else:
         #     for d in range(departmental_worker_count):
         #         roi_worker_dict[departmental_workers[d]] += return_dict['dept']
         #         unit_count_dict[departmental_workers[d]] += 1
-        for d in range(departmental_worker_count):
-            roi_worker_dict[departmental_workers[d]] += return_dict['dept']
-            unit_count_dict[departmental_workers[d]] += 1
+        # for d in range(departmental_worker_count):
+        #     roi_worker_dict[departmental_workers[d]] += return_dict['dept']
+        #     unit_count_dict[departmental_workers[d]] += 1
 
-        for units in unit_count_dict.values():
-            if units > 0 and units != 10:
-                print(units)
-                # assert units == 10
+        for worker, units in unit_count_dict.items():
+            if 0 < units < 10:
+                unit_count_dict[worker] = 10
 
         roi_worker_dict = {
             w: roi_worker_dict[w] / unit_count_dict[w]
@@ -233,7 +248,6 @@ def calculate_instantaneous_roi(worker_data, project_data, legacy=False, dept_wl
             else 0
             for w in roi_worker_dict.keys()
         }
-        print("Many zeros: ", sum([1 for i in list(roi_worker_dict.values()) if i == 0]) )
         roi.append(np.mean(list(roi_worker_dict.values())))
 
     return roi
