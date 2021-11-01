@@ -217,7 +217,8 @@ def calculate_instantaneous_roi(
         units_added = 0
         workers_checked = 0
 
-        for worker in unit_count_dict.keys():
+        # Reverse sort in order to prioritise active workers
+        for worker in dict(sorted(unit_count_dict.items(), key=lambda item: item[1], reverse=True)).keys():
             workers_checked += 1
 
             while unit_count_dict[worker] < units_per_fte and units_added < departmental_unit_count:
