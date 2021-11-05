@@ -14,14 +14,17 @@ TF: 1
 TB: 0
 BF: 1
 
+But we run this for all SD and all TL also.
+
+TODO: need to save project file and filtered agents file so that can run network reconstruction and ROI.
 """
 
 import pandas as pd
 import pickle
 import itertools
-import numpy as np
-import matplotlib.pyplot as plt
 from random import choice
+import numpy as np
+import os
 
 HARD_SKILLS = ['A', 'B', 'C', 'D', 'E']
 
@@ -54,10 +57,10 @@ def get_projects_units_for_worker(worker_id, timestep, worker_data):
     contributions = worker_data.loc[timestep, worker_id].contributes
     if contributions is not None:
         contributions = [contributions[skill] for skill in HARD_SKILLS]
-        flat_contributions = [item for sublist in contributions for item in sublist]
-        worker_projects = list(set(flat_contributions))
-        units_worked = len(flat_contributions)
-        return worker_projects, units_worked
+        worker_projects = list(set([item for sublist in contributions for item in sublist]))
+        worker_units = len([item for sublist in contributions for item in sublist])
+
+        return worker_projects, worker_units
 
     else:
         return [], None
@@ -71,123 +74,122 @@ def training_workers(timestep, worker_data):
     return list(set(workers))
 
 
-def get_loads(timestep, worker_data, units_per_fte=10):
+def get_loads(timestep, worker_data, dw=0.1, units_per_fte=10):
 
-    workers_present = worker_data.loc[timestep, :].index
-    training = set(training_workers(timestep, worker_data))
-    train_load = len(training) / len(workers_present)
+    workers_present_at_t = worker_data.loc[timestep, :].index
+    train_load = len(training_workers(timestep, worker_data)) / len(workers_present_at_t)
 
-    project_load = (
-            sum([
-                get_projects_units_for_worker(wid, timestep, worker_data)[1]
-                for wid in workers_present
-                if get_projects_units_for_worker(wid, timestep, worker_data)[1] is not None
-            ])
-            / (len(workers_present) * units_per_fte)
-    )
+    project_load = sum([
+        get_projects_units_for_worker(w, timestep, worker_data)[1] for w in workers_present_at_t
+        if get_projects_units_for_worker(w, timestep, worker_data)[1] is not None
+    ]) / (len(workers_present_at_t) * units_per_fte)
 
-    dept_load = 0.1
-    slack = 1 - project_load - train_load - dept_load
+    dept_load = min(dw, 1 - project_load - train_load)
+    slack = 1 - dept_load - project_load - train_load
 
     return project_load, train_load, dept_load, slack
 
 
-def compute_new_model_vars(worker_data, model_data):
+def get_new_model_vars(worker_data, model_vars, projects_data):
 
+    new_agents = None
     new_model_vars = pd.DataFrame()
-    for col in [
-        'ActiveProjects', 'RecentSuccessRate', 'SuccessfulProjects', 'FailedProjects',
-        'NullProjects', 'AverageSuccessProbability', 'AverageTeamOvr', 'AverageTeamSize',
-       ]:
-        new_model_vars[col] = model_data[col]
+    keep_cols = [
+        'ActiveProjects', 'RecentSuccessRate', 'SuccessfulProjects',
+        'FailedProjects', 'NullProjects', 'AverageTeamSize',
+        'AverageSuccessProbability', 'AverageTeamOvr'
+    ]
+    new_cols = [
+        'WorkersOnProjects', 'ProjectsPerWorker',
+        'WorkersWithoutProjects', 'WorkersOnTraining', 'AverageWorkerOvr',
+        'WorkerTurnover', 'ProjectLoad', 'TrainingLoad', 'DeptLoad', 'Slack'
+    ]
+    for col in keep_cols:
+        new_model_vars[col] = model_vars[col]
+    new_model_vars.index = model_vars.index
 
-    new_model_vars.index = model_data.index
+    new_data = {col: [] for col in new_cols}
 
-    new_data = {}
-    for new_col in [
-        'WorkersOnProjects', 'WorkersWithoutProjects', 'WorkersOnTraining', 'AverageTeamSize',
-        'AverageWorkerOvr', 'WorkerTurnover', 'ProjectLoad', 'TrainingLoad', 'DeptLoad', 'Slack', 'ProjectsPerWorker'
-    ]:
-
-        new_data[new_col] = []
-
-    # REMOVE BASED ON SLACK NOT NUMBER OF WORKERS!!
-    # can only remove inactive workers
-    # down to a slack of 0.1
-    # In cases where there are not enough inactive workers, slack will not get down to 0.1
-    #
     for t in new_model_vars.index:
-        w_tstep = t + 1  # conversion because worker state is saved at beginning of the next timestep
-        workers_present = set(list(worker_data.loc[w_tstep, :].index))
 
-        project_load, train_load, dept_load, slack = get_loads(w_tstep, worker_data)
+        # First we remove inactive workers to try to reduce slack to 10%:
+        w_step = t + 1 #  conversion need because worker data is saved at the beginning of following timestep
+        workers_present_at_t = worker_data.loc[w_step, :].index
 
-        training = set(training_workers(w_tstep, worker_data))
-        project_workers = set([w for w in workers_present if len(get_projects_for_worker(w, w_tstep, worker_data)) > 0])
-        inactive = workers_present - training - project_workers
+        trainers = training_workers(w_step, worker_data)
+        project_workers = [
+            w for w in workers_present_at_t
+            if len(get_projects_for_worker(w, w_step, worker_data)) > 0
+        ]
+        inactive = set(workers_present_at_t) - set(trainers) - set(project_workers)
+        project_load, train_load, dept_load, slack = get_loads(w_step, worker_data)
 
-        data_slice = worker_data.copy()
+        data_slice = worker_data.loc[(w_step, workers_present_at_t), :].copy()
+        workers_present_at_t = set(worker_data.loc[w_step, :].index)
+
         turnover_correction = 0
-
         while slack > 0.1 and len(inactive) > 0:
-            to_remove = choice(list(inactive))
 
-            if data_slice.loc[(w_tstep, to_remove), 'timesteps_inactive'] >= 5:
+            to_remove = choice(list(inactive))
+            if int(data_slice.loc[(w_step, to_remove), 'timesteps_inactive']) == 5:
                 turnover_correction += 1
 
             inactive.remove(to_remove)
-            workers_present.remove(to_remove)
+            workers_present_at_t.remove(to_remove)
+            data_slice = worker_data.loc[(w_step, workers_present_at_t), :].copy()
+            project_load, train_load, dept_load, slack = get_loads(w_step, data_slice)
 
-            data_slice = data_slice.loc[(w_tstep, workers_present), :]
-            project_load, train_load, dept_load, slack = get_loads(w_tstep, data_slice)
+        # add to new agents data
+        if new_agents is None:
+            new_agents = data_slice
+        else:
+            new_agents = new_agents.append(data_slice)
 
+        # Now we compute the new metrics:
+        project_load, train_load, dept_load, slack = get_loads(w_step, data_slice)
 
-        print("correction: ", turnover_correction)
+        project_counts = []
+        for w in workers_present_at_t:
 
-        # compute metrics:
-        w_count = 0
-        all_projects_worked = []
-        all_ovr = []
-        turnover_count = 0
-        for wid in workers_present:
-            projects_worked, units_worked = get_projects_units_for_worker(wid, w_tstep, data_slice)
+            this_projects, this_units = get_projects_units_for_worker(w, w_step, data_slice)
+            project_counts.append(len(this_projects))
 
-            all_projects_worked.append(len(projects_worked))
-            all_ovr.append(data_slice.loc[(w_tstep, wid), 'ovr'])
+        new_data['WorkersOnTraining'] = len(training_workers(w_step, data_slice))
+        new_data['ProjectLoad'].append(project_load)
+        new_data['TrainingLoad'].append(train_load)
+        new_data['DeptLoad'].append(dept_load)
+        new_data['Slack'].append(slack)
+        new_data['AverageWorkerOvr'].append(np.mean(data_slice.ovr))
+        new_data['ProjectsPerWorker'].append(np.mean(project_counts))
 
-            if len(projects_worked) > 0:
-                w_count += 1
+        workers_on_projects = sum([1 for count in project_counts if count > 0])
+        new_data['WorkersOnProjects'].append(workers_on_projects)
+        new_data['WorkersWithoutProjects'].append(len(workers_present_at_t) - workers_on_projects)
+        new_data['WorkerTurnover'].append(model_vars.loc[w_step - 1].WorkerTurnover - turnover_correction)
 
-            if data_slice.loc[(w_tstep, wid), 'timesteps_inactive'] >= 5:
-                turnover_count += 1
+    for col in new_cols:
+        new_model_vars[col] = new_data[col]
 
-            project_load, train_load, dept_load, slack = get_loads(w_tstep, data_slice)
-            # if units_worked is not None:
-            #     print("UNITS: %d" % units_worked)
-
-        new_data['WorkersOnProjects'].append(w_count)
-        new_data['WorkersWithoutProjects'].append(len(workers_present) - w_count)
-        new_data['ProjectsPerWorker'].append(np.mean(all_projects_worked))
-        new_data['WorkersOnTraining'] = len(training_workers(w_tstep, data_slice))
-        new_data['AverageWorkerOvr'].append(np.mean(all_ovr))
-        new_data['ProjectLoad'] = project_load
-        new_data['TrainingLoad'] = train_load
-        new_data['DeptLoad'] = dept_load
-        new_data['Slack'] = slack
-        new_data['WorkerTurnover'] = turnover_count - turnover_correction
-
-    return new_data
+    return new_model_vars, new_agents, projects_data
 
 
-def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1):
+def run_preset_E(sim_path='../../simulation_io/streamlit/', replicate_count=1):
 
-    PPS = [1, 2, 3, 5, 10]
+    PPS = [3]
     SD = [0.95, 0.99, 0.995]
-    DW = [0.1, 0.3]
+    DW = [0.1]
     TL = [0.1, 0.3, 0.0, 2.0]
-    BF = [0, 1]
+    BF = [1]
 
-    combinations = list(itertools.product(PPS, SD, DW, TL, BF))
+    combinations = [
+        [3, 0.95, 0.1, 0.1, 1],
+        [3, 0.99, 0.1, 0.1, 1],
+        [3, 0.995, 0.1, 0.1, 1],
+        [3, 0.995, 0.1, 0.0, 1],
+        [3, 0.995, 0.1, 0.3, 1],
+        [3, 0.995, 0.1, 2.0, 1]
+    ]
+    # combinations = list(itertools.product(PPS, SD, DW, TL, BF))
 
     for pi, parameters in enumerate(combinations):
         print(pi, parameters)
@@ -209,47 +211,69 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
         )
 
         this_path = sim_path + batch_name
+        save_path = (
+                sim_path
+                + 'preset_E_sd_%.3f_tl_%.1f_tf_%d_tb_%d_251021_v1.1'
+                % (skill_decay, training_load, training_flag, training_boost)
+        )
+        os.mkdir(save_path)
 
-        for optimiser in ['Basin', 'Basin_w_flex', 'Niter0', 'Random']:
+        for optimiser in ['Basin', 'Basin_w_flex', 'Random']:
+
+            os.mkdir(save_path + '/' + optimiser)
+
             for r in range(replicate_count):
                 agents_f = this_path + '/' + optimiser + '/agents_vars_rep_%d.pickle' % r
+                model_f = this_path + '/' + optimiser + '/model_vars_rep_%d.pickle' % r
                 projects_f = this_path + '/' + optimiser + '/projects_table_rep_%d.pickle' % r
 
                 try:
                     agents = load_data(agents_f)
+                    model = load_data(model_f)
                     projects = load_data(projects_f)
 
-                    roi_list = calculate_instantaneous_roi(agents, projects)
+                    new_model_vars, new_agents, new_projects = get_new_model_vars(agents, model, projects)
 
-                    with open(this_path + '/' + optimiser + '/roi_rep_%d.pickle' % r, 'wb') as out_file:
-                        pickle.dump(roi_list, out_file)
+                    with open(save_path + '/' + optimiser + '/model_vars_rep_%d.pickle' % r, 'wb') as out_file:
+                        pickle.dump(new_model_vars, out_file)
+
+                    with open(save_path + '/' + optimiser + '/agents_vars_rep_%d.pickle' % r, 'wb') as out_file:
+                        pickle.dump(new_agents, out_file)
+
+                    with open(save_path + '/' + optimiser + '/projects_table_rep_%d.pickle' % r, 'wb') as out_file:
+                        pickle.dump(new_projects, out_file)
 
                 except:
-                    print("Could not produce ROI for rep %d of : " % r, this_path + '/' + optimiser)
+                    print(
+                        "Could produce new model vars (preset E) for rep %d of : "
+                        % r, this_path + '/' + optimiser
+                    )
 
 
 if __name__ == "__main__":
 
-    #run_roi_for_all_simulations()
+    run_preset_E()
 
-    replicate = 0
+    # replicate = 0
     #
-    agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
-    model_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/model_vars_rep_%d.pickle' % replicate
+    # agents_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
+    # model_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/model_vars_rep_%d.pickle' % replicate
     # projects_f = '../../simulation_io/skill_decay_0995_project_per_step_5_240621_v1.0/Random/projects_table_rep_%d.pickle' % replicate
     # agents_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/agents_vars_rep_%d.pickle' % replicate
     # projects_f = '../../simulation_io/project_per_step_5_230521_v1.0/Random/projects_table_rep_%d.pickle' % replicate
 
-    agents = load_data(agents_f)
-    model = load_data(model_f)
+    # agents = load_data(agents_f)
+    # model = load_data(model_f)
     # projects = load_data(projects_f)
-    compute_new_model_vars(agents, model)
-    # print(model.columns)
-    # print(agents.head())
+
+    # print(model.head())
+    # print(projects.head())
     # #print(projects.columns)
     # # print(len(projects))
     # print(agents.columns)
     # #
+    # get_new_model_vars(agents, model, projects)
+
     # # print(get_projects_for_worker(4, 1, agents))
     # # print(get_projects_for_worker(4, 4, agents))
     # # print(get_projects_for_worker(4, 5, agents))
