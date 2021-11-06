@@ -256,7 +256,7 @@ if __name__ == "__main__":
 
     all_run_time = time.time() - begin
 
-    with open('./simulation_io/streamlit_prestes/main.log', 'a') as outfile:
+    with open('./simulation_io/streamlit_presets/main.log', 'a') as outfile:
 
         outfile.write("\n")
         for t in run_times:
