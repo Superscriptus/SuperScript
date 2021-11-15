@@ -390,7 +390,7 @@ if __name__ == "__main__":
     ]
     run_roi_for_all_simulations(
         verbose=False, sim_path='../../simulation_io/streamlit_presets/',
-        combinations=combinations
+        _combinations=combinations
     )
     run_roi_for_preset_e(verbose=False, sim_path='../../simulation_io/streamlit_presets/')
 
