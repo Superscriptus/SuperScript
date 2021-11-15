@@ -257,7 +257,11 @@ def calculate_instantaneous_roi(
     return roi
 
 
-def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1, verbose=False):
+def run_roi_for_all_simulations(
+        sim_path='../../simulation_io/streamlit/',
+        replicate_count=1, verbose=False,
+        _combinations=None
+):
 
     PPS = [1, 2, 3, 5, 10]
     SD = [0.95, 0.99, 0.995]
@@ -265,7 +269,7 @@ def run_roi_for_all_simulations(sim_path='../../simulation_io/streamlit/', repli
     TL = [0.1, 0.3, 0.0, 2.0]
     BF = [0, 1]
 
-    combinations = list(itertools.product(PPS, SD, DW, TL, BF))
+    combinations = list(itertools.product(PPS, SD, DW, TL, BF)) if _combinations is None else _combinations
 
     for pi, parameters in enumerate(combinations):
         print(pi, parameters)
@@ -355,8 +359,40 @@ def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_co
 
 if __name__ == "__main__":
 
-    run_roi_for_all_simulations(verbose=False)
-    run_roi_for_preset_e(verbose=False)
+    # run_roi_for_all_simulations(verbose=False)
+    # run_roi_for_preset_e(verbose=False)
+
+    combinations = [
+        [10, 0.95, 0.3, 0.3, 1],
+        [10, 0.95, 0.3, 0.0, 1],
+        [10, 0.95, 0.3, 0.1, 1],
+        [10, 0.95, 0.3, 2.0, 1],
+        [10, 0.995, 0.3, 0.3, 1],
+        [10, 0.99, 0.3, 0.3, 1],
+        [1, 0.95, 0.1, 0.0, 1],
+        [1, 0.995, 0.1, 0.0, 1],
+        [1, 0.99, 0.1, 0.0, 1],
+        [1, 0.95, 0.1, 0.1, 1],
+        [1, 0.95, 0.1, 0.3, 1],
+        [1, 0.95, 0.1, 2.0, 1],
+        [3, 0.995, 0.1, 0.1, 1],
+        [3, 0.95, 0.1, 0.1, 1],
+        [3, 0.99, 0.1, 0.1, 1],
+        [3, 0.995, 0.1, 0.0, 1],
+        [3, 0.995, 0.1, 0.3, 1],
+        [3, 0.995, 0.1, 2.0, 1],
+        [2, 0.95, 0.3, 0.0, 1],
+        [2, 0.995, 0.3, 0.0, 1],
+        [2, 0.99, 0.3, 0.0, 1],
+        [2, 0.95, 0.3, 0.1, 1],
+        [2, 0.95, 0.3, 0.3, 1],
+        [2, 0.95, 0.3, 2.0, 1],
+    ]
+    run_roi_for_all_simulations(
+        verbose=False, sim_path='../../simulation_io/streamlit_presets/',
+        combinations=combinations
+    )
+    run_roi_for_preset_e(verbose=False, sim_path='../../simulation_io/streamlit_presets/')
 
     # replicate = 0
     # #
