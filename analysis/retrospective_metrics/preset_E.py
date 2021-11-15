@@ -252,7 +252,8 @@ def run_preset_E(sim_path='../../simulation_io/streamlit/', replicate_count=1):
 
 if __name__ == "__main__":
 
-    run_preset_E()
+    # run_preset_E()
+    run_preset_E(sim_path='../../simulation_io/streamlit_presets/')
 
     # replicate = 0
     #
