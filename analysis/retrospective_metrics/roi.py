@@ -269,9 +269,9 @@ def run_roi_for_all_simulations(
     TL = [0.1, 0.3, 0.0, 2.0]
     BF = [0, 1]
 
-    combinations = list(itertools.product(PPS, SD, DW, TL, BF)) if _combinations is None else _combinations
+    parameter_combinations = list(itertools.product(PPS, SD, DW, TL, BF)) if _combinations is None else _combinations
 
-    for pi, parameters in enumerate(combinations):
+    for pi, parameters in enumerate(parameter_combinations):
         print(pi, parameters)
 
         new_projects = parameters[0]
@@ -312,7 +312,7 @@ def run_roi_for_all_simulations(
 
 def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=1, verbose=False):
 
-    combinations = [
+    parameter_combinations = [
         [3, 0.95, 0.1, 0.1, 1],
         [3, 0.99, 0.1, 0.1, 1],
         [3, 0.995, 0.1, 0.1, 1],
@@ -321,7 +321,7 @@ def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_co
         [3, 0.995, 0.1, 2.0, 1]
     ]
 
-    for pi, parameters in enumerate(combinations):
+    for pi, parameters in enumerate(parameter_combinations):
         print(pi, parameters)
 
         new_projects = parameters[0]
@@ -362,7 +362,7 @@ if __name__ == "__main__":
     # run_roi_for_all_simulations(verbose=False)
     # run_roi_for_preset_e(verbose=False)
 
-    combinations = [
+    parameter_combinations = [
         [10, 0.95, 0.3, 0.3, 1],
         [10, 0.95, 0.3, 0.0, 1],
         [10, 0.95, 0.3, 0.1, 1],
@@ -390,7 +390,7 @@ if __name__ == "__main__":
     ]
     run_roi_for_all_simulations(
         verbose=False, sim_path='../../simulation_io/streamlit_presets/',
-        _combinations=combinations
+        _combinations=parameter_combinations
     )
     run_roi_for_preset_e(verbose=False, sim_path='../../simulation_io/streamlit_presets/')
 
