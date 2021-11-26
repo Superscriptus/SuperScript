@@ -4,7 +4,7 @@ SuperScript utilities module.
 
 Helper method for use throughout the code.
 
-Currently just a Random number generation class.
+Currently just a Random number generation class and a method to normalise success probabilities on [0,1].
 
 """
 

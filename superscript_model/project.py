@@ -21,7 +21,7 @@ import json
 import pickle
 
 from .function import FunctionFactory
-from .utilities import Random
+from .utilities import Random, normalise_success
 from .config import (MAXIMUM_TIMELINE_FLEXIBILITY,
                      PROJECT_LENGTH,
                      DEFAULT_START_OFFSET,
