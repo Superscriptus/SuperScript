@@ -12,6 +12,14 @@ import random
 import numpy as np
 
 
+def normalise_success(data, _min=-1.075, _max=0.95):
+    
+    mini = _min if _min is not None else min(data)
+    maxi = _max if _max is not None else max(data)
+    
+    return (data - mini) / (maxi - mini)
+
+
 class Random:
 
     @staticmethod
