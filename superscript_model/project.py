@@ -949,9 +949,7 @@ class SuccessCalculator:
                 + self.probability_chemistry.get_values(self.chemistry)
             ) / 100
             #project.success_probability = max(0, probability)
-            # Temporary adjustment: add baseline....
-            probability += 0.2
-            project.success_probability = max(0, min(1.0, probability))
+            project.success_probability = normalise_success(probability)
 
     def determine_success(self, project):
         """Determine if the project was successful.
