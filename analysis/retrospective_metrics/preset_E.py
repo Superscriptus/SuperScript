@@ -128,8 +128,7 @@ def get_new_model_vars(worker_data, model_vars, projects_data):
         workers_present_at_t = set(worker_data.loc[w_step, :].index)
 
         turnover_correction = 0
-        while slack > 0.1 and len(inactive) > 0:
-
+        while slack > 0.1 and len(inactive) > 1:
             to_remove = choice(list(inactive))
             if int(data_slice.loc[(w_step, to_remove), 'timesteps_inactive']) == 5:
                 turnover_correction += 1
