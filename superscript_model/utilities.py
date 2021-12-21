@@ -40,6 +40,9 @@ class Random:
             p = np.array(p)
             p = p/sum(p)
             p[-1] = 1 - sum(p[:-1])
+        
+        if np.isnan(p).any():
+            p = None
 
         return np.random.choice(
             iterable, size=k,

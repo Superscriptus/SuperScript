@@ -359,8 +359,8 @@ def run_roi_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_co
 
 if __name__ == "__main__":
 
-    # run_roi_for_all_simulations(verbose=False)
-    # run_roi_for_preset_e(verbose=False)
+    #run_roi_for_all_simulations(verbose=False)
+    run_roi_for_preset_e(verbose=False)
 
     parameter_combinations = [
         [10, 0.95, 0.3, 0.3, 1],
@@ -388,11 +388,11 @@ if __name__ == "__main__":
         [2, 0.95, 0.3, 0.3, 1],
         [2, 0.95, 0.3, 2.0, 1],
     ]
-    run_roi_for_all_simulations(
-        verbose=False, sim_path='../../simulation_io/streamlit_presets/',
-        _combinations=parameter_combinations
-    )
-    run_roi_for_preset_e(verbose=False, sim_path='../../simulation_io/streamlit_presets/')
+    # run_roi_for_all_simulations(
+    #    verbose=False, sim_path='../../simulation_io/streamlit_presets/',
+    #    _combinations=parameter_combinations
+    # )
+    # run_roi_for_preset_e(verbose=False, sim_path='../../simulation_io/streamlit_presets/')
 
     # replicate = 0
     # #
