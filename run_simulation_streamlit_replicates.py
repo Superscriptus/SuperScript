@@ -6,7 +6,7 @@ Note: if running remotely remember to pipe stdout and stderr to dev null: &>/dev
 ===========
 
 Data are saved to disk at: simulation_io/streamlit/<BATCH_NAME> and log files are produced for each
-simulation and for the batch (main.replicatee.log).
+simulation and for the batch (main.replicate.log).
 """
 
 
@@ -26,7 +26,7 @@ from superscript_model import model
 
 # These global configuration values override config.py and will be
 # used in all the simulations:
-
+REPLICATE_REASON = 'crash' # 'replicate'
 REPLICATE_OFFSET = 0 # How many simulation have previously been run for these parameter values?
 REPLICATE_COUNT = 1  # Number of replicate simulations to run
 STEPS = 100  # Number of time steps for each simulation
@@ -130,7 +130,7 @@ def print_log(text, batch_name, save_dir):
 
 
 def print_main_log(text):
-    with open('./simulation_io/streamlit/main.replicates.log', 'a') as outfile:
+    with open('./simulation_io/streamlit/main.%s.log' % REPLICATE_REASON, 'a') as outfile:
         outfile.write(text)
 
 
@@ -273,7 +273,7 @@ if __name__ == "__main__":
 
     all_run_time = time.time() - begin
 
-    with open('./simulation_io/streamlit/main.replicates.log', 'a') as outfile:
+    with open('./simulation_io/streamlit/main.%s.log' % REPLICATE_REASON, 'a') as outfile:
 
         outfile.write("\n")
         for t in run_times:
