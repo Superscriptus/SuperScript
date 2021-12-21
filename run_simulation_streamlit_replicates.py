@@ -134,7 +134,7 @@ def print_main_log(text):
         outfile.write(text)
 
 
-def run_sim(parameter):
+def run_sim(parameters):
 
     total_time = 0
 
@@ -155,13 +155,13 @@ def run_sim(parameter):
     )
     save_dir = './simulation_io/streamlit/' + batch_name
     path = pathlib.Path(save_dir) 
-    os.mkdir(path, exist_ok=True)
+    path.mkdir(exist_ok=True)
 
     for sim_type in SIMULATIONS.keys():
 
         sim_io_dir = save_dir + '/' + sim_type
         path = pathlib.Path(sim_io_dir) 
-        os.mkdir(path, exist_ok=True)
+        path.mkdir(exist_ok=True)
         print_log("\nSimulation: " + sim_type, batch_name, save_dir)
 
         if sim_type != 'Random':
@@ -269,7 +269,7 @@ if __name__ == "__main__":
 
     pool_obj = multiprocessing.Pool(6)
     run_times = pool_obj.map(run_sim, crashed)
-    # run_times = pool_obj.map(run_sim, combinations)
+    #run_times = pool_obj.map(run_sim, combinations)
 
     all_run_time = time.time() - begin
 
