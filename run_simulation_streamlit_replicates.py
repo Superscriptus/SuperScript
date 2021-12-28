@@ -26,9 +26,9 @@ from superscript_model import model
 
 # These global configuration values override config.py and will be
 # used in all the simulations:
-REPLICATE_REASON = 'crash' # 'replicate'
-REPLICATE_OFFSET = 0 # How many simulation have previously been run for these parameter values?
-REPLICATE_COUNT = 1  # Number of replicate simulations to run
+REPLICATE_REASON = 'replicate' # 'crash'
+REPLICATE_OFFSET = 1 # How many simulation have previously been run for these parameter values?
+REPLICATE_COUNT = 4  # Number of replicate simulations to run
 STEPS = 100  # Number of time steps for each simulation
 WORKER_COUNT = 100  # Total number of workers in simulation
 NUMBER_OF_PROCESSORS = 8  # Number of cores to use for parallel optimiser
@@ -268,8 +268,8 @@ if __name__ == "__main__":
     begin = time.time()
 
     pool_obj = multiprocessing.Pool(6)
-    run_times = pool_obj.map(run_sim, crashed)
-    #run_times = pool_obj.map(run_sim, combinations)
+    # run_times = pool_obj.map(run_sim, crashed)
+    run_times = pool_obj.map(run_sim, combinations)
 
     all_run_time = time.time() - begin
 
