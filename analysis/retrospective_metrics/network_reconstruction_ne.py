@@ -276,8 +276,8 @@ def run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/stream
 
 if __name__ == "__main__":
 
-    run_network_reconstruction_for_all_simulations()
-    # run_network_reconstruction_for_preset_e()
+    # run_network_reconstruction_for_all_simulations()
+    run_network_reconstruction_for_preset_e()
 
     parameter_combinations = [
         [10, 0.95, 0.3, 0.3, 1],
