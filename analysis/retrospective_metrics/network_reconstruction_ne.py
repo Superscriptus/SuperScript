@@ -220,7 +220,7 @@ def run_network_reconstruction_for_all_simulations(
                         plot_net=False
                     )
 
-               except:
+                except:
                     print("Could not reconstruct network for rep %d of : " % r, this_path + '/' + optimiser)
 
         
