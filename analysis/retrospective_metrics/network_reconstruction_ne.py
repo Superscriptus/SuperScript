@@ -141,16 +141,16 @@ def calculate_network(worker_data, project_data, directory_path,
 
         if t > 1:
             # find node difference:
-            network_difference[t]['nodes_to_remove'] = old_G.nodes() - G.nodes()
-            network_difference[t]['nodes_to_add'] = G.nodes() - old_G.nodes()
+            network_difference[t]['nodes_to_remove'] = list(old_G.nodes() - G.nodes())
+            network_difference[t]['nodes_to_add'] = list(G.nodes() - old_G.nodes())
 
             # find edge difference:
-            network_difference[t]['edges_to_add'] = G.edges() - old_G.edges()
-            network_difference[t]['edges_to_increment'] = {}
-            for e in old_G.edges():
+            network_difference[t]['edges_to_add'] = list(G.edges() - old_G.edges())
+            network_difference[t]['edges_to_increment'] = []
+            for e in list(set(old_G.edges()).intersection(G.edges())):
                 diff = G.get_edge_data(*e)['width'] - old_G.get_edge_data(*e)['width']
                 if diff > 0:
-                    network_difference[t]['edges_to_increment'][e] = diff
+                    network_difference[t]['edges_to_increment'].append((e, diff))
 
         if save_net and t==1:
             file_path = directory_path + '/network_rep_%d_timestep_%d.adjlist' % (rep, t)
@@ -158,7 +158,8 @@ def calculate_network(worker_data, project_data, directory_path,
 
         if save_net and t==100:
             file_path = directory_path + '/network_dfference_rep_%d.json' % rep
-            json.dump(network_difference, file_path, indent=4)
+            with open(file_path, 'w') as ofile: 
+                json.dump(network_difference, ofile, indent=4)
 
         if plot_net:
             nx.draw(G)
@@ -206,7 +207,7 @@ def run_network_reconstruction_for_all_simulations(
             for r in range(replicate_count):
                 agents_f = this_path + '/' + optimiser + '/agents_vars_rep_%d.pickle' % r
                 projects_f = this_path + '/' + optimiser + '/projects_table_rep_%d.pickle' % r
-
+                
                 try:
                     agents = load_data(agents_f)
                     projects = load_data(projects_f)
@@ -219,10 +220,10 @@ def run_network_reconstruction_for_all_simulations(
                         plot_net=False
                     )
 
-                except:
+               except:
                     print("Could not reconstruct network for rep %d of : " % r, this_path + '/' + optimiser)
 
-
+        
 def run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=1):
 
     parameter_combinations = [
@@ -275,8 +276,8 @@ def run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/stream
 
 if __name__ == "__main__":
 
-    #run_network_reconstruction_for_all_simulations()
-    run_network_reconstruction_for_preset_e()
+    run_network_reconstruction_for_all_simulations()
+    # run_network_reconstruction_for_preset_e()
 
     parameter_combinations = [
         [10, 0.95, 0.3, 0.3, 1],
