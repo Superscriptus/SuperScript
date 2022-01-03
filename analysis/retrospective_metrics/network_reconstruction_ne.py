@@ -110,6 +110,7 @@ def calculate_network(worker_data, project_data, directory_path,
         old_G = G.copy()
         if t > 1:
             network_difference[t] = {}
+
         workers_present_at_t = worker_data.loc[t, :].index
 
         G.add_nodes_from(workers_present_at_t)
@@ -152,11 +153,11 @@ def calculate_network(worker_data, project_data, directory_path,
                 if diff > 0:
                     network_difference[t]['edges_to_increment'].append((e, diff))
 
-        if save_net and t==1:
+        if save_net and t == 1:
             file_path = directory_path + '/network_rep_%d_timestep_%d.adjlist' % (rep, t)
             nx.write_multiline_adjlist(G, file_path)
 
-        if save_net and t==100:
+        if save_net and t == 100:
             file_path = directory_path + '/network_dfference_rep_%d.json' % rep
             with open(file_path, 'w') as ofile: 
                 json.dump(network_difference, ofile, indent=4)
