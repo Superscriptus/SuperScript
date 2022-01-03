@@ -215,11 +215,13 @@ def run_preset_E(sim_path='../../simulation_io/streamlit/', replicate_count=1):
                 + 'preset_E_sd_%.3f_tl_%.1f_tf_%d_tb_%d_251021_v1.1'
                 % (skill_decay, training_load, training_flag, training_boost)
         )
-        os.mkdir(save_path)
+        if not os.path.exists(save_path): 
+            os.mkdir(save_path)
 
         for optimiser in ['Basin', 'Basin_w_flex', 'Random']:
 
-            os.mkdir(save_path + '/' + optimiser)
+            if not os.path.exists(save_path + '/' + optimiser): 
+                os.mkdir(save_path + '/' + optimiser)
 
             for r in range(replicate_count):
                 agents_f = this_path + '/' + optimiser + '/agents_vars_rep_%d.pickle' % r
@@ -251,7 +253,7 @@ def run_preset_E(sim_path='../../simulation_io/streamlit/', replicate_count=1):
 
 if __name__ == "__main__":
 
-    run_preset_E()
+    run_preset_E(replicate_count=5)
     #run_preset_E(sim_path='../../simulation_io/streamlit_presets/')
 
     # replicate = 0

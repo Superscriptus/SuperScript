@@ -277,7 +277,7 @@ def run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/stream
 if __name__ == "__main__":
 
     # run_network_reconstruction_for_all_simulations()
-    run_network_reconstruction_for_preset_e()
+    # run_network_reconstruction_for_preset_e()
 
     parameter_combinations = [
         [10, 0.95, 0.3, 0.3, 1],
@@ -305,11 +305,12 @@ if __name__ == "__main__":
         [2, 0.95, 0.3, 0.3, 1],
         [2, 0.95, 0.3, 2.0, 1],
     ]
-    # run_network_reconstruction_for_all_simulations(
-    #    sim_path='../../simulation_io/streamlit_presets/',
-    #    _combinations=parameter_combinations
-    #)
-    #run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/streamlit_presets/')
+    run_network_reconstruction_for_all_simulations(
+        sim_path='../../simulation_io/streamlit/',
+        _combinations=parameter_combinations,
+        replicate_count=5 
+    )
+    run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=5)
 
     # replicate = 0
     #
