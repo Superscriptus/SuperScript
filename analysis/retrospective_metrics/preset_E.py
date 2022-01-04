@@ -130,7 +130,7 @@ def get_new_model_vars(worker_data, model_vars, projects_data):
         turnover_correction = 0
         while slack > 0.1 and len(inactive) > 1:
             to_remove = choice(list(inactive))
-            if int(data_slice.loc[(w_step, to_remove), 'timesteps_inactive']) == 5:
+            if int(data_slice.loc[(w_step, to_remove), 'timesteps_inactive']) == 10:
                 turnover_correction += 1
 
             inactive.remove(to_remove)
