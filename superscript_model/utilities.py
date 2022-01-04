@@ -4,12 +4,20 @@ SuperScript utilities module.
 
 Helper method for use throughout the code.
 
-Currently just a Random number generation class.
+Currently just a Random number generation class and a method to normalise success probabilities on [0,1].
 
 """
 
 import random
 import numpy as np
+
+
+def normalise_success(data, _min=-1.075, _max=0.95):
+    
+    mini = _min if _min is not None else min(data)
+    maxi = _max if _max is not None else max(data)
+    
+    return (data - mini) / (maxi - mini)
 
 
 class Random:
@@ -32,6 +40,9 @@ class Random:
             p = np.array(p)
             p = p/sum(p)
             p[-1] = 1 - sum(p[:-1])
+        
+        if np.isnan(p).any():
+            p = None
 
         return np.random.choice(
             iterable, size=k,

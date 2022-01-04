@@ -13,6 +13,7 @@ timestep for a large batch of simulations.
 import pandas as pd
 import pickle
 import itertools
+import json
 import numpy as np
 import networkx as nx
 from pyvis.network import Network
@@ -102,8 +103,13 @@ def calculate_network(worker_data, project_data, directory_path,
 
     reserve = []  # for instances where it appears that project finishes at timestep t, but it is logged at t+1
     G = nx.Graph()
+    network_difference = {}
 
     for t in range(1, 101):
+
+        old_G = G.copy()
+        if t > 1:
+            network_difference[t] = {}
 
         workers_present_at_t = worker_data.loc[t, :].index
 
@@ -134,9 +140,28 @@ def calculate_network(worker_data, project_data, directory_path,
                     print("Can find project %d on first attempt." % p)
                     reserve.append(p)
 
-        if save_net:
+        if t > 1:
+            # find node difference:
+            network_difference[t]['nodes_to_remove'] = list(old_G.nodes() - G.nodes())
+            network_difference[t]['nodes_to_add'] = list(G.nodes() - old_G.nodes())
+
+            # find edge difference:
+            network_difference[t]['edges_to_add'] = list(G.edges() - old_G.edges())
+            network_difference[t]['edges_to_increment'] = []
+            for e in list(set(old_G.edges()).intersection(G.edges())):
+                diff = G.get_edge_data(*e)['width'] - old_G.get_edge_data(*e)['width']
+                if diff > 0:
+                    network_difference[t]['edges_to_increment'].append((e, diff))
+
+        if save_net and t == 1:
             file_path = directory_path + '/network_rep_%d_timestep_%d.adjlist' % (rep, t)
             nx.write_multiline_adjlist(G, file_path)
+
+        if save_net and t == 100:
+            file_path = directory_path + '/network_dfference_rep_%d.json' % rep
+            with open(file_path, 'w') as ofile: 
+                json.dump(network_difference, ofile, indent=4)
+
         if plot_net:
             nx.draw(G)
             plt.show()
@@ -144,7 +169,11 @@ def calculate_network(worker_data, project_data, directory_path,
     return G
 
 
-def run_network_reconstruction_for_all_simulations(sim_path='../../simulation_io/streamlit/', replicate_count=1):
+def run_network_reconstruction_for_all_simulations(
+        sim_path='../../simulation_io/streamlit/',
+        replicate_count=1,
+        _combinations=None
+):
 
     PPS = [1, 2, 3, 5, 10]
     SD = [0.95, 0.99, 0.995]
@@ -152,9 +181,9 @@ def run_network_reconstruction_for_all_simulations(sim_path='../../simulation_io
     TL = [0.1, 0.3, 0.0, 2.0]
     BF = [0, 1]
 
-    combinations = list(itertools.product(PPS, SD, DW, TL, BF))
+    parameter_combinations = list(itertools.product(PPS, SD, DW, TL, BF)) if _combinations is None else _combinations
 
-    for pi, parameters in enumerate(combinations):
+    for pi, parameters in enumerate(parameter_combinations):
         print(pi, parameters)
 
         new_projects = parameters[0]
@@ -179,7 +208,7 @@ def run_network_reconstruction_for_all_simulations(sim_path='../../simulation_io
             for r in range(replicate_count):
                 agents_f = this_path + '/' + optimiser + '/agents_vars_rep_%d.pickle' % r
                 projects_f = this_path + '/' + optimiser + '/projects_table_rep_%d.pickle' % r
-
+                
                 try:
                     agents = load_data(agents_f)
                     projects = load_data(projects_f)
@@ -195,10 +224,10 @@ def run_network_reconstruction_for_all_simulations(sim_path='../../simulation_io
                 except:
                     print("Could not reconstruct network for rep %d of : " % r, this_path + '/' + optimiser)
 
-
+        
 def run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=1):
 
-    combinations = [
+    parameter_combinations = [
         [3, 0.95, 0.1, 0.1, 1],
         [3, 0.99, 0.1, 0.1, 1],
         [3, 0.995, 0.1, 0.1, 1],
@@ -207,7 +236,7 @@ def run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/stream
         [3, 0.995, 0.1, 2.0, 1]
     ]
 
-    for pi, parameters in enumerate(combinations):
+    for pi, parameters in enumerate(parameter_combinations):
         print(pi, parameters)
 
         new_projects = parameters[0]
@@ -249,7 +278,40 @@ def run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/stream
 if __name__ == "__main__":
 
     # run_network_reconstruction_for_all_simulations()
-    run_network_reconstruction_for_preset_e()
+    # run_network_reconstruction_for_preset_e()
+
+    parameter_combinations = [
+        [10, 0.95, 0.3, 0.3, 1],
+        [10, 0.95, 0.3, 0.0, 1],
+        [10, 0.95, 0.3, 0.1, 1],
+        [10, 0.95, 0.3, 2.0, 1],
+        [10, 0.995, 0.3, 0.3, 1],
+        [10, 0.99, 0.3, 0.3, 1],
+        [1, 0.95, 0.1, 0.0, 1],
+        [1, 0.995, 0.1, 0.0, 1],
+        [1, 0.99, 0.1, 0.0, 1],
+        [1, 0.95, 0.1, 0.1, 1],
+        [1, 0.95, 0.1, 0.3, 1],
+        [1, 0.95, 0.1, 2.0, 1],
+        [3, 0.995, 0.1, 0.1, 1],
+        [3, 0.95, 0.1, 0.1, 1],
+        [3, 0.99, 0.1, 0.1, 1],
+        [3, 0.995, 0.1, 0.0, 1],
+        [3, 0.995, 0.1, 0.3, 1],
+        [3, 0.995, 0.1, 2.0, 1],
+        [2, 0.95, 0.3, 0.0, 1],
+        [2, 0.995, 0.3, 0.0, 1],
+        [2, 0.99, 0.3, 0.0, 1],
+        [2, 0.95, 0.3, 0.1, 1],
+        [2, 0.95, 0.3, 0.3, 1],
+        [2, 0.95, 0.3, 2.0, 1],
+    ]
+    #run_network_reconstruction_for_all_simulations(
+    #    sim_path='../../simulation_io/streamlit/',
+    #    _combinations=parameter_combinations,
+    #    replicate_count=5 
+    #)
+    run_network_reconstruction_for_preset_e(sim_path='../../simulation_io/streamlit/', replicate_count=5)
 
     # replicate = 0
     #

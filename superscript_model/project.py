@@ -21,7 +21,7 @@ import json
 import pickle
 
 from .function import FunctionFactory
-from .utilities import Random
+from .utilities import Random, normalise_success
 from .config import (MAXIMUM_TIMELINE_FLEXIBILITY,
                      PROJECT_LENGTH,
                      DEFAULT_START_OFFSET,
@@ -948,7 +948,8 @@ class SuccessCalculator:
                 + self.probability_risk.get_values(self.risk)
                 + self.probability_chemistry.get_values(self.chemistry)
             ) / 100
-            project.success_probability = max(0, probability)
+            #project.success_probability = max(0, probability)
+            project.success_probability = normalise_success(probability)
 
     def determine_success(self, project):
         """Determine if the project was successful.

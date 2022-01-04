@@ -213,26 +213,46 @@ A python script for running batch simulations is provided: [batch_run_simulation
 
 ### Analysis
 
-There are two analysis notebooks and the data to run them are include in the repository 
-(in [simulation_io/](simulation_io)):
+There are five analysis notebooks and the data to run them are include in the repository 
+(in [analysis/](analysis)):
 1. [initial_aws_simulations.ipynb](analysis/initial_aws_simulations.ipynb) explores early simulated data (pre-release).
 2. [testing_hypotheses.ipynb](analysis/testing_hypotheses.ipynb) explores batch simulation data the were produced using 
 release v0.1 of the model.
+3. [testing_hypotheses_2.ipynb](analysis/testing_hypotheses_2.ipynb) expands on the previous analysis to study the effects
+   of the skill decay parameter.
+4. [network_analysis.ipynb](analysis/network_analysis.ipynb) studies the social network of successful collaborations 
+   between workers.
+5. [probability_components.ipynb](analysis/probability_components.ipynb) explores the project success probabilities and 
+   their components and develops a probability normalisation method that is used in releases v1.2 and above to ensure 
+   that success probabilities lie in the closed interval [0, 1].   
 
-The hypotheses are detailed in the [model specification document](documentation/model_specification.pdf). The next 
-project milestone will expand the analysis to complete the investigation of these hypotheses. 
+The hypotheses are detailed in the [model specification document](documentation/model_specification.pdf). There are 
+also new analysis scripts in [retrospective_metrics](analysis/retrospective_metrics). These scripts are for metrics or 
+analyses that are currently (v1.2) being computed retrospectively, however in the next release they will be incorporated
+ into the core simulation model, and the scripts will be deprecated (see Roadmap below). The scripts are:
+1. [network_reconstruction_ne.py](analysis/retrospective_metrics/network_reconstruction_ne.py) which reconstructs the 
+network of successful collaborations between workers on every timestep and stores this in a concise representation (an
+   initial and diff file) to be imported to networkx. 
+2. [preset_E.py](analysis/retrospective_metrics/preset_E.py) which creates a new pseudo-simulation by post-processing
+   pre-simulated data to removing the inactive workers from the workforce on each timestep (down to a target slack of
+   10%). The resulting simulation is referred to as 'Preset E' in the Streamlit application.
+3. [roi.py](analysis/retrospective_metrics/roi.py) which computes the new 'Return on Investment' metric and averages it
+   across the workforce on each timestep. See the [model specification document](documentation/model_specification.pdf)
+   for more details.
 
 ### Roadmap
 
 The current roadmap consists of the following milestones  with expected
 shipping dates in square brackets:
 
-1.	Expand the current analysis to finish testing the initial hypotheses. [Q2 2021]
-2.	Complete unit testing framework to reach 100% (currently at 97%). [Q2 2021]
-3.	Alter training mechanism (and explore the 'rich get richer' effect). [Q3 2021]
-4.	Edit social network to track more information about historical collaborations. [Q3 2021]
-5.	Add performance benchmarking (for optimisation routine). [Q3 2021]
-6.	Review model extensions and choose those to implement. [Q3 2021]
+1. Add ROI calculation, 'Preset E' and new network output format to the core simulation code (rather than using scripts 
+   to retrospectively compute these.) [Q1 2022]  
+2. Complete unit testing framework to reach 100% (currently at 97%). [Q1 2022]
+3.	Add performance benchmarking (for optimisation routine). [Q3 2021]
+4. Implement Reinforcement Learning approach to team allocation and compare performance with basin-hopping. [Q2 2022]
+5.	Alter training mechanism (and explore the 'rich get richer' effect). [tbc]
+6.	Edit social network to track more information about historical collaborations. [tbc]
+7.	Review model extensions and choose those to implement. [tbc]
 
 See [open issues](https://github.com/Superscriptus/SuperScript/issues) for details of milestone 1. 
 
