@@ -153,7 +153,7 @@ def get_new_model_vars(worker_data, model_vars, projects_data):
             this_projects, this_units = get_projects_units_for_worker(w, w_step, data_slice)
             project_counts.append(len(this_projects))
 
-        new_data['WorkersOnTraining'] = len(training_workers(w_step, data_slice))
+        new_data['WorkersOnTraining'].append(len(training_workers(w_step, data_slice)))
         new_data['ProjectLoad'].append(project_load)
         new_data['TrainingLoad'].append(train_load)
         new_data['DeptLoad'].append(dept_load)
@@ -163,7 +163,9 @@ def get_new_model_vars(worker_data, model_vars, projects_data):
 
         workers_on_projects = sum([1 for count in project_counts if count > 0])
         new_data['WorkersOnProjects'].append(workers_on_projects)
-        new_data['WorkersWithoutProjects'].append(len(workers_present_at_t) - workers_on_projects)
+        new_data['WorkersWithoutProjects'].append(
+            len(workers_present_at_t) - workers_on_projects - len(training_workers(w_step, data_slice))
+        )
         new_data['WorkerTurnover'].append(model_vars.loc[w_step - 1].WorkerTurnover - turnover_correction)
 
     for col in new_cols:
