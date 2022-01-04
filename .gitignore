@@ -114,6 +114,7 @@ celerybeat.pid
 # Environments
 superscriptenv
 ssenv
+venv
 
 # Spyder project settings
 .spyderproject
