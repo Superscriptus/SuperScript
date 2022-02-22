@@ -260,7 +260,7 @@ See [open issues](https://github.com/Superscriptus/SuperScript/issues) for detai
 
 The repository is currently at 97% code coverage. To run the unit tests use:
 ```
-coverage run -m unittest discover && coverage report
+coverage run --omit 'superscriptenv/*' -m unittest discover && coverage report
 ```
 For an interactive html coverage report run ```coverage html -i``` and then open ```index.html``` in your browser.
 
