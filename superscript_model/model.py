@@ -293,6 +293,10 @@ class SuperScriptModel(Model):
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,
                                        self.time, self.project_length)
+
+        for di, dept in self.departments.items():
+            dept.assign_work()
+
         self.schedule.step()
         self.trainer.train()
         self.inventory.remove_null_projects()

@@ -1373,6 +1373,27 @@ class Department:
             )
         return min(budget_over_time)
 
+    def assign_work(self):
+        """Assign departmental work to workers in this department.
+        Starting with the workers that have the most project work so that
+        as much slack is retained as possible.
+
+        """
+        dept_worker_units_contributed = {
+            worker: sum(worker.contributes_now.values())
+            for worker in self.model.schedule.agents
+            if worker.department.dept_id == self.dept_id
+        }
+        dept_worker_units_contributed = dict(
+            sorted(
+                dept_worker_units_contributed.items(),
+                key=lambda item: item[1], reverse=True
+            )
+        )
+        for worker in dept_worker_units_contributed.keys():
+            # assign work until full (see ROI script).
+            pass
+
     def to_string(self):
         """Returns json formatted string for printing or saving
         the details of the department.
