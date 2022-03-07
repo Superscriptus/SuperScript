@@ -1376,7 +1376,7 @@ class Department:
             )
         return min(budget_over_time)
 
-    def assign_work(self):
+    def assign_work(self, verbose=False):
         """Assign departmental work to workers in this department.
         Starting with the workers that have the most project work so that
         as much slack is retained as possible.
@@ -1403,9 +1403,21 @@ class Department:
         departmental_unit_count = self.number_of_workers * self.units_per_full_time * self.workload
         units_added = 0
         workers_checked = 0
+
         for worker in dept_worker_units_contributed.keys():
-            # assign work until full (see ROI script).
-            pass
+            workers_checked += 1
+            worker_units_committed = dept_worker_units_contributed[worker]
+
+            while worker_units_committed < self.units_per_full_time and units_added < departmental_unit_count:
+                ## ADD roi_worker_dict[worker] += return_dict['dept']
+                worker_units_committed += 1
+                units_added += 1
+                worker.departmental_work_units += 1
+
+                if workers_checked == len(dept_worker_units_contributed):
+                    if verbose:
+                        print("Warning: Could not assign full departmental workload!")
+                    break
 
     def to_string(self):
         """Returns json formatted string for printing or saving

@@ -191,7 +191,8 @@ class Worker(Agent):
         simulation timestep.
         First the worker advances all projects that they lead on,
         then any unused skills are subject to decay, then their
-        recent activity is checked (for worker replacement).
+        departmental work is reset, then their recent activity
+        is checked (for worker replacement).
 
         Note:
             Projects stored as list before loop, because leads_on
@@ -204,6 +205,7 @@ class Worker(Agent):
                 project.advance()
 
         self.skills.decay(self)
+        self.departmental_work_units = 0
         self.check_activity()
 
     def get_skill(self, skill, hard_skill=True):
