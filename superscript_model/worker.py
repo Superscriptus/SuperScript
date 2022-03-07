@@ -84,6 +84,16 @@ class Worker(Agent):
             work is not explicitly assigned at this stage. A requirement for
             explicit assignment of departmental work only arose later when
             ROI was introduced as an output metric.
+        departmental_work_units: int
+            how many units this worker contributes to departmental workload
+        was_trained_this_timestep : bool
+            if worker was on training during this timestep
+        successful_projects_this_timestep: int
+            how many projects that this worker contributed to completed
+            successfully this timestep.
+        failed_projects_this_timestep: int
+            how many projects that this worker contributed to completed
+            but failed this timestep.
     """
 
     def __init__(self, worker_id: int,
@@ -109,7 +119,12 @@ class Worker(Agent):
         self.history = WorkerHistory()
         self.training_remaining = 0
         self.timesteps_inactive = 0
+
+        # The following attributes are used only for ROI calculation:
         self.departmental_work_units = 0
+        self.was_trained_this_timestep = False
+        self.successful_projects_this_timestep = 0
+        self.failed_projects_this_timestep = 0
 
     @property
     def contributes(self):
