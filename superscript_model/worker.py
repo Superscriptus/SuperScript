@@ -87,7 +87,7 @@ class Worker(Agent):
     """
 
     def __init__(self, worker_id: int,
-                 model, department=Department(0),
+                 model, department=None,
                  skill_decay_factor=SKILL_DECAY_FACTOR):
         """
         Create new worker in specified department and call base class
@@ -96,7 +96,7 @@ class Worker(Agent):
         super().__init__(worker_id, model)
         self.worker_id = worker_id
         self.skills = SkillMatrix(skill_decay_factor=skill_decay_factor)
-        self.department = department
+        self.department = department if department is not None else Department(0, model)
         self.department.add_worker()
 
         self.strategy = (

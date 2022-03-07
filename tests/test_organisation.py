@@ -132,9 +132,11 @@ class TestTeam(unittest.TestCase):
 
     @patch('superscript_model.model.Model')
     @patch('superscript_model.organisation.TeamAllocator')
-    def test_compute_ovr(self, mock_allocator, mock_model):
+    @patch('superscript_model.organisation.Department')
+    def test_compute_ovr(self, mock_dept, mock_allocator, mock_model):
 
-        workers = [Worker(i, mock_model) for i in range(5)]
+        dept = Department(0, mock_model)
+        workers = [Worker(i, mock_model, dept) for i in range(5)]
         hard_skills = ['A', 'B', 'C', 'D', 'E']
         workers[0].skills.hard_skills = dict(zip(hard_skills,
                                                  [0.0, 3.9, 3.2, 4.1, 1.5]))
@@ -147,10 +149,14 @@ class TestTeam(unittest.TestCase):
         workers[4].skills.hard_skills = dict(zip(hard_skills,
                                                  [0.0, 0.0, 0.0, 2.9, 0.0]))
         mock_model.p_budget_flexibility = 0.25
-        project = Project(ProjectInventory(mock_allocator,
-                                           model=mock_model),
-                          project_id=42,
-                          project_length=5)
+        project = Project(
+            ProjectInventory(
+                mock_allocator,
+                model=mock_model
+            ),
+            project_id=42,
+            project_length=5
+        )
         project.requirements.hard_skills = {
             'A': {'units': 0, 'level': 3},
             'B': {'units': 2, 'level': 3},
@@ -178,7 +184,8 @@ class TestTeam(unittest.TestCase):
     @patch('superscript_model.organisation.TeamAllocator')
     def test_compute_skill_balance(self, mock_allocator, mock_model):
 
-        workers = [Worker(i, mock_model) for i in range(5)]
+        dept = Department(0, mock_model)
+        workers = [Worker(i, mock_model, dept) for i in range(5)]
         hard_skills = ['A', 'B', 'C', 'D', 'E']
         workers[0].skills.hard_skills = dict(zip(hard_skills,
                                                  [0.0, 3.9, 3.2, 4.1, 1.5]))
@@ -542,27 +549,30 @@ class TestTeamAllocator(unittest.TestCase):
 
 class TestDepartment(unittest.TestCase):
 
-    def test_init(self):
-        dept = Department(0)
+    @patch('superscript_model.model.Model')
+    def test_init(self, mock_model):
+        dept = Department(0, mock_model)
         self.assertEqual(dept.workload, DEPARTMENTAL_WORKLOAD)
         self.assertEqual(dept.units_per_full_time, UNITS_PER_FTE)
         self.assertEqual(dept.slack, WORKLOAD_SATISFIED_TOLERANCE)
 
-    def test_is_workload_satisfied(self):
-        dept = Department(0)
+    @patch('superscript_model.model.Model')
+    def test_is_workload_satisfied(self, mock_model):
+        dept = Department(0, mock_model)
         dept.number_of_workers += 1
         dept.units_supplied_to_projects[0] = 8
 
         self.assertFalse(dept.is_workload_satisfied(0, 1))
 
-    def test_to_string(self):
-        dept = Department(0)
+    @patch('superscript_model.model.Model')
+    def test_to_string(self, mock_model):
+        dept = Department(0, mock_model)
         self.assertIsInstance(dept.to_string(), str)
 
     @patch('superscript_model.model.Model')
     def test_add_training(self, mock_model):
         mock_model.trainer = Trainer(mock_model)
-        dept = Department(0)
+        dept = Department(0, mock_model)
         worker = Worker(42, mock_model, department=dept)
         dept.add_training(worker, 5)
         # worker.model.trainer.train(worker)
@@ -582,7 +592,7 @@ class TestTrainer(unittest.TestCase):
     def test_update_skill_quartiles(self, mock_model):
         mock_model.schedule = RandomActivation(mock_model)
         trainer = Trainer(mock_model)
-        dept = Department(0)
+        dept = Department(0, mock_model)
         workers = []
         for i in range(5):
             w = Worker(i, mock_model, department=dept)
@@ -607,7 +617,7 @@ class TestTrainer(unittest.TestCase):
         }
 
         trainer = Trainer(mock_model)
-        dept = Department(0)
+        dept = Department(0, mock_model)
         workers = []
         for i in range(5):
             w = Worker(i, mock_model, department=dept)

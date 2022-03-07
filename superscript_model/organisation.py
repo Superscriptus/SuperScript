@@ -1196,6 +1196,8 @@ class Department:
     Attributes:
         dept_id: int
             Unique integer ID for this department.
+        model: model.SuperScriptModel
+            Reference to main model to access scheduler list of agents (workers).
         number_of_workers: int
             Number of worker in this department.
         workload: float
@@ -1218,12 +1220,13 @@ class Department:
             training).
     """
 
-    def __init__(self, dept_id,
+    def __init__(self, dept_id, model,
                  workload=DEPARTMENTAL_WORKLOAD,
                  units_per_full_time=UNITS_PER_FTE,
                  tolerance=WORKLOAD_SATISFIED_TOLERANCE):
 
         self.dept_id = dept_id
+        self.model = model
         self.number_of_workers = 0
         self.workload = workload
         self.units_per_full_time = units_per_full_time
@@ -1380,9 +1383,15 @@ class Department:
 
         """
         dept_worker_units_contributed = {
-            worker: sum(worker.contributes_now.values())
+            worker: sum(
+                len(project_list)
+                for project_list in worker.contributes_now.values()
+            )
             for worker in self.model.schedule.agents
-            if worker.department.dept_id == self.dept_id
+            if (
+                    worker.department.dept_id == self.dept_id
+                    and worker.contributes_now is not None
+            )
         }
         dept_worker_units_contributed = dict(
             sorted(
@@ -1390,6 +1399,10 @@ class Department:
                 key=lambda item: item[1], reverse=True
             )
         )
+
+        departmental_unit_count = self.number_of_workers * self.units_per_full_time * self.workload
+        units_added = 0
+        workers_checked = 0
         for worker in dept_worker_units_contributed.keys():
             # assign work until full (see ROI script).
             pass

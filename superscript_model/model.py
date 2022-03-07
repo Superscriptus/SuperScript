@@ -252,7 +252,7 @@ class SuperScriptModel(Model):
         self.departmental_workload = departmental_workload
         for di in range(department_count):
             self.departments[di] = Department(
-                di, workload=self.departmental_workload
+                di, self, workload=self.departmental_workload
             )
 
         self.skill_decay_factor = skill_decay_factor
