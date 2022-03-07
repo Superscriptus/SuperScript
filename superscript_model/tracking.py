@@ -161,7 +161,7 @@ class SSDataCollector(DataCollector):
     Tables are used to track project and team specific data.
 
     Functions for model and agent reporters take model and agents
-    instances respectively.
+    instances respectively. (or use model/agent attributes/properties)
     """
     def __init__(self):
 
@@ -194,7 +194,8 @@ class SSDataCollector(DataCollector):
             "skill_decay": "skill_decay_tracker",
             "peer_assessment": "peer_assessment_tracker",
             "training_remaining": "training_remaining",
-            "timesteps_inactive": "timesteps_inactive"
+            "timesteps_inactive": "timesteps_inactive",
+            "departmental_work_units": "departmental_work_units"
         }
         tables = {
             "Projects": {"project_id": [],

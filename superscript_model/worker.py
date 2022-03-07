@@ -74,6 +74,16 @@ class Worker(Agent):
             (REPLACE_AFTER_INACTIVE_STEPS). Set to zero if worker is booked
             to work on future project, to ensure that worker is not
             replaced before this project starts.
+        departmental_work_units: int
+            how many units this worker contributes to departmental workload
+            on this timestep. Updated by Department on each timestep after
+            worker assignments to projects. This is a post-hoc assignment of
+            departmental work because initially the worker assignments are
+            conducted in such a way that the departmental workload fraction
+            is kept free across the department's workers, but departmental
+            work is not explicitly assigned at this stage. A requirement for
+            explicit assignment of departmental work only arose later when
+            ROI was introduced as an output metric.
     """
 
     def __init__(self, worker_id: int,
@@ -99,6 +109,7 @@ class Worker(Agent):
         self.history = WorkerHistory()
         self.training_remaining = 0
         self.timesteps_inactive = 0
+        self.departmental_work_units = 0
 
     @property
     def contributes(self):
