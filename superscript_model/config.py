@@ -99,3 +99,14 @@ HISTORICAL_SUCCESS_RATIO_THRESHOLD = 0.5  # Fraction of team that have worked to
 # Optimisation:
 NUMBER_OF_PROCESSORS = 8  # [*]Number of processors (cores) to use in parallel basinhopping.
 NUMBER_OF_BASIN_HOPS = 10  # [*]Number of basinhopping iterations to run.
+
+# Output metrics
+roi_return_dict = {
+    True: 50,
+    False: 10,
+    'active': 5,
+    'train': 5,
+    'dept': 10
+}   # The return on investment that is given by workers in different states: project success, fail, active on project,
+# training and conducting departmental workload.
+
