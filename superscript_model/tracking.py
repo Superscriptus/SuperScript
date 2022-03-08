@@ -152,6 +152,13 @@ def projects_per_worker(model):
     return project_count / model.worker_count
 
 
+def workforce_roi(model):
+    """Computes mean ROI for the workforce."""
+    return np.mean(
+        [worker.roi for worker in model.schedule.agents]
+    )
+
+
 class SSDataCollector(DataCollector):
     """Data collection class.
 
@@ -183,7 +190,8 @@ class SSDataCollector(DataCollector):
             "TrainingLoad": training_load,
             "DeptLoad": departmental_load,
             "Slack": slack,
-            "ProjectsPerWorker": projects_per_worker
+            "ProjectsPerWorker": projects_per_worker,
+            "ROI": workforce_roi
             }
         agent_reporters = {
             "now": "now",
