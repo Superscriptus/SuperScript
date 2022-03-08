@@ -89,10 +89,10 @@ class Worker(Agent):
             how many units this worker contributes to departmental workload
         was_trained_this_timestep : bool
             if worker was on training during this timestep
-        successful_projects_this_timestep: int
+        successful_project_units: int
             how many projects that this worker contributed to completed
             successfully this timestep.
-        failed_projects_this_timestep: int
+        failed_project_units: int
             how many projects that this worker contributed to completed
             but failed this timestep.
     """
@@ -125,10 +125,10 @@ class Worker(Agent):
         # The following attributes are used only for ROI calculation:
         self.roi_return_dict = roi_return_dict
         self.departmental_work_units = 0
-        self.active_projects = 0
+        self.active_project_units = 0
         self.was_trained_this_timestep = False
-        self.successful_projects_this_timestep = 0
-        self.failed_projects_this_timestep = 0
+        self.successful_project_units = 0
+        self.failed_project_units = 0
         self.roi = 0
 
     @property
@@ -212,10 +212,10 @@ class Worker(Agent):
         calculation.
         """
         self.departmental_work_units = 0
-        self.active_projects = 0
+        self.active_project_units = 0
         self.was_trained_this_timestep = False
-        self.successful_projects_this_timestep = 0
-        self.failed_projects_this_timestep = 0
+        self.successful_project_units = 0
+        self.failed_project_units = 0
         self.roi = 0
 
     def compute_worker_roi(self):
@@ -231,17 +231,17 @@ class Worker(Agent):
         else:
             total_units = sum([
                     self.departmental_work_units,
-                    self.successful_projects_this_timestep,
-                    self.failed_projects_this_timestep,
-                    self.active_projects
+                    self.successful_project_units,
+                    self.failed_project_units,
+                    self.active_project_units
             ])
             if total_units > 0:
                 total_units = max(10, total_units)
 
                 self.roi = (
-                    self.roi_return_dict[True] * self.successful_projects_this_timestep
-                    + self.roi_return_dict[False] * self.failed_projects_this_timestep
-                    + self.roi_return_dict['active'] * self.active_projects
+                    self.roi_return_dict[True] * self.successful_project_units
+                    + self.roi_return_dict[False] * self.failed_project_units
+                    + self.roi_return_dict['active'] * self.active_project_units
                     + self.roi_return_dict['dept'] * self.departmental_work_units
                 ) / total_units
             else:

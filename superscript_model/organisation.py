@@ -455,9 +455,9 @@ class Team:
             member.history.record(success)
 
             if success:
-                member.successful_projects_this_timestep += 1
+                member.successful_project_units += 1
             else:
-                member.failed_projects_this_timestep += 1
+                member.failed_project_units += 1
 
     def within_budget(self):
         """Tests if the team is within budget  for the project.
@@ -1400,7 +1400,7 @@ class Department:
                     for project_list in worker.contributes_now.values()
                 )
 
-                worker.active_projects += len(
+                worker.active_project_units += len(
                     set([
                         pi for project_list in worker.contributes_now.values()
                         for pi in project_list
