@@ -226,7 +226,26 @@ class Worker(Agent):
         if self.training_remaining > 0:
             self.was_trained_this_timestep = True
 
-        self.roi = self.roi_return_dict[True]
+        if self.was_trained_this_timestep:
+            self.roi = self.roi_return_dict['train']
+        else:
+            total_units = sum([
+                    self.departmental_work_units,
+                    self.successful_projects_this_timestep,
+                    self.failed_projects_this_timestep,
+                    self.active_projects
+            ])
+            if total_units > 0:
+                total_units = max(10, total_units)
+
+                self.roi = (
+                    self.roi_return_dict[True] * self.successful_projects_this_timestep
+                    + self.roi_return_dict[False] * self.failed_projects_this_timestep
+                    + self.roi_return_dict['active'] * self.active_projects
+                    + self.roi_return_dict['dept'] * self.departmental_work_units
+                ) / total_units
+            else:
+                self.roi = 0
 
     def step(self):
         """Worker step method, called by Mesa scheduler on each
