@@ -1400,12 +1400,7 @@ class Department:
                     for project_list in worker.contributes_now.values()
                 )
 
-                worker.active_project_units += len(
-                    set([
-                        pi for project_list in worker.contributes_now.values()
-                        for pi in project_list
-                    ])
-                )
+                worker.active_project_units += dept_worker_units_contributed[worker]
 
         dept_worker_units_contributed = dict(
             sorted(
