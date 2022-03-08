@@ -121,7 +121,6 @@ class Worker(Agent):
         self.timesteps_inactive = 0
 
         # The following attributes are used only for ROI calculation:
-        # reset at end of step method. Set during training/on project completion...
         self.departmental_work_units = 0
         self.was_trained_this_timestep = False
         self.successful_projects_this_timestep = 0

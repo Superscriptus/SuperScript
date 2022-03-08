@@ -454,6 +454,11 @@ class Team:
         for member in self.members.values():
             member.history.record(success)
 
+            if success:
+                member.successful_projects_this_timestep += 1
+            else:
+                member.failed_projects_this_timestep += 1
+
     def within_budget(self):
         """Tests if the team is within budget  for the project.
 
