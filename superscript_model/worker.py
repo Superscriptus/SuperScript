@@ -232,6 +232,10 @@ class Worker(Agent):
                 project.advance()
 
         self.skills.decay(self)
+
+        if self.training_remaining > 0:
+            self.was_trained_this_timestep = True
+
         self.check_activity()
 
     def get_skill(self, skill, hard_skill=True):

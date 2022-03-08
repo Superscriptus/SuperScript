@@ -1012,9 +1012,7 @@ class Trainer:
         for worker_id in worker_ids:
             if worker_id in self.trainees.keys():
 
-                self.trainees[worker_id].was_trained_this_timestep = True
                 self.trainees[worker_id].training_remaining -= 1
-
                 if self.trainees[worker_id].training_remaining == 0:
                     del self.trainees[worker_id]
 
@@ -1388,7 +1386,7 @@ class Department:
         Starting with the workers that have the most project work so that
         as much slack is retained as possible.
 
-        Also registers how many active projects each worker contributes to
+        Also registers how many active projects each worker contributes to.
         """
         dept_worker_units_contributed = {}
 
