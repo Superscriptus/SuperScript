@@ -289,6 +289,7 @@ class SuperScriptModel(Model):
 
         for agent in self.schedule.agents:
             agent.skills.reset_skill_change_trackers()
+            agent.reset_roi_attributes()
 
         self.trainer.update_skill_quartiles()
         self.inventory.create_projects(self.new_projects_per_timestep,

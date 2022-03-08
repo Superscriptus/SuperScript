@@ -121,6 +121,7 @@ class Worker(Agent):
         self.timesteps_inactive = 0
 
         # The following attributes are used only for ROI calculation:
+        # reset at end of step method. Set during training/on project completion...
         self.departmental_work_units = 0
         self.was_trained_this_timestep = False
         self.successful_projects_this_timestep = 0
@@ -201,6 +202,16 @@ class Worker(Agent):
         """Removes this worker as project lead."""
         del self.leads_on[project.project_id]
 
+    def reset_roi_attributes(self):
+        """
+        Resets the attributes that are used on each timestep for ROI
+        calculation.
+        """
+        self.departmental_work_units = 0
+        self.was_trained_this_timestep = False
+        self.successful_projects_this_timestep = 0
+        self.failed_projects_this_timestep = 0
+
     def step(self):
         """Worker step method, called by Mesa scheduler on each
         simulation timestep.
@@ -220,7 +231,6 @@ class Worker(Agent):
                 project.advance()
 
         self.skills.decay(self)
-        self.departmental_work_units = 0
         self.check_activity()
 
     def get_skill(self, skill, hard_skill=True):

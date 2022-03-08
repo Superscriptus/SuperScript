@@ -1006,6 +1006,8 @@ class Trainer:
         worker_ids = list(self.trainees.keys())
         for worker_id in worker_ids:
             if worker_id in self.trainees.keys():
+
+                self.trainees[worker_id].was_trained_this_timestep = True
                 self.trainees[worker_id].training_remaining -= 1
 
                 if self.trainees[worker_id].training_remaining == 0:
