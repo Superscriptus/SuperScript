@@ -122,6 +122,7 @@ class Worker(Agent):
 
         # The following attributes are used only for ROI calculation:
         self.departmental_work_units = 0
+        self.active_projects = 0
         self.was_trained_this_timestep = False
         self.successful_projects_this_timestep = 0
         self.failed_projects_this_timestep = 0
@@ -207,6 +208,7 @@ class Worker(Agent):
         calculation.
         """
         self.departmental_work_units = 0
+        self.active_projects = 0
         self.was_trained_this_timestep = False
         self.successful_projects_this_timestep = 0
         self.failed_projects_this_timestep = 0

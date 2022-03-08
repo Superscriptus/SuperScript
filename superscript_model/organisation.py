@@ -1388,18 +1388,27 @@ class Department:
         Starting with the workers that have the most project work so that
         as much slack is retained as possible.
 
+        Also registers how many active projects each worker contributes to
         """
-        dept_worker_units_contributed = {
-            worker: sum(
-                len(project_list)
-                for project_list in worker.contributes_now.values()
-            )
-            for worker in self.model.schedule.agents
+        dept_worker_units_contributed = {}
+
+        for worker in self.model.schedule.agents:
             if (
                     worker.department.dept_id == self.dept_id
                     and worker.contributes_now is not None
-            )
-        }
+            ):
+                dept_worker_units_contributed[worker] = sum(
+                    len(project_list)
+                    for project_list in worker.contributes_now.values()
+                )
+
+                worker.active_projects += len(
+                    set([
+                        pi for project_list in worker.contributes_now.values()
+                        for pi in project_list
+                    ])
+                )
+
         dept_worker_units_contributed = dict(
             sorted(
                 dept_worker_units_contributed.items(),
