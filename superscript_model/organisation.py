@@ -454,10 +454,11 @@ class Team:
         for member in self.members.values():
             member.history.record(success)
 
+            contributions = self.count_units_contributed_by_member(member.worker_id)
             if success:
-                member.successful_project_units += 1
+                member.successful_project_units += contributions
             else:
-                member.failed_project_units += 1
+                member.failed_project_units += contributions
 
     def within_budget(self):
         """Tests if the team is within budget  for the project.
