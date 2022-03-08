@@ -32,6 +32,14 @@ WORKER_OVR_MULTIPLIER = 20  # Multiplier for calculating worker OVR.
 WORKER_SUCCESS_HISTORY_LENGTH = 4  # Number of previous projects to track in social network.
 WORKER_SUCCESS_HISTORY_THRESHOLD = 0.75  # Required successful fraction of tracked projects to produce 'momentum'
 SKILL_DECAY_FACTOR = 0.99  # Decay multiplier for unused skills.
+ROI_RETURN_DICT = {
+    True: 50,
+    False: 10,
+    'active': 5,
+    'train': 5,
+    'dept': 10
+}   # The return on investment that is given by workers in different states: project success, fail, active on project,
+# training and conducting departmental workload.
 # Distribution parameters for peer assessment (success and fail):
 PEER_ASSESSMENT_SUCCESS_MEAN = 1.05
 PEER_ASSESSMENT_SUCCESS_STDEV = 0.2
@@ -100,13 +108,4 @@ HISTORICAL_SUCCESS_RATIO_THRESHOLD = 0.5  # Fraction of team that have worked to
 NUMBER_OF_PROCESSORS = 8  # [*]Number of processors (cores) to use in parallel basinhopping.
 NUMBER_OF_BASIN_HOPS = 10  # [*]Number of basinhopping iterations to run.
 
-# Output metrics
-roi_return_dict = {
-    True: 50,
-    False: 10,
-    'active': 5,
-    'train': 5,
-    'dept': 10
-}   # The return on investment that is given by workers in different states: project success, fail, active on project,
-# training and conducting departmental workload.
 

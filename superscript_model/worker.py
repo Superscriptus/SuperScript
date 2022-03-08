@@ -25,7 +25,8 @@ from .config import (HARD_SKILLS,
                      UNITS_PER_FTE,
                      WORKER_SUCCESS_HISTORY_LENGTH,
                      WORKER_SUCCESS_HISTORY_THRESHOLD,
-                     SKILL_DECAY_FACTOR)
+                     SKILL_DECAY_FACTOR,
+                     ROI_RETURN_DICT)
 
 
 class Worker(Agent):
@@ -98,7 +99,8 @@ class Worker(Agent):
 
     def __init__(self, worker_id: int,
                  model, department=None,
-                 skill_decay_factor=SKILL_DECAY_FACTOR):
+                 skill_decay_factor=SKILL_DECAY_FACTOR,
+                 roi_return_dict=ROI_RETURN_DICT):
         """
         Create new worker in specified department and call base class
         constructor to add worker(agent) to scheduler.
@@ -121,11 +123,13 @@ class Worker(Agent):
         self.timesteps_inactive = 0
 
         # The following attributes are used only for ROI calculation:
+        self.roi_return_dict = roi_return_dict
         self.departmental_work_units = 0
         self.active_projects = 0
         self.was_trained_this_timestep = False
         self.successful_projects_this_timestep = 0
         self.failed_projects_this_timestep = 0
+        self.roi = 0
 
     @property
     def contributes(self):
@@ -212,6 +216,17 @@ class Worker(Agent):
         self.was_trained_this_timestep = False
         self.successful_projects_this_timestep = 0
         self.failed_projects_this_timestep = 0
+        self.roi = 0
+
+    def compute_worker_roi(self):
+        """
+        Calculates worker ROI (return on investment) based on attribute
+        values for this timestep.
+        """
+        if self.training_remaining > 0:
+            self.was_trained_this_timestep = True
+
+        self.roi = self.roi_return_dict[True]
 
     def step(self):
         """Worker step method, called by Mesa scheduler on each
@@ -232,10 +247,7 @@ class Worker(Agent):
                 project.advance()
 
         self.skills.decay(self)
-
-        if self.training_remaining > 0:
-            self.was_trained_this_timestep = True
-
+        self.compute_worker_roi()
         self.check_activity()
 
     def get_skill(self, skill, hard_skill=True):
