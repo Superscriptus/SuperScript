@@ -195,7 +195,12 @@ class SSDataCollector(DataCollector):
             "peer_assessment": "peer_assessment_tracker",
             "training_remaining": "training_remaining",
             "timesteps_inactive": "timesteps_inactive",
-            "departmental_work_units": "departmental_work_units"
+            "departmental_work_units": "departmental_work_units",
+            "active_project_units": "active_project_units",
+            "was_trained_this_timestep": "was_trained_this_timestep",
+            "successful_project_units": "successful_project_units",
+            "failed_project_units": "failed_project_units",
+            "roi": "roi"
         }
         tables = {
             "Projects": {"project_id": [],
