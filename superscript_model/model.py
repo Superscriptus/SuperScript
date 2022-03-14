@@ -299,10 +299,7 @@ class SuperScriptModel(Model):
         self.trainer.train()
         self.inventory.remove_null_projects()
 
-        if (self.save_network_flag
-                and self.time % self.save_network_freq == 0):
-            self.grid.save()
-
+        self.grid.track()
         self.datacollector.collect(self)
         assert (on_projects(self)
                 + no_projects(self)

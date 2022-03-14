@@ -124,7 +124,7 @@ class SocialNetwork(NetworkGrid):
         else:
             return False
 
-    def save(self):
+    def track(self):
         """
         Save network for later analysis.
 
