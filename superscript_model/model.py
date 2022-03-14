@@ -46,7 +46,6 @@ from .config import (PROJECT_LENGTH,
                      LOAD_PROJECTS,
                      IO_DIR,
                      SAVE_NETWORK,
-                     SAVE_NETWORK_FREQUENCY,
                      DEPARTMENTAL_WORKLOAD,
                      TIMELINE_FLEXIBILITY,
                      NUMBER_OF_BASIN_HOPS,
@@ -193,7 +192,6 @@ class SuperScriptModel(Model):
                  save_projects=SAVE_PROJECTS,
                  load_projects=LOAD_PROJECTS,
                  save_network=SAVE_NETWORK,
-                 save_network_freq=SAVE_NETWORK_FREQUENCY,
                  departmental_workload=DEPARTMENTAL_WORKLOAD,
                  timeline_flexibility=TIMELINE_FLEXIBILITY,
                  number_of_processors=NUMBER_OF_PROCESSORS,
@@ -227,7 +225,6 @@ class SuperScriptModel(Model):
         self.G = nx.Graph()
         self.grid = SocialNetwork(self, self.G)
         self.save_network_flag = save_network
-        self.save_network_freq = save_network_freq
 
         self.schedule = RandomActivation(self)
         self.io_dir = io_dir

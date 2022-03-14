@@ -81,7 +81,6 @@ WORKER_COUNT = 100  # [*]Total number of workers in the simulation (constant).
 BUDGET_FUNCTIONALITY_FLAG = True  # [*]Can be used to switch off budget functionality. (If False, budget is infinite.)
 IO_DIR = './simulation_io/'  # [*]Directory to save projects and network to (or to read project file from).
 SAVE_NETWORK = True  # [*]Whether to save the social network.
-SAVE_NETWORK_FREQUENCY = 30  # [*]How often, in timesteps, to save the social network.
 
 # Functions (parameters for the functions produced by function.FunctionFactory):
 SUCCESS_PROBABILITY_OVR_GRADIENT = 0.75

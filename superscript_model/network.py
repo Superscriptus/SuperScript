@@ -125,9 +125,20 @@ class SocialNetwork(NetworkGrid):
             return False
 
     def save(self):
-        """Save network for later analysis."""
-        nx.write_gpickle(
-            self.G,
-            self.model.io_dir
-            + '/network_timestep_%d.gpickle' % self.model.time
-        )
+        """
+        Save network for later analysis.
+
+        Note: this updated method uses a more concise format to save space on
+        disk and reduce loading times in the Streamlit application, such that
+        the network state on each timestep can be represented. Here, the
+        initial network is stored at the end of the first timetsep, and a
+        then network diff is stored in a json dictionary for each subsequent
+        timestep and saved to disk at the end of the simulation.
+        """
+        if self.model.time == 0:
+
+            nx.write_multiline_adjlist(
+                self.G,
+                self.model.io_dir
+                + '/network_timestep_%d.gpickle' % self.model.time
+            )
