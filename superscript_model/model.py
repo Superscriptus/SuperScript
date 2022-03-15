@@ -128,8 +128,6 @@ class SuperScriptModel(Model):
             of workers.
         save_network_flag: bool
             Whether to save the social network for later analysis.
-        save_network_freq: int
-            How often to save the network (in number of timesteps).
         schedule: mesa.time.RandomActivation
             Mesa scheduler (determines order in which workers are
             updated).

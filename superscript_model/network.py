@@ -135,10 +135,16 @@ class SocialNetwork(NetworkGrid):
         then network diff is stored in a json dictionary for each subsequent
         timestep and saved to disk at the end of the simulation.
         """
-        if self.model.time == 0:
 
-            nx.write_multiline_adjlist(
-                self.G,
-                self.model.io_dir
-                + '/network_timestep_%d.gpickle' % self.model.time
-            )
+        if self.model.save_network_flag:
+            if self.model.time == 0:
+
+                nx.write_multiline_adjlist(
+                    self.G,
+                    self.model.io_dir
+                    + '/network_timestep_%d.gpickle' % self.model.time
+                )
+            else:
+                # store network diff...(add old net)
+                # save at end of simulation
+                pass
