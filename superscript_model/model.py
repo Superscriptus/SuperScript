@@ -45,6 +45,7 @@ from .config import (PROJECT_LENGTH,
                      SAVE_PROJECTS,
                      LOAD_PROJECTS,
                      IO_DIR,
+                     REP_ID,
                      SAVE_NETWORK,
                      DEPARTMENTAL_WORKLOAD,
                      TIMELINE_FLEXIBILITY,
@@ -133,6 +134,8 @@ class SuperScriptModel(Model):
             updated).
         io_dir: str
             Path to directory for reading/writing projects.
+        rep_id: int
+            ID number for this simulation run (aka 'replicate').
         save_projects: bool
             Whether to save projects for use in later simulations.
         load_projects: bool
@@ -187,6 +190,7 @@ class SuperScriptModel(Model):
                  organisation_strategy=ORGANISATION_STRATEGY,
                  worker_strategy=WORKER_STRATEGY,
                  io_dir=IO_DIR,
+                 rep_id=REP_ID,
                  save_projects=SAVE_PROJECTS,
                  load_projects=LOAD_PROJECTS,
                  save_network=SAVE_NETWORK,
@@ -226,6 +230,7 @@ class SuperScriptModel(Model):
 
         self.schedule = RandomActivation(self)
         self.io_dir = io_dir
+        self.rep_id = rep_id
         self.save_projects = save_projects
         self.load_projects = load_projects
         self.timeline_flexibility = timeline_flexibility

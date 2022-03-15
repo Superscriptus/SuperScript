@@ -28,6 +28,11 @@ class SocialNetwork(NetworkGrid):
             Reference to main model.
         G: nx.Graph
             Networkx x graph object, created in main model.
+        old_G: nx.Graph
+            Networkx x graph object, created in main model.
+            Stores the graph state from previous timestep, after first timestep.
+        network_difference: dict
+            Stores the network diff between each timestep.
         success_threshold: float
             Fraction of team members who need to have worked before on
             successful project for get_team_historical_success_flag to
@@ -39,6 +44,8 @@ class SocialNetwork(NetworkGrid):
 
         self.model = model
         self.G = G
+        self.old_G = None
+        self.network_difference = {}
         self.success_threshold = success_threshold
 
     def initialise(self):
@@ -142,9 +149,42 @@ class SocialNetwork(NetworkGrid):
                 nx.write_multiline_adjlist(
                     self.G,
                     self.model.io_dir
-                    + '/network_timestep_%d.gpickle' % self.model.time
+                    + '/networkewr_%d_timestep_%d.adjlist'
+                    % (self.model.rep_id, self.model.time)
                 )
+                self.old_G = self.G.copy()
             else:
-                # store network diff...(add old net)
+                # compute and store network diff
+                self.network_difference[
+                    self.model.time
+                ]['nodes_to_remove'] = list(
+                    self.old_G.nodes() - self.G.nodes()
+                )
+                self.network_difference[
+                    self.model.time
+                ]['nodes_to_add'] = list(
+                    self.G.nodes() - self.old_G.nodes()
+                )
+                # find edge difference:
+                self.network_difference[
+                    self.model.time
+                ]['edges_to_add'] = list(
+                    self.G.edges() - self.old_G.edges()
+                )
+                self.network_difference[
+                    self.model.time
+                ]['edges_to_increment'] = []
+                for e in list(
+                        set(self.old_G.edges()).intersection(self.G.edges())
+                ):
+                    diff = (
+                            self.G.get_edge_data(*e)['width']
+                            - self.old_G.get_edge_data(*e)['width']
+                    )
+                    if diff > 0:
+                        self.network_difference[
+                            self.model.time
+                        ]['edges_to_increment'].append((e, diff))
+
                 # save at end of simulation
                 pass

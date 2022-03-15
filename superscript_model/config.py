@@ -80,6 +80,7 @@ DEPARTMENT_COUNT = 10  # [*]Number of departments in the simulation (must be >= 
 WORKER_COUNT = 100  # [*]Total number of workers in the simulation (constant).
 BUDGET_FUNCTIONALITY_FLAG = True  # [*]Can be used to switch off budget functionality. (If False, budget is infinite.)
 IO_DIR = './simulation_io/'  # [*]Directory to save projects and network to (or to read project file from).
+REP_ID = 0  # ID number for simulation replicate.
 SAVE_NETWORK = True  # [*]Whether to save the social network.
 
 # Functions (parameters for the functions produced by function.FunctionFactory):
