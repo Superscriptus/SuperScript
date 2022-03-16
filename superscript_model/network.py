@@ -8,6 +8,7 @@ Classes:
 """
 
 import networkx as nx
+import json
 from itertools import combinations
 from mesa.space import NetworkGrid
 
@@ -144,7 +145,8 @@ class SocialNetwork(NetworkGrid):
         """
 
         if self.model.save_network_flag:
-            if self.model.time == 0:
+
+            if self.model.time == 1:
 
                 nx.write_multiline_adjlist(
                     self.G,
@@ -153,8 +155,11 @@ class SocialNetwork(NetworkGrid):
                     % (self.model.rep_id, self.model.time)
                 )
                 self.old_G = self.G.copy()
-            else:
+
+            elif self.model.time > 1:
                 # compute and store network diff
+                self.network_difference[self.model.time] = {}
+
                 self.network_difference[
                     self.model.time
                 ]['nodes_to_remove'] = list(
@@ -186,5 +191,21 @@ class SocialNetwork(NetworkGrid):
                             self.model.time
                         ]['edges_to_increment'].append((e, diff))
 
-                # save at end of simulation
-                pass
+    def save_diff(self):
+        """
+        Save network diff for later analysis (called at end of run_model()).
+
+        Note: The network diff is a dictionary that stores the network
+        difference between one timestep and the next. Using the initial
+        network state that is saved by the track() method at the beginning
+        of the simulation, it is possible to reconstruct the network state
+        at each timestep.
+        """
+        file_path = (
+                self.model.io_dir
+                + '/network_dfference_rep_%d.json'
+                % self.model.rep_id
+        )
+
+        with open(file_path, 'w') as ofile:
+            json.dump(self.network_difference, ofile, indent=4)
