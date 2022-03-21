@@ -7,7 +7,8 @@ from superscript_model.function import (FunctionInterface,
                                         TimelineFlexibility,
                                         NoFlexibility,
                                         LinearFunction,
-                                        SaturatingFunction)
+                                        SaturatingFunction,
+                                        FunctionFactory)
 from superscript_model.config import (SUCCESS_PROBABILITY_OVR_GRADIENT,
                                       SUCCESS_PROBABILITY_SKILL_BALANCE_GRADIENT,
                                       SUCCESS_PROBABILITY_CREATIVITY_MATCH_RATE,
@@ -142,3 +143,13 @@ class TestSaturatingFunction(unittest.TestCase):
 
         self.assertEqual(func.print_function(),
                          "SuccessProbabilityCreativityMatch = 10.00 - 40.00 * (1 - exp(X))")
+
+
+class TestFunctionFactory(unittest.TestCase):
+
+    def test_get(self):
+        factory = FunctionFactory()
+        func = factory.get('IdentityFunction')
+        self.assertIsInstance(func, LinearFunction)
+        self.assertEqual(func.gradient, 0.0)
+        self.assertEqual(func.intercept, 1.0)
