@@ -178,7 +178,8 @@ def run_sim(parameters):
                     save_projects=save_projects,
                     load_projects=load_projects,
                     io_dir=sim_io_dir,
-                    skill_decay_factor=skill_decay
+                    skill_decay_factor=skill_decay,
+                    rep_id=ri
                 )
 
                 start_time = time.time()

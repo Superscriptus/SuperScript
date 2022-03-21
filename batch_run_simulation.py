@@ -16,11 +16,11 @@ import sys, os, shutil
 
 # Name for this batch of simulations:
 # (Note: should include date and code version number)
-BATCH_NAME = 'new_skill_decay_project_per_step_2_dep_wl_03_110621_v1.0'
+BATCH_NAME = 'testing_new_roi_new_network_format'  # 'new_skill_decay_project_per_step_2_dep_wl_03_110621_v1.0'
 
 # These global configuration values override config.py and will be
 # used in all the simulations:
-REPLICATE_COUNT = 10 # Number of replicate simulations to run
+REPLICATE_COUNT = 10  # Number of replicate simulations to run
 STEPS = 100  # Number of time steps for each simulation
 WORKER_COUNT = 100  # Total number of workers in simulation
 NEW_PROJECTS = 2  # Number of new projects created on each time step
@@ -144,7 +144,8 @@ if __name__ == "__main__":
                     ),
                     save_projects=save_projects,
                     load_projects=load_projects,
-                    io_dir=sim_io_dir
+                    io_dir=sim_io_dir,
+                    rep_id=ri
                 )
 
                 start_time = time.time()
