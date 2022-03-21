@@ -163,10 +163,10 @@ class ProjectInventory:
             try:
                 with open(io_dir + '/project_file.pickle', 'rb') as ifile:
                     self.all_projects = pickle.load(ifile)
-            except FileNotFoundError:
+            except (FileNotFoundError, EOFError) as e:
                 print(
                     'Cannot load predefined projects: '
-                    'project_file.pickle not found.'
+                    'project_file.pickle not found or is empty.'
                 )
                 self.load_flag = False
 
@@ -361,11 +361,14 @@ class ProjectInventory:
         simulations.
         """
         if self.save_flag:
-            with open(
-                    self.io_dir + '/project_file.pickle',
-                    'wb') as ofile:
+            try:
+                with open(
+                        self.io_dir + '/project_file.pickle',
+                        'wb') as ofile:
 
-                pickle.dump(self.all_projects, ofile)
+                    pickle.dump(self.all_projects, ofile)
+            except pickle.PicklingError:
+                print("Can't save projects: pickling error.")
 
     @staticmethod
     def rank_projects(project_list):

@@ -5,8 +5,6 @@ from superscript_model.project import (Project,
                                        ProjectInventory,
                                        ProjectRequirements)
 from superscript_model.model import SuperScriptModel
-from superscript_model.worker import Worker
-from superscript_model.organisation import Team
 
 
 class TestProject(unittest.TestCase):
@@ -92,16 +90,43 @@ class TestProjectInventory(unittest.TestCase):
     def test_init(self, mock_model, mock_allocator):
 
         inventory = ProjectInventory(mock_allocator,
-                                     model=mock_model)
+                                     model=mock_model,
+                                     save_flag=True)
         self.assertEqual(inventory.active_count, 0)
+        self.assertEqual(inventory.all_projects, {})
+
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model,
+                                     load_flag=True)
+        self.assertEqual(inventory.load_flag, False)  # as no project file to be found
 
     @patch('superscript_model.organisation.TeamAllocator')
     @patch('superscript_model.model.SuperScriptModel')
     def test_create_projects(self, mock_model, mock_allocator):
         mock_model.p_budget_flexibility = 0.25
         inventory = ProjectInventory(mock_allocator,
-                                     model=mock_model)
+                                     model=mock_model,
+                                     save_flag=True)
         inventory.create_projects(5, time=0, length=5)
+        self.assertEqual(inventory.active_count, 5)
+        self.assertIsInstance(inventory.all_projects[0][0], Project)
+
+        inventory.load_flag = True
+        inventory.save_flag = False
+        for i in range(5):
+            inventory.delete_project(i)
+        inventory.create_projects(5, time=0, length=5)
+        self.assertEqual(inventory.active_count, 5)
+
+    @patch('superscript_model.organisation.TeamAllocator')
+    @patch('superscript_model.model.SuperScriptModel')
+    def test_save_projects(self, mock_model, mock_allocator):
+        mock_model.p_budget_flexibility = 0.25
+        inventory = ProjectInventory(mock_allocator,
+                                     model=mock_model,
+                                     save_flag=True)
+        inventory.create_projects(5, time=0, length=5)
+        inventory.save_projects()
         self.assertEqual(inventory.active_count, 5)
 
     @patch('superscript_model.organisation.TeamAllocator')
