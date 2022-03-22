@@ -610,8 +610,9 @@ class TestTrainer(unittest.TestCase):
     def test_train(self, mock_allocator, mock_model):
 
         mock_model.schedule = RandomActivation(mock_model)
-        mock_model.inventory = ProjectInventory(mock_allocator,
-                                                model=mock_model)
+        mock_model.inventory = ProjectInventory(
+            mock_allocator, model=mock_model
+        )
         mock_model.inventory.total_skill_requirement = {
             'A': 10, 'B': 9
         }
@@ -640,3 +641,26 @@ class TestTrainer(unittest.TestCase):
         self.assertEqual(workers[1].skills.hard_skills['B'], 2)
         self.assertEqual(workers[2].skills.hard_skills['A'], 3)
         self.assertEqual(workers[4].skills.hard_skills['B'], 5)
+
+        for w in mock_model.schedule.agents:
+            mock_model.schedule.remove(w)
+
+        workers = []
+        for i in range(5):
+            w = Worker(i, mock_model, department=dept)
+            w.skills.hard_skills = dict(
+                zip(HARD_SKILLS, [i + 1 for s in HARD_SKILLS])
+            )
+            workers.append(w)
+            mock_model.schedule.add(w)
+        mock_model.training_mode = 'slots'
+        mock_model.target_training_load = 0.2
+        mock_model.worker_count = 5
+        trainer.training_length = 1
+        trainer.train()
+        self.assertEqual(len(trainer.trainees), 1)
+
+        mock_model.training_mode = 'not_implemented'
+        trainer.train()
+
+
