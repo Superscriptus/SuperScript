@@ -92,10 +92,11 @@ class TestOptimiser(unittest.TestCase):
 
     def test_smart_guess(self):
         x = self.optimiser.smart_guess()
-        self.assertEqual(
-            len(x),
-            len(self.model.schedule.agents) * 5
-        )
+        if x is not None:
+            self.assertEqual(
+                len(x),
+                len(self.model.schedule.agents) * 5
+            )
         self.optimiser.smart_guess_timeout = 0
         x = self.optimiser.smart_guess()
         self.assertIsNone(x)

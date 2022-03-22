@@ -8,6 +8,7 @@ from superscript_model.model import SuperScriptModel
 from superscript_model.worker import (Worker,
                                       WorkerStrategyInterface,
                                       AllInStrategy,
+                                      StakeStrategy,
                                       SkillMatrix)
 from superscript_model.project import Project, ProjectInventory
 from superscript_model.config import (HARD_SKILLS,
@@ -158,16 +159,38 @@ class TestWorker(unittest.TestCase):
         project.requirements.hard_skills = {'D': {'units': 2, 'level': 5}}
         self.assertEqual(worker.individual_chemistry(project), 2)
 
-    @patch('superscript_model.model.Model')
-    def test_replace(self, mock_model):
+    def test_replace(self):
 
         model = SuperScriptModel(100, department_count=10)
         self.assertEqual(model.departments[1].number_of_workers, 10)
         worker = model.schedule.agents[0]
+        worker2 = model.schedule.agents[1]
         self.assertEqual(worker.department.number_of_workers, 10)
         worker.replace()
+        worker2.leads_on[42] = None
+        worker2.replace()
         self.assertEqual(worker.department.number_of_workers, 10)
         self.assertEqual(model.schedule.get_agent_count(), 100)
+
+    def test_check_activity(self):
+
+        model = SuperScriptModel(10, department_count=1)
+        worker = model.schedule.agents[0]
+        old_id = worker.worker_id
+        worker.timesteps_inactive = 10
+        worker.check_activity()
+        self.assertNotEqual(
+            old_id,
+            model.schedule.agents[0]
+        )
+
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.project.Project')
+    def test_compute_worker_roi(self, mock_project, mock_model):
+        worker = Worker(42, mock_model)
+        worker.training_remaining = 1
+        worker.compute_worker_roi()
+        self.assertEqual(worker.roi, 5)
 
 
 class TestWorkerHistory(unittest.TestCase):
@@ -223,6 +246,15 @@ class TestAllInStrategy(unittest.TestCase):
             project_id=42,
             project_length=5
         ), worker))
+        inventory.create_projects(10, 0, 5)
+        for project in inventory.projects.values():
+            project.start_time = 0
+            worker.contributions.add_contribution(project, 'A')
+        self.assertFalse(strategy.bid(Project(
+            inventory,
+            project_id=0,
+            project_length=5
+        ), worker))
 
     @patch('superscript_model.model.SuperScriptModel')
     @patch('superscript_model.organisation.TeamAllocator')
@@ -233,6 +265,55 @@ class TestAllInStrategy(unittest.TestCase):
                           project_id=42,
                           project_length=2)
         strategy = AllInStrategy('test')
+        self.assertTrue(strategy.accept(project))
+
+
+class TestStakeStrategy(unittest.TestCase):
+
+    def test_init(self):
+        self.assertTrue(implements_interface(StakeStrategy, WorkerStrategyInterface))
+        strategy = StakeStrategy('test')
+        self.assertEqual(strategy.name, 'test')
+
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_bid(self, mock_allocator, mock_model):
+        mock_model.p_budget_flexibility = 0.25
+        mock_model.budget_functionality_flag = True
+        inventory = ProjectInventory(
+            mock_allocator,
+            model=mock_model
+        )
+        worker = Worker(42, mock_model)
+        strategy = StakeStrategy('test')
+
+        inventory.create_projects(10, 0, 5)
+        inventory.projects[1].requirements.risk = 1000
+        self.assertFalse(
+            strategy.bid(inventory.projects[1], worker)
+        )
+        inventory.projects[1].requirements.risk = 0
+        self.assertTrue(
+            strategy.bid(inventory.projects[1], worker)
+        )
+        for project in inventory.projects.values():
+            project.start_time = 0
+            worker.contributions.add_contribution(project, 'A')
+        self.assertFalse(strategy.bid(Project(
+            inventory,
+            project_id=0,
+            project_length=5
+        ), worker))
+
+    @patch('superscript_model.model.SuperScriptModel')
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_accept(self, mock_allocator, mock_model):
+        mock_model.p_budget_flexibility = 0.25
+        project = Project(ProjectInventory(mock_allocator,
+                                           model=mock_model),
+                          project_id=42,
+                          project_length=2)
+        strategy = StakeStrategy('test')
         self.assertTrue(strategy.accept(project))
 
 
