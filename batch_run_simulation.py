@@ -16,7 +16,7 @@ import sys, os, shutil
 
 # Name for this batch of simulations:
 # (Note: should include date and code version number)
-BATCH_NAME = 'testing_new_roi_new_network_format'  # 'new_skill_decay_project_per_step_2_dep_wl_03_110621_v1.0'
+BATCH_NAME = 'testing_new_roi_new_network_format_v2'  # 'new_skill_decay_project_per_step_2_dep_wl_03_110621_v1.0'
 
 # These global configuration values override config.py and will be
 # used in all the simulations:

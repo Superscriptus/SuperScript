@@ -151,7 +151,7 @@ class SocialNetwork(NetworkGrid):
                 nx.write_multiline_adjlist(
                     self.G,
                     self.model.io_dir
-                    + '/networkewr_%d_timestep_%d.adjlist'
+                    + '/network_rep_%d_timestep_%d.adjlist'
                     % (self.model.rep_id, self.model.time)
                 )
                 self.old_G = self.G.copy()

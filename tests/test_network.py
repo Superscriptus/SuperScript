@@ -59,6 +59,21 @@ class TestProject(unittest.TestCase):
 
     def test_track(self):
 
-        model = SuperScriptModel(10)
-        model.run_model(6)
-        self.assertNotEqual(model.grid.G, model.grid.old_G)
+        model = SuperScriptModel(3, department_count=1)
+        model.schedule.steps = 2
+        model.grid.G = nx.Graph()
+        model.grid.G.add_edge(1, 2, width=2)
+        model.grid.old_G = nx.Graph()
+        model.grid.old_G.add_edge(1, 2, width=1)
+
+        model.grid.track()
+        self.assertGreater(len(model.grid.G.edges), 0)
+        self.assertEqual(model.grid.G.edges, model.grid.old_G.edges)
+        self.assertGreater(
+            len(set(model.grid.old_G.edges()).intersection(model.grid.G.edges())),
+            0
+        )
+        self.assertGreater(
+            len(model.grid.network_difference[model.time]['edges_to_increment']),
+            0
+        )
