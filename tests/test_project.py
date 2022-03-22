@@ -220,6 +220,7 @@ class TestSuccessCalculator(unittest.TestCase):
     @patch('superscript_model.model.SuperScriptModel')
     def test_determine_success(self, mock_model, mock_allocator):
         mock_model.p_budget_flexibility = 0.25
+        mock_model.schedule.steps = 1
         inventory = ProjectInventory(mock_allocator,
                                      model=mock_model)
         project = Project(inventory, 42)
@@ -227,6 +228,8 @@ class TestSuccessCalculator(unittest.TestCase):
         self.assertTrue(
             inventory.success_calculator.determine_success(project)
         )
+        inventory.success_calculator.determine_success(project)
+        self.assertEqual(inventory.success_history[1], 2)
         project.success_probability = 0
         self.assertFalse(
             inventory.success_calculator.determine_success(project)
