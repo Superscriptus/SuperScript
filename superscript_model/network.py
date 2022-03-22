@@ -201,11 +201,12 @@ class SocialNetwork(NetworkGrid):
         of the simulation, it is possible to reconstruct the network state
         at each timestep.
         """
-        file_path = (
-                self.model.io_dir
-                + '/network_dfference_rep_%d.json'
-                % self.model.rep_id
-        )
+        if self.model.save_network_flag:
+            file_path = (
+                    self.model.io_dir
+                    + '/network_dfference_rep_%d.json'
+                    % self.model.rep_id
+            )
 
-        with open(file_path, 'w') as ofile:
-            json.dump(self.network_difference, ofile, indent=4)
+            with open(file_path, 'w') as ofile:
+                json.dump(self.network_difference, ofile, indent=4)

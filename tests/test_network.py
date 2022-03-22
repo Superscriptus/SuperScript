@@ -56,3 +56,9 @@ class TestProject(unittest.TestCase):
         model.grid.add_team_edges(team)
         self.assertTrue((0, 1) in model.grid.G.edges())
         self.assertEqual(model.grid.G[0][1]['weight'], 2)
+
+    def test_track(self):
+
+        model = SuperScriptModel(10)
+        model.run_model(6)
+        self.assertNotEqual(model.grid.G, model.grid.old_G)

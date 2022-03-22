@@ -322,4 +322,5 @@ class SuperScriptModel(Model):
         for i in range(step_count):
             self.step()
 
+        self.grid.save_diff()
         self.inventory.save_projects()
