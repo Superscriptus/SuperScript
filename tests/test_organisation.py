@@ -132,8 +132,7 @@ class TestTeam(unittest.TestCase):
 
     @patch('superscript_model.model.Model')
     @patch('superscript_model.organisation.TeamAllocator')
-    @patch('superscript_model.organisation.Department')
-    def test_compute_ovr(self, mock_dept, mock_allocator, mock_model):
+    def test_compute_ovr(self, mock_allocator, mock_model):
 
         dept = Department(0, mock_model)
         workers = [Worker(i, mock_model, dept) for i in range(5)]
@@ -577,6 +576,30 @@ class TestDepartment(unittest.TestCase):
         dept.add_training(worker, 5)
         # worker.model.trainer.train(worker)
 
+    def test_assign_work(self):
+
+        model = SuperScriptModel(
+            worker_count=2,
+            department_count=1,
+            departmental_workload=0.8,
+            worker_strategy='AllIn',
+            organisation_strategy='Basin',
+            budget_functionality_flag=False
+        )
+        model.inventory.create_projects(1, time=0, length=5)
+        model.inventory.projects[0].start_time = 0
+
+        for worker in model.schedule.agents:
+            for skill in ['A', 'B', 'C', 'D', 'E']:
+                worker.contributions.add_contribution(model.inventory.projects[0], skill)
+
+        model.departments[0].assign_work('verbose')
+
+        self.assertLess(
+            sum(worker.departmental_work_units for worker in model.schedule.agents) / 20,
+            0.8
+        )
+
 
 class TestTrainer(unittest.TestCase):
 
@@ -663,4 +686,37 @@ class TestTrainer(unittest.TestCase):
         mock_model.training_mode = 'not_implemented'
         trainer.train()
 
+    @patch('superscript_model.model.Model')
+    @patch('superscript_model.organisation.TeamAllocator')
+    def test_training_boost(self, mock_allocator, mock_model):
 
+        mock_model.schedule = RandomActivation(mock_model)
+        mock_model.inventory = ProjectInventory(
+            mock_allocator, model=mock_model
+        )
+        mock_model.inventory.total_skill_requirement = {
+            'A': 10, 'B': 9
+        }
+
+        trainer = Trainer(mock_model)
+        dept = Department(0, mock_model)
+        workers = []
+        for i in range(5):
+            w = Worker(i, mock_model, department=dept)
+            w.skills.hard_skills = dict(
+                zip(HARD_SKILLS, [i + 1 for s in HARD_SKILLS])
+            )
+            workers.append(w)
+            mock_model.schedule.add(w)
+
+        mock_model.training_mode = 'all'
+
+        trainer.update_skill_quartiles()
+        trainer.training_boost()
+
+        for skill in ['A', 'B', 'C', 'D', 'E']:
+            self.assertEqual(workers[0].skills.hard_skills[skill], 4)
+            self.assertEqual(workers[1].skills.hard_skills[skill], 4)
+            self.assertEqual(workers[2].skills.hard_skills[skill], 3)
+            self.assertEqual(workers[3].skills.hard_skills[skill], 4)
+            self.assertEqual(workers[4].skills.hard_skills[skill], 5)
