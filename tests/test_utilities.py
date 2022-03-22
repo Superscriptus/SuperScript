@@ -1,4 +1,5 @@
 import unittest
+import numpy as np
 
 from superscript_model.utilities import Random
 
@@ -42,3 +43,12 @@ class TestRandom(unittest.TestCase):
         self.assertEqual(set(test_list),
                          set([1, 2, 3, 4]))
 
+    def test_weighted_choice(self):
+        r = Random()
+        ls = [1, 2, 3]
+        choice = r.weighted_choice(ls, 4)
+        self.assertEqual(ls, choice)
+
+        p = [np.nan, 0.1, 0.3]
+        choice = r.weighted_choice(ls, 3, p=p)
+        self.assertEqual(len(choice), 3)
